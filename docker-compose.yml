@@ -1,0 +1,8 @@
+
+  
+version: '3.8'
+
+services:
+    back-end:
+        build: .
+        network_mode: host
