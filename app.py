@@ -1,5 +1,4 @@
 
-  
 import pymongo
 from pymongo import MongoClient
 from flask import Flask, request, jsonify, make_response
@@ -20,7 +19,7 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 
 
 ## routes
-@app.route('/api/tools', methods=['POST'])
+@app.route('/tools', methods=['GET'])
 @cross_origin(origin='*',headers=['Content-Type'])
 def tools():
     try:
@@ -42,7 +41,7 @@ def tools():
         resp.set_cookie('cross-site-cookie', 'bar', samesite='Lax', secure=True)
         return resp
 
-@app.route('/api/get_tool', methods=['POST'])
+@app.route('/get_tool', methods=['GET'])
 @cross_origin(origin='*',headers=['Content-Type'])
 def get_message():
     try:
@@ -63,4 +62,4 @@ def get_message():
 
 # Start the app
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=3000)
