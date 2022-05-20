@@ -1,24 +1,88 @@
 
 import pymongo
+import configparser
+
 from pymongo import MongoClient
 from flask import Flask, request, jsonify, make_response
 from flask_cors import CORS,cross_origin
 
+# connecting to db
+config = configparser.ConfigParser()
+config.read('config_db.ini')
+DBHOST = config['MONGO_DETAILS']['DBHOST']
+DBPORT = config['MONGO_DETAILS']['DBPORT']
+DATABASE = config['MONGO_DETAILS']['DATABASE']
+TOOLS = config['MONGO_DETAILS']['TOOLS']
+ALAMBIQUE = config['MONGO_DETAILS']['ALAMBIQUE']
+STATS = config['MONGO_DETAILS']['STATS']
+
+connection = MongoClient(DBHOST, int(DBPORT))
+collection = connection[DATABASE][TOOLS]
+stats = connection[DATABASE][STATS]
+
+def latest_count():
+    record = list(stats.find().sort("version",-1).limit(1))
+    return(record)
+
+def version_count(version):
+    try:
+        record = list(stats.find({'version':version}))
+    except Exception:
+        return(Exception)
+    else:
+        return(record)
+
+        
 ## Init app
 app = Flask(__name__)
-
-## Connect DB
-
-client = MongoClient('localhost', 27017)
-db = client.FAIRsoft
-collection = db.tools
 
 ## CORS
 CORS(app,resources={r"/api": {"origins": "*"}})
 app.config['CORS_HEADERS'] = 'Content-Type'
 
 
-## routes
+def process_request(action, parameters):
+    try:
+        data = action(parameters)
+        
+    except Exception as err:
+        resp = make_response(err, 400)
+        print(err)
+    else:
+        data = data
+        print(data)
+        resp = make_response(jsonify(data), 201)
+    finally:
+        return resp
+
+
+def action_counts_source(parameters):
+    try:
+        if request.args.get('version'):
+            if request.args.get('version') == 'latest':
+                docs = latest_count()
+            else:
+                version = request.args.get('version'+1)
+                docs = version_count(version)
+        else:
+            docs = latest_count()
+
+    except Exception as err:
+        return(('An error occurred while trying to fetch your queried data.'
+                ' Please, check the version in your query and retry.'
+                f' Error message: {str(err)}'))
+    else:
+        print(docs)
+        [entry.pop('_id') for entry in docs]
+    return(docs)
+
+
+@app.route('/tools_per_source')
+def counts_per_source():
+    resp = process_request(action_counts_source, request.args)
+    return(resp)
+
+
 @app.route('/tools', methods=['GET'])
 @cross_origin(origin='*',headers=['Content-Type'])
 def tools():
@@ -30,15 +94,13 @@ def tools():
             'tools' : tools
         }
     except Exception as err:
-        data = {'message': 'Something went wrong while fetching tool entries', 'code': 'ERROR'}
+        data = {'message': f'Something went wrong while fetching tool entries: {err}', 'code': 'ERROR'}
         resp = make_response(data, 400)
         print(err)
     else:
         data = {'message': data, 'code': 'SUCCESS'}
         resp = make_response(jsonify(data), 201)
     finally:
-        resp.set_cookie('same-site-cookie', 'foo', samesite='Lax')
-        resp.set_cookie('cross-site-cookie', 'bar', samesite='Lax', secure=True)
         return resp
 
 @app.route('/get_tool', methods=['GET'])
@@ -56,9 +118,11 @@ def get_message():
         data = {'message': data, 'code': 'SUCCESS'}
         resp = make_response(jsonify(data), 201)
     finally:
-        resp.set_cookie('same-site-cookie', 'foo', samesite='Lax')
-        resp.set_cookie('cross-site-cookie', 'bar', samesite='Lax', secure=True)
         return resp
+
+
+
+
 
 # Start the app
 if __name__ == '__main__':
