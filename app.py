@@ -21,16 +21,24 @@ collection = connection[DATABASE][TOOLS]
 stats = connection[DATABASE][STATS]
 
 def latest_count():
-    record = list(stats.find().sort("version",-1).limit(1))
+    record = list(stats.find({
+        "variable":"tools_counts_per_source"
+        }).sort("version",-1).limit(1))
     return(record)
 
 def version_count(version):
     try:
-        record = list(stats.find({'version':version}))
+        record = list(stats.find({
+            "variable":"tools_counts_per_source",
+            "version":version}))
     except Exception:
         return(Exception)
     else:
         return(record)
+
+def total_count():
+    record = list(stats.find({"variable":"tools_count"}).sort("version",-1).limit(1))
+    return(record)
 
         
 ## Init app
@@ -50,11 +58,20 @@ def process_request(action, parameters):
         print(err)
     else:
         data = data
-        print(data)
         resp = make_response(jsonify(data), 201)
     finally:
         return resp
 
+def action_count_total(parameters):
+    try:
+        docs=total_count()
+    except Exception as err:
+        return(str(err))
+    else:
+        [entry.pop('_id') for entry in docs]
+    return(docs)
+
+    
 
 def action_counts_source(parameters):
     try:
@@ -77,9 +94,15 @@ def action_counts_source(parameters):
     return(docs)
 
 
-@app.route('/tools_per_source')
+@app.route('/stats/tool/count_per_source')
 def counts_per_source():
     resp = process_request(action_counts_source, request.args)
+    return(resp)
+
+
+@app.route('/stats/tool/count_total')
+def count_total():
+    resp = process_request(action_count_total, request.args)
     return(resp)
 
 
@@ -103,19 +126,20 @@ def tools():
     finally:
         return resp
 
-@app.route('/get_tool', methods=['GET'])
+@app.route('/tool/description', methods=['GET'])
 @cross_origin(origin='*',headers=['Content-Type'])
-def get_message():
+def description():
     try:
-        tool_name = request.args.get('tool_name')
+        tool_name = request.args.get('name')
         entry = collection.find_one({'name' : tool_name})
-        data = { 'name' : tool_name, 'description' : entry['description'][0]}
+        data = { 
+            'name' : tool_name,
+            'type': entry['type'],
+            'description' : entry['description'][0]}
     except Exception as err:
-        data = {'message': err, 'code': 'ERROR'}
-        resp = make_response(data, 400)
+        resp = make_response(err, 400)
         print(err)
     else:
-        data = {'message': data, 'code': 'SUCCESS'}
         resp = make_response(jsonify(data), 201)
     finally:
         return resp
