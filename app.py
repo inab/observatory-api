@@ -94,13 +94,13 @@ def action_counts_source(parameters):
     return(docs)
 
 
-@app.route('/stats/tool/count_per_source')
+@app.route('/stats/tools/count_per_source')
 def counts_per_source():
     resp = process_request(action_counts_source, request.args)
     return(resp)
 
 
-@app.route('/stats/tool/count_total')
+@app.route('/stats/tools/count_total')
 def count_total():
     resp = process_request(action_count_total, request.args)
     return(resp)
