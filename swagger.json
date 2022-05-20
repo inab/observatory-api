@@ -1,0 +1,271 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "This is the documentation of the OPEB Software Observatory API",
+    "version": "0.1.0",
+    "title": "Software Observatory API",
+    "termsOfService": "/",
+    "contact": {
+      "email": "eva.martin@bsc.es"
+    },
+    "license": {
+      "name": "Apache 2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+    }
+  },
+  "host": "observatory.openebench.bsc.es",
+  "basePath": "/api/",
+  "schemes": [
+    "https",
+    "http"
+  ],
+  "paths": {
+    "/tools": {
+      "get": {
+        "summary": "Retrieve all tool entries in the Observatoery's database",
+        "description": "",
+        "operationId": "getTools",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "400": {
+            "description": "Something went wrong with the retrieval"
+          }
+        }
+      }
+    },
+    "/stats/tools/count_per_source": {
+      "get": {
+        "tags": [
+          "stats"
+        ],
+        "summary": "Get number of instances per source",
+        "description": "Retrieve counts of instances found in each metadata source (bio.tools, Bioconda, Galaxy, etc)",
+        "operationId": "getToolsPerSource",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "version",
+            "in": "query",
+            "description": "Version of dataset from which to get the counts of instances. ",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "latest"
+            ]
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "successful operation",
+            "schema": {
+              "$ref": "#/definitions/Counts"
+            }
+          },
+          "400": {
+            "description": "Something went wrong with the retrieval. Probably an error in the server."
+          }
+        }
+      }
+    },
+    "/stats/tools/count_total": {
+      "get": {
+        "tags": [
+          "stats"
+        ],
+        "summary": "Get total number of instances.",
+        "description": "Retrieve the count of all instances in the dataset.",
+        "operationId": "getTotalTools",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "version",
+            "in": "query",
+            "description": "Version of dataset from which to get the count of instances. ",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "latest"
+            ]
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "successful operation",
+            "schema": {
+              "$ref": "#/definitions/TotalCount"
+            }
+          },
+          "400": {
+            "description": "Something went wrong with the retrieval. Probably an error in the server."
+          }
+        }
+      }
+    },
+    "/tool/description": {
+      "get": {
+        "tags": [
+          "tool"
+        ],
+        "summary": "Get tool description",
+        "description": "Get description of a tool given its name. The description is taken randomly among the different intances regarless of version and type (cmd, suite, lib, web app, etc)",
+        "operationId": "getToolDescription",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "description": "Name of tool",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "successful operation",
+            "schema": {
+              "$ref": "#/definitions/Description"
+            }
+          },
+          "400": {
+            "description": "Something went wrong with the retrieval. Probably an error in the server."
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "Counts": {
+      "type": "object",
+      "properties": {
+        "variable": {
+          "type": "string",
+          "default": "tools_counts_per_source",
+          "description": "Identifier of the kind of content requested."
+        },
+        "version": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "data": {
+          "type": "array",
+          "description": "Counts per source",
+          "items": {
+            "type": "object",
+            "properties": {
+              "source": {
+                "type": "string"
+              },
+              "count": {
+                "type": "integer",
+                "format": "int68"
+              }
+            }
+          }
+        }
+      },
+      "example": {
+        "variable": "tools_counts_per_source",
+        "version": "20/05/2022 11:45:10",
+        "data": [
+          {
+            "source": "biotools",
+            "count": 22809
+          },
+          {
+            "source": "bioconductor",
+            "count": 1905
+          },
+          {
+            "source": "github",
+            "count": 6549
+          },
+          {
+            "source": "galaxy",
+            "count": 6549
+          },
+          {
+            "source": "opeb_metrics",
+            "count": 31056
+          },
+          {
+            "source": "toolshed",
+            "count": 5057
+          },
+          {
+            "source": "sourceforge",
+            "count": 1673
+          },
+          {
+            "source": "bitbucket",
+            "count": 291
+          },
+          {
+            "source": "bioconda",
+            "count": 14066
+          }
+        ]
+      }
+    },
+    "TotalCount": {
+      "type": "object",
+      "properties": {
+        "variable": {
+          "type": "string",
+          "default": "tools_count",
+          "description": "Identifier of the kind of content requested."
+        },
+        "version": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "data": {
+          "type": "integer",
+          "description": "Number of tools",
+          "format": "int68"
+        }
+      },
+      "example": {
+        "variable": "tools_count",
+        "version": "20/05/2022 11:45:10",
+        "data": 40613
+      }
+    },
+    "Description": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "cmd",
+            "lib",
+            "suite",
+            "db",
+            "worflow",
+            "web",
+            "api",
+            "app"
+          ]
+        }
+      },
+      "example": {
+        "name": "trimal",
+        "description": "Tool for the automated removal of spurious sequences or poorly aligned regions from a multiple sequence alignment.",
+        "type": "cmd"
+      }
+    }
+  }
+}
