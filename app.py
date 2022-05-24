@@ -95,12 +95,14 @@ def action_counts_source(parameters):
 
 
 @app.route('/stats/tools/count_per_source')
+@cross_origin(origin='*',headers=['Content-Type'])
 def counts_per_source():
     resp = process_request(action_counts_source, request.args)
     return(resp)
 
 
 @app.route('/stats/tools/count_total')
+@cross_origin(origin='*',headers=['Content-Type'])
 def count_total():
     resp = process_request(action_count_total, request.args)
     return(resp)
