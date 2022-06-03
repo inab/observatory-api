@@ -99,6 +99,7 @@ def compute_FAIR_scores():
     for p in ids.keys():
             for e in ids[p]:
                 np.random.shuffle(scores[p][e])
+                scores[p][e] = scores[p][e][:500]
 
     data = {
         'variable': 'FAIR_scores',
