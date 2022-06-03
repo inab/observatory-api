@@ -40,6 +40,10 @@ def total_count():
     record = list(stats.find({"variable":"tools_count"}).sort("version",-1).limit(1))
     return(record)
 
+def FAIR_scores():
+    record = list(stats.find({"variable":"FAIR_scores"}).sort("version",-1).limit(1))
+    return(record)
+
         
 ## Init app
 app = Flask(__name__)
@@ -62,6 +66,15 @@ def process_request(action, parameters):
     finally:
         return resp
 
+def action_fair_scores(parameters):
+    try:
+        docs=FAIR_scores()
+    except Exception as err:
+        return(str(err))
+    else:
+        [entry.pop('_id') for entry in docs]
+    return(docs)
+
 def action_count_total(parameters):
     try:
         docs=total_count()
@@ -71,7 +84,6 @@ def action_count_total(parameters):
         [entry.pop('_id') for entry in docs]
     return(docs)
 
-    
 
 def action_counts_source(parameters):
     try:
@@ -105,6 +117,12 @@ def counts_per_source():
 @cross_origin(origin='*',headers=['Content-Type'])
 def count_total():
     resp = process_request(action_count_total, request.args)
+    return(resp)
+
+@app.route('/stats/tools/fair_scores')
+@cross_origin(origin='*',headers=['Content-Type'])
+def fair_scores():
+    resp = process_request(action_fair_scores, request.args)
     return(resp)
 
 
