@@ -6,6 +6,7 @@ import FAIRsoft
 
 from pymongo import MongoClient
 from datetime import datetime
+import numpy as np
 from FAIRsoft.indicators_evaluation import FAIR_indicators_eval
 
 
@@ -94,7 +95,11 @@ def compute_FAIR_scores():
         for p in ids.keys():
             for e in ids[p]:
                 scores[p][e].append(float(round(inst[e], 2)))
-    
+    print(scores)
+    for p in ids.keys():
+            for e in ids[p]:
+                np.random.shuffle(scores[p][e])
+
     data = {
         'variable': 'FAIR_scores',
         'version': datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
