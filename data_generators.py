@@ -1,5 +1,4 @@
 
-from this import s
 import pymongo
 import json
 import configparser
@@ -74,24 +73,9 @@ def count_tools():
     }
     stats.insert_one(count)
 
-
-   
+  
 #count_tools_per_source()
 #count_tools()
-
-def distribution_of_scores(scores):
-    '''
-    Compute distribution of a set of values
-    '''
-    for p in ids.keys():
-        for e in ids[p]:
-            scores[p][e] = np.array(scores[p][e])
-            scores[p][e] = scores[p][e].astype(np.float)
-            scores[p][e] = Counter(scores[p][e])
-            scores[p][e] = {k: v for k, v in sorted(scores[p][e].items(), key=lambda item: item[0])}
-
-    return scores
-
 ids = {'F':['F3','F2', 'F1'],
        'A':['A3', 'A1'],
        'I':['I3', 'I2', 'I1'],
@@ -118,6 +102,42 @@ def scores_in_dict(metrics):
 
     return scores
 
+def distribution_of_scores(scores):
+    '''
+    Compute distribution of a set of values
+    '''
+    for p in ids.keys():
+        for e in ids[p]:
+            scores[p][e] = np.array(scores[p][e])
+            scores[p][e] = scores[p][e].astype(np.float)
+            scores[p][e] = Counter(scores[p][e])
+            scores[p][e] = {k: v for k, v in sorted(scores[p][e].items(), key=lambda item: item[0])}
+
+    return scores
+
+
+def set_from_dist(dist: 'distribution of the synthetic set', 
+                       N:'number of appearances of the least frequent value'
+                       ):
+    '''
+    Generate a set of values following a given distribution. 
+    '''
+    values = []
+    for value in dist.keys():
+        values.extend([value]*int(dist[value]*N))
+ 
+    return values
+
+def generate_synthetic_score_sets(scores):
+    '''
+    Generate synthetic sets of FAIR scores based on score distributions
+    '''
+    synt_scores = {}
+    for p in ids.keys():
+        synt_scores[p] = {}
+        for e in ids[p]:
+            synt_scores[p][e] = set_from_dist(scores[p][e], 1)
+    return synt_scores
 
 def compute_FAIR_scores_distributions():
     '''
@@ -125,24 +145,17 @@ def compute_FAIR_scores_distributions():
     '''
     
     metrics = FAIR_indicators_eval.computeScores()
-
     scores = scores_in_dict(metrics[:5])
-    print(scores)
-    scores = distribution_of_scores(scores)
-    print(scores)
-    '''
-    for p in ids.keys():
-        for e in ids[p]:
-            np.random.shuffle(scores[p][e])
-            scores[p][e] = scores[p][e][:500]
-    '''
+    distributions = distribution_of_scores(scores)
+    synt_scores = generate_synthetic_score_sets(distributions)
+
     data = {
         'variable': 'FAIR_scores',
         'version': datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
-        'data': scores
+        'data': synt_scores
     }
 
-    #stats.insert_one(data)
+    stats.insert_one(data)
 
 
 
