@@ -6,6 +6,7 @@ import FAIRsoft
 
 from pymongo import MongoClient
 from datetime import datetime
+from collections import Counter
 import numpy as np
 from FAIRsoft.indicators_evaluation import FAIR_indicators_eval
 
@@ -73,33 +74,57 @@ def count_tools():
     stats.insert_one(count)
 
 
+   
 #count_tools_per_source()
 #count_tools()
-def compute_FAIR_scores():
-    metrics = FAIR_indicators_eval.computeScores()
-    ids = {'F':['F3','F2', 'F1'],
+
+def distributionOfSet(sample):
+    '''
+    Compute distribution of a set of values
+    '''
+    distribution = Counter(sample)  
+    return distribution
+
+ids = {'F':['F3','F2', 'F1'],
        'A':['A3', 'A1'],
        'I':['I3', 'I2', 'I1'],
        'R':['R4', 'R3', 'R2', 'R1']
       }
 
+def scores_in_dict(metrics):
+    '''
+    From a list of scores by instance, returns a dictinary of
+    scores by principle
+    '''
     # initializing dict with scores
     scores = {}
     for p in ids.keys():
         scores[p]={}
         for e in ids[p]:
             scores[p][e] = []
-    print(scores)
-    # populating dict with scores
+
+    # populating indicators dict with scores
     for inst in metrics:
         for p in ids.keys():
             for e in ids[p]:
                 scores[p][e].append(float(round(inst[e], 2)))
+
+    return scores
+
+
+def compute_FAIR_scores_distributions():
+    '''
+    Compute FAIR score distributions by principle
+    '''
+    
+    metrics = FAIR_indicators_eval.computeScores()
+
+    scores = scores_in_dict(metrics[:5])
     print(scores)
     for p in ids.keys():
-            for e in ids[p]:
-                np.random.shuffle(scores[p][e])
-                scores[p][e] = scores[p][e][:500]
+        for e in ids[p]:
+            np.random.shuffle(scores[p][e])
+            scores[p][e] = scores[p][e][:500]
 
     data = {
         'variable': 'FAIR_scores',
@@ -107,7 +132,9 @@ def compute_FAIR_scores():
         'data': scores
     }
 
-    stats.insert_one(data)
+    #stats.insert_one(data)
 
 
-compute_FAIR_scores()
+
+
+compute_FAIR_scores_distributions()
