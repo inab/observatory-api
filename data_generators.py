@@ -1,4 +1,5 @@
 
+from this import s
 import pymongo
 import json
 import configparser
@@ -78,12 +79,18 @@ def count_tools():
 #count_tools_per_source()
 #count_tools()
 
-def distributionOfSet(sample):
+def distribution_of_scores(scores):
     '''
     Compute distribution of a set of values
     '''
-    distribution = Counter(sample)  
-    return distribution
+    for p in ids.keys():
+        for e in ids[p]:
+            scores[p][e] = np.array(scores[p][e])
+            scores[p][e] = scores[p][e].astype(np.float)
+            scores[p][e] = Counter(scores[p][e])
+            scores[p][e] = {k: v for k, v in sorted(scores[p][e].items(), key=lambda item: item[0])}
+
+    return scores
 
 ids = {'F':['F3','F2', 'F1'],
        'A':['A3', 'A1'],
@@ -121,11 +128,14 @@ def compute_FAIR_scores_distributions():
 
     scores = scores_in_dict(metrics[:5])
     print(scores)
+    scores = distribution_of_scores(scores)
+    print(scores)
+    '''
     for p in ids.keys():
         for e in ids[p]:
             np.random.shuffle(scores[p][e])
             scores[p][e] = scores[p][e][:500]
-
+    '''
     data = {
         'variable': 'FAIR_scores',
         'version': datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
