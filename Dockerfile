@@ -10,7 +10,7 @@ COPY requirements.txt ./
 # need git to install dependencies from github
 RUN apt-get update && \
     apt-get upgrade -y && \
-    apt-get install -y git
+    apt-get install -y git python3-pip
 
 # Install the dependencies
 RUN pip3 install -r requirements.txt
