@@ -1,5 +1,4 @@
 FROM python:3.6-alpine
-FROM ubuntu as intermediate
 
 # Working directory
 WORKDIR /app
