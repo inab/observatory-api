@@ -13,7 +13,7 @@ RUN apt-get update && \
     apt-get install -y git python3-pip
 
 # Install the dependencies
-RUN pip3 install FAIRsoft --extra-index-url https://gitlab-observatory-api:8zfe-4zvgbgk44DCsU-A@gitlab.bsc.es/api/v4/projects/1151/packages/pypi
+RUN pip3 install FAIRsoft --extra-index-url https://gitlab-observatory-api:8zfe-4zvgbgk44DCsU-A@gitlab.bsc.es/api/v4/projects/1151/packages/pypi/simple
 RUN pip3 install -r requirements.txt
 
 # Copy the files
