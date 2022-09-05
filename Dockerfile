@@ -4,6 +4,9 @@ FROM ubuntu
 # Working directory
 WORKDIR /app
 
+# Copy configuration file
+COPY config.ini /app/config.ini
+
 # Copy the dependencies
 COPY requirements.txt ./
 
