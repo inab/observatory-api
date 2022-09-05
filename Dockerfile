@@ -6,6 +6,11 @@ WORKDIR /app
 # Copy the dependencies
 COPY requirements.txt ./
 
+# need git to install dependencies from github
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install -y git
+
 # Install the dependencies
 RUN pip3 install -r requirements.txt
 
