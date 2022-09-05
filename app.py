@@ -6,8 +6,6 @@ from pymongo import MongoClient
 from flask import Flask, request, jsonify, make_response
 from flask_cors import CORS,cross_origin
 
-import db_query
-
 # connecting to db
 config = configparser.ConfigParser()
 config.read('dev_config_db.ini')
@@ -61,6 +59,8 @@ def query(func):
         
         if len(docs) == 0:
             return('No results found')
+        elif len(docs) == 1:
+            return(docs[0])
         else:
             return(docs)
         
