@@ -5,7 +5,7 @@ FROM ubuntu
 WORKDIR /app
 
 # Copy configuration file
-COPY config.ini /app/config.ini
+COPY dev_config_db.ini /app/dev_config_db.ini
 
 # Copy the dependencies
 COPY requirements.txt ./
