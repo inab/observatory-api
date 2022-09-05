@@ -1,6 +1,24 @@
 version: '3.8'
 
 services:
-    back-end:
-        build: .
+    
+    mongodb:
+        image: mongo
+        container_name: mongo_container_api
+        ports:
+        - "27017:27017"
+
+    mongo-seed:
+        build: ./mongo-compose/mongo-seed
+        depends_on:
+        - mongodb
+    
+    mongo-total:
+        build: ./mongo-compose/mongo-total
+        depends_on:
+        - mongodb
+
+    api:
+        image: registry.gitlab.bsc.es/inb/elixir/software-observatory/observatory-api:dev
         network_mode: host
+    

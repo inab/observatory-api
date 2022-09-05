@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo
+    container_name: mongo_container
+    ports:
+      - "27017:27017"
+
+  mongo-seed:
+    build: ./mongo-seed
+    depends_on:
+      - mongodb
+  
+  mongo-total:
+    build: ./mongo-total
+    depends_on:
+      - mongodb
