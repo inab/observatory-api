@@ -1,11 +1,9 @@
 FROM python:3.6-alpine
 FROM ubuntu
 
-# Working directory
-WORKDIR /app
 
 # Copy configuration file
-COPY dev_config_db.ini /app/dev_config_db.ini
+COPY dev_config_db.ini ./dev_config_db.ini
 
 # Copy the dependencies
 COPY requirements.txt ./
