@@ -1,7 +1,7 @@
 bibtexparser==1.3.0
 certifi==2022.6.15
 charset-normalizer==2.1.1
--e git+https://gitlab.bsc.es/inb/elixir/software-observatory/FAIRsoft_ETL.git@bba5c5ed6e701e8a79c6d53ba8f81de549ca4ae0#egg=FAIRsoft&subdirectory=FAIRsoft
+git+https://gitlab-observatory-api:8zfe-4zvgbgk44DCsU-A@gitlab.bsc.es/api/v4/projects/1151/packages/pypi/simple
 idna==3.3
 numpy==1.23.2
 pymongo==4.2.0
