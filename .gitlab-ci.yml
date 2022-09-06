@@ -4,8 +4,9 @@ stages:
 trigger_api:
   stage: triggers
   trigger:
-    - project: ./
+      project: ./
       file: .gitlab-ci-mongo.yml
+      brach: dev
   rules:
     - if: $CI_COMMIT_BRANCH
     - changes:
@@ -14,8 +15,10 @@ trigger_api:
 trigger_mongo_compose:
   stage: triggers
   trigger:
-    - project: mongo-compose
+      project: mongo-compose
       file: .gitlab-ci-mongo.yml
+      brach: dev
+
   rules:
     - if: $CI_COMMIT_BRANCH
     - changes:
