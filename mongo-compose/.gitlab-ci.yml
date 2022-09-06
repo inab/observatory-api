@@ -36,6 +36,6 @@ docker-build:
     - docker build --pull -t "$CI_REGISTRY_IMAGE/mongo-seed${tag}" ./mongo-compose/mongo-seed
     - docker push "$CI_REGISTRY_IMAGE/mongo-seed${tag}"
     # Container 2: collections
-    - docker build --pull -t "$CI_REGISTRY_IMAGE/mongo-total${tag}" ./comfo-compose/mongo-total
+    - docker build --pull -t "$CI_REGISTRY_IMAGE/mongo-total${tag}" ./mongo-compose/mongo-total
     - docker push "$CI_REGISTRY_IMAGE/mongo-total${tag}"
 
