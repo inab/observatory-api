@@ -41,5 +41,5 @@ docker-build:
   rules:
     - if: $CI_COMMIT_BRANCH
       exists:
-        - ./mongo-compose/mongo-seed/Dockerfile
-        - ./mongo-compose/mongo-total/Dockerfile
+        - ./mongo-seed/Dockerfile
+        - ./mongo-total/Dockerfile
