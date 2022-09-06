@@ -1,19 +1,21 @@
 stages:
   - triggers
 
-trigger_a:
+trigger_api:
   stage: triggers
   trigger:
-    include: .gitlab-ci-main.yml
+    - project: .
+      file: .gitlab-ci-mongo.yml
   rules:
     - if: $CI_COMMIT_BRANCH
     - changes:
         - ./*
 
-trigger_b:
+trigger_mongo_compose:
   stage: triggers
   trigger:
-    include: .gitlab-ci-mongo.yml
+    - project: mongo-compose
+      file: .gitlab-ci-mongo.yml
   rules:
     - if: $CI_COMMIT_BRANCH
     - changes:
