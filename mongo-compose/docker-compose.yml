@@ -5,7 +5,7 @@ services:
     image: mongo
     container_name: mongo_container
     ports:
-      - "27017:27017"
+      - "27020:27017"
 
   mongo-seed:
     build: ./mongo-seed
