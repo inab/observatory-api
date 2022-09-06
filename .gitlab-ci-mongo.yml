@@ -31,15 +31,15 @@ docker-build:
       fi
     # Two containers are built 
     # Container 1: all tools
-    - docker build --pull -t "$CI_REGISTRY_IMAGE${tag}/mongo-seed" ./mongo-seed
+    - docker build --pull -t "$CI_REGISTRY_IMAGE${tag}/mongo-seed" ./mongo-compose/mongo-seed
     - docker push "$CI_REGISTRY_IMAGE${tag}/mongo-seed"
     # Container 2: collections
-    - docker build --pull -t "$CI_REGISTRY_IMAGE${tag}/mongo-total" ./mongo-total
+    - docker build --pull -t "$CI_REGISTRY_IMAGE${tag}/mongo-total" ./mongo-compose/mongo-total
     - docker push "$CI_REGISTRY_IMAGE${tag}/mongo-total"
 
   # Run this job in a branch where a Dockerfile exists
   rules:
     - if: $CI_COMMIT_BRANCH
       exists:
-        - ./mongo-seed/Dockerfile
-        - ./mongo-total/Dockerfile
+        - ./mongo-compose/mongo-seed/Dockerfile
+        - ./mongo-compose/mongo-total/Dockerfile
