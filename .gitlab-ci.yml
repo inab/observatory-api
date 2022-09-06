@@ -2,12 +2,10 @@ stages:
   - triggers
 
 trigger_api:
-  stage: triggers
   trigger:
       include: api-ci/.gitlab-ci.yml
 
 trigger_mongo_compose:
-  stage: triggers
   trigger:
       include: mongo-compose/.gitlab-ci.yml
 
