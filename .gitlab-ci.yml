@@ -7,11 +7,12 @@ trigger_a:
     include: .gitlab-ci-main.yml
   rules:
     - changes:
-        - ./*
+        - ./
 trigger_b:
   stage: triggers
   trigger:
     include: mongo-compose/.gitlab-ci.yml
   rules:
+    - if: $CI_COMMIT_BRANCH
     - changes:
         - mongo-compose/*
