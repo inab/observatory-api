@@ -7,8 +7,7 @@ trigger_a:
     include: .gitlab-ci-main.yml
   rules:
     - changes:
-        - *
-
+        - ./*
 trigger_b:
   stage: triggers
   trigger:
