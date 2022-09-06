@@ -11,7 +11,7 @@
 # for the default branch and all other (MR) branches.
 stages: 
   - build
-  
+
 docker-build:
   # Use the official docker image.
   image: docker:latest
@@ -39,9 +39,3 @@ docker-build:
     - docker build --pull -t "$CI_REGISTRY_IMAGE${tag}/mongo-total" ./mongo-compose/mongo-total
     - docker push "$CI_REGISTRY_IMAGE${tag}/mongo-total"
 
-  # Run this job in a branch where a Dockerfile exists
-  rules:
-    - if: $CI_COMMIT_BRANCH
-      exists:
-        - ./mongo-seed/Dockerfile
-        - ./mongo-total/Dockerfile
