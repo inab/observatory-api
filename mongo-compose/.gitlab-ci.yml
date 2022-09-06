@@ -33,9 +33,9 @@ docker-build:
       fi
     # Two containers are built 
     # Container 1: all tools
-    - docker build --pull -t "$CI_REGISTRY_IMAGE${tag}/mongoseed" ./mongo-seed
-    - docker push "$CI_REGISTRY_IMAGE${tag}/mongoseed"
+    - docker build --pull -t "$CI_REGISTRY_IMAGE/mongo-seed${tag}" ./mongo-seed
+    - docker push "$CI_REGISTRY_IMAGE/mongo-seed${tag}"
     # Container 2: collections
-    - docker build --pull -t "$CI_REGISTRY_IMAGE${tag}/mongototal" ./mongo-total
-    - docker push "$CI_REGISTRY_IMAGE${tag}/mongototal"
+    - docker build --pull -t "$CI_REGISTRY_IMAGE/mongo-total${tag}" ./mongo-total
+    - docker push "$CI_REGISTRY_IMAGE/mongo-total${tag}"
 
