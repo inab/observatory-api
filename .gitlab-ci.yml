@@ -4,7 +4,7 @@ stages:
 trigger_api:
   stage: triggers
   trigger:
-    - project: .
+    - project: ./
       file: .gitlab-ci-mongo.yml
   rules:
     - if: $CI_COMMIT_BRANCH
