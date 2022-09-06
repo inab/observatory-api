@@ -9,6 +9,7 @@ trigger_a:
     - if: $CI_COMMIT_BRANCH
     - changes:
         - ./*
+
 trigger_b:
   stage: triggers
   trigger:
