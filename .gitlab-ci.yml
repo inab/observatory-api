@@ -3,7 +3,7 @@ image: node:latest
 pages:
   stage: deploy
   script:
-  - npm install -g redoc-cli
+  - sudo npm install -g redoc-cli
   - redoc-cli bundle -o public/index.html swagger/swagger.json
   artifacts:
     paths:
