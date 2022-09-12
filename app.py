@@ -198,6 +198,13 @@ def fair_scores():
     resp = process_request(action_fair_scores_query, request.args)
     return(resp)
 
+# FAIR scores summary
+@app.route('/stats/tools/fair_scores_summary')
+@cross_origin(origin='*',headers=['Content-Type'])
+def fair_scores_summary():
+    resp = make_query('FAIR_scores_summary', request.args)
+    return(resp)
+
 #####
 ## Requests regarding docs in `tools_collection` collection
 ####
