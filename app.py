@@ -117,21 +117,8 @@ def make_query(variable_name, parameters):
 ## Requests regarding docs in `stats` collection
 ####
 
-# Number of Tools per source
-@app.route('/stats/tools/count_per_source')
-@cross_origin(origin='*',headers=['Content-Type'])
-def counts_per_source():
-    resp =  make_query('tools_counts_per_source', request.args)
-    #resp = process_request(counts_source_query, request.args)
-    return(resp)
 
-# Total Number of tools
-@app.route('/stats/tools/count_total')
-@cross_origin(origin='*',headers=['Content-Type'])
-def count_total():
-    resp = make_query('tools_count', request.args)
-    return(resp)
-
+####### Trends 
 
 # licenses-sunburst - licenses_summary_sunburst
 @app.route('/stats/tools/licenses_summary_sunburst')
@@ -169,12 +156,36 @@ def version_control_repositories():
     resp = make_query('version_control_repositories', request.args)
     return(resp)
 
-# types tools - types_count
-@app.route('/stats/tools/types_count')
+#### Data 
+
+# Number of Tools per source
+@app.route('/stats/tools/count_per_source')
 @cross_origin(origin='*',headers=['Content-Type'])
-def types_count():
-    resp = make_query('types_count', request.args)
+def counts_per_source():
+    resp =  make_query('tools_counts_per_source', request.args)
+    #resp = process_request(counts_source_query, request.args)
     return(resp)
+
+# Total Number of tools
+@app.route('/stats/tools/count_total')
+@cross_origin(origin='*',headers=['Content-Type'])
+def count_total():
+    resp = make_query('tools_count', request.args)
+    return(resp)
+
+# features 
+@app.route('/stats/tools/features')
+@cross_origin(origin='*',headers=['Content-Type'])
+def features():
+    resp = make_query('features', request.args)
+    return(resp)
+
+# coverage of sources
+@app.route('/stats/tools/coverage_sources')
+@cross_origin(origin='*',headers=['Content-Type'])
+def coverage_sources():
+    resp = make_query('coverage_sources', request.args)
+    return(resp)   
 
 # features cummulative - features_cummulative
 @app.route('/stats/tools/features_cummulative')
@@ -190,6 +201,14 @@ def distribution_features():
     resp = make_query('distribution_features', request.args)
     return(resp)
 
+# types tools - types_count
+@app.route('/stats/tools/types_count')
+@cross_origin(origin='*',headers=['Content-Type'])
+def types_count():
+    resp = make_query('types_count', request.args)
+    return(resp)
+
+#### FAIRness
 
 # FAIR scores
 @app.route('/stats/tools/fair_scores')
@@ -208,6 +227,7 @@ def fair_scores_summary():
 #####
 ## Requests regarding docs in `tools_collection` collection
 ####
+
 # Retrieve all tools
 @app.route('/tools', methods=['GET'])
 @cross_origin(origin='*',headers=['Content-Type'])
