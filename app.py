@@ -8,7 +8,7 @@ from flask_cors import CORS,cross_origin
 
 # connecting to db
 config = configparser.ConfigParser()
-config.read('dev_config_db.ini')
+config.read('config_db.ini')
 DBHOST = config['MONGO_DETAILS']['DBHOST']
 DBPORT = config['MONGO_DETAILS']['DBPORT']
 DATABASE = config['MONGO_DETAILS']['DATABASE']

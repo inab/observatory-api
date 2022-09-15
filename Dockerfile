@@ -3,7 +3,7 @@ FROM ubuntu
 
 
 # Copy configuration file
-COPY dev_config_db.ini ./dev_config_db.ini
+COPY config_db.ini ./config_db.ini
 
 # Copy the dependencies
 COPY requirements.txt ./
