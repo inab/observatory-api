@@ -1,18 +1,17 @@
 version: '3.8'
 
 services:
-  mongodb:
-    image: mongo
-    container_name: mongo_container
-    ports:
-      - "27020:27017"
+    mongodb:
+        image: mongo:4.2
+        ports:
+        - "27017:27017"
 
-  mongo-seed:
-    build: ./mongo-seed
-    depends_on:
-      - mongodb
-  
-  mongo-total:
-    build: ./mongo-total
-    depends_on:
-      - mongodb
+    mongo-seed:
+        image: registry.gitlab.bsc.es/inb/elixir/software-observatory/observatory-api/mongo-seed:dev
+        depends_on:
+        - mongodb
+
+    mongo-total:
+        image: registry.gitlab.bsc.es/inb/elixir/software-observatory/observatory-api/mongo-total:dev
+        depends_on:
+        - mongodb
