@@ -10,7 +10,11 @@
 # This template uses one generic job with conditional builds
 # for the default branch and all other (MR) branches.
 stages: 
+  - test
   - build
+
+include:
+  - template: Code-Quality.gitlab-ci.yml
 
 docker-build:
   # Use the official docker image.
