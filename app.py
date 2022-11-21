@@ -15,7 +15,8 @@ DATABASE = config['MONGO_DETAILS']['DATABASE']
 TOOLS = config['MONGO_DETAILS']['TOOLS']
 STATS = config['MONGO_DETAILS']['STATS']
 
-connection = MongoClient(DBHOST, int(DBPORT))
+# hardcaded to test the new db configuration
+connection = MongoClient(DBHOST, int(DBPORT), username='testUser', password='1234')
 tools_collection = connection[DATABASE][TOOLS]
 stats = connection[DATABASE][STATS]
 
