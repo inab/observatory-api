@@ -1,0 +1,19 @@
+stages:
+  - triggers
+
+trigger_api:
+  stage: triggers
+  trigger:
+      include: api-ci/.gitlab-ci.yml
+  rules:
+    - when: always
+
+trigger_mongo:
+  stage: triggers
+  trigger:
+      include: mongo-compose/.gitlab-ci.yml
+  rules:
+    - when: always
+
+
+

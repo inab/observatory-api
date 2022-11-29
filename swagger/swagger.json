@@ -107,6 +107,56 @@
         }
       }
     },
+    "/stats/tools/fair_scores_summary": {
+     "get": {
+        "tags": [
+          "stats"
+        ],
+        "summary": "Get summary of FAIRsoft scores",
+        "description": "Retrieve distribution of FAIRsoft high-level metrics scores.",
+        "operationId": "getFAIRScoresSummary",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "version",
+            "in": "query",
+            "description": "Version of dataset from which to get the count of instances. ",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "latest"
+            ]
+          },
+          {
+            "name": "collection",
+            "in": "query",
+            "description": "bio.tools collection. Default is 'tools', means all tools will be considered",
+            "type": "string",
+            "default": "tools",
+            "required": false,
+            "enum": [
+              "tools",
+              "RIS3CAT VEIS", 
+              "ELIXIR-ES"
+              ]
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "successful operation",
+            "schema": {
+              "$ref": "#/definitions/FAIRScoresSummary"
+            }
+          },
+          "400": {
+            "description": "Something went wrong with the retrieval. Probably an error in the server."
+          }
+        }
+      }
+    
+    },
     "/tool/description": {
       "get": {
         "tags": [
@@ -139,7 +189,8 @@
           }
         }
       }
-    }
+    },
+ 
   },
   "definitions": {
     "Counts": {
@@ -152,7 +203,7 @@
         },
         "version": {
           "type": "string",
-          "format": "date-time"
+          "format": "string"
         },
         "data": {
           "type": "array",
@@ -224,7 +275,7 @@
         },
         "version": {
           "type": "string",
-          "format": "date-time"
+          "format": "string"
         },
         "data": {
           "type": "integer",
@@ -237,6 +288,266 @@
         "version": "20/05/2022 11:45:10",
         "data": 40613
       }
+    },
+    "FAIRScoresSummary": {
+      "type": "object",
+      "properties": {
+        "variable": {
+          "type": "string",
+          "default": "tools_count",
+          "description": "Identifier of the kind of content requested."
+        },
+        "version": {
+          "type": "string",
+          "format": "string"
+        },
+        "collection": {
+          "type": "string",
+          "format": "string"
+        },
+        "data": {
+          "type": "object",
+          "description": "results",
+        }
+      },
+      "example": {
+        "collection": "tools",
+        "data": {
+          "A": [
+            {
+              "count": [
+                299,
+                14,
+                473,
+                214
+              ],
+              "indicator": "A3",
+              "percent": [
+                0.299,
+                0.014,
+                0.473,
+                0.214
+              ],
+              "scores": [
+                0.0,
+                0.25,
+                0.5,
+                1.0
+              ]
+            },
+            {
+              "count": [
+                216,
+                132,
+                291,
+                19,
+                336,
+                6
+              ],
+              "indicator": "A1",
+              "percent": [
+                0.216,
+                0.132,
+                0.291,
+                0.019,
+                0.336,
+                0.006
+              ],
+              "scores": [
+                0.0,
+                0.5,
+                0.6,
+                0.7,
+                0.9,
+                1.0
+              ]
+            }
+          ],
+          "F": [
+            {
+              "count": [
+                109,
+                183,
+                442,
+                266
+              ],
+              "indicator": "F3",
+              "percent": [
+                0.109,
+                0.183,
+                0.442,
+                0.266
+              ],
+              "scores": [
+                0.0,
+                0.7,
+                0.85,
+                1.0
+              ]
+            },
+            {
+              "count": [
+                72,
+                280,
+                648
+              ],
+              "indicator": "F2",
+              "percent": [
+                0.072,
+                0.28,
+                0.648
+              ],
+              "scores": [
+                0.0,
+                0.6,
+                1.0
+              ]
+            },
+            {
+              "count": [
+                578,
+                422
+              ],
+              "indicator": "F1",
+              "percent": [
+                0.578,
+                0.422
+              ],
+              "scores": [
+                0.8,
+                1.0
+              ]
+            }
+          ],
+          "I": [
+            {
+              "count": [
+                762,
+                4,
+                29,
+                205
+              ],
+              "indicator": "I3",
+              "percent": [
+                0.762,
+                0.004,
+                0.029,
+                0.205
+              ],
+              "scores": [
+                0.0,
+                0.33,
+                0.67,
+                1.0
+              ]
+            },
+            {
+              "count": [
+                855,
+                145
+              ],
+              "indicator": "I2",
+              "percent": [
+                0.855,
+                0.145
+              ],
+              "scores": [
+                0.0,
+                0.5
+              ]
+            },
+            {
+              "count": [
+                890,
+                23,
+                2,
+                6,
+                79
+              ],
+              "indicator": "I1",
+              "percent": [
+                0.89,
+                0.023,
+                0.002,
+                0.006,
+                0.079
+              ],
+              "scores": [
+                0.0,
+                0.2,
+                0.3,
+                0.8,
+                1.0
+              ]
+            }
+          ],
+          "R": [
+            {
+              "count": [
+                720,
+                280
+              ],
+              "indicator": "R4",
+              "percent": [
+                0.72,
+                0.28
+              ],
+              "scores": [
+                0.0,
+                1.0
+              ]
+            },
+            {
+              "count": [
+                405,
+                595
+              ],
+              "indicator": "R3",
+              "percent": [
+                0.405,
+                0.595
+              ],
+              "scores": [
+                0.0,
+                1.0
+              ]
+            },
+            {
+              "count": [
+                473,
+                527
+              ],
+              "indicator": "R2",
+              "percent": [
+                0.473,
+                0.527
+              ],
+              "scores": [
+                0.0,
+                1.0
+              ]
+            },
+            {
+              "count": [
+                390,
+                610
+              ],
+              "indicator": "R1",
+              "percent": [
+                0.39,
+                0.61
+              ],
+              "scores": [
+                0.0,
+                1.0
+              ]
+            }
+          ]
+        },
+        "variable": "FAIR_scores_summary",
+        "version": "12/09/2022 10:56:13"
+      }
+    
     },
     "Description": {
       "type": "object",
