@@ -158,14 +158,6 @@ def version_control_repositories():
     return(resp)
 
 
-# publications percentage in top most frequent journals and IF - publications_journals_IF
-@app.route('/stats/tools/publications_journals_IF')
-@cross_origin(origin='*',headers=['Content-Type'])
-def publications_journals_IF():
-    resp = make_query('publications_journals_IF', request.args)
-    return(resp)
-
-
 #### Data 
 
 # Number of Tools per source
