@@ -16,7 +16,7 @@ TOOLS = config['MONGO_DETAILS']['TOOLS']
 STATS = config['MONGO_DETAILS']['STATS']
 
 # hardcaded to test the new db configuration
-connection = MongoClient(DBHOST, int(DBPORT), username='testUser', password='1234')
+connection = MongoClient(DBHOST, int(DBPORT))
 tools_collection = connection[DATABASE][TOOLS]
 stats = connection[DATABASE][STATS]
 
@@ -164,7 +164,6 @@ def publications_journals_IF():
     resp = make_query('publications_journals_IF', request.args)
     return(resp)
 
-
 #### Data 
 
 # Number of Tools per source
@@ -280,8 +279,10 @@ def description():
 
 
 
-
-
 # Start the app
 if __name__ == '__main__':
     app.run(debug=True, port=3000)
+
+
+
+
