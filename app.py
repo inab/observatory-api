@@ -5,6 +5,8 @@ import configparser
 from pymongo import MongoClient
 from flask import Flask, request, jsonify, make_response
 from flask_cors import CORS,cross_origin
+import FAIRsoft
+from FAIRsoft.indicators_evaluation.FAIR_indicators_eval import computeScores_from_list
 
 # connecting to db
 config = configparser.ConfigParser()
@@ -14,10 +16,12 @@ DBPORT = config['MONGO_DETAILS']['DBPORT']
 DATABASE = config['MONGO_DETAILS']['DATABASE']
 TOOLS = config['MONGO_DETAILS']['TOOLS']
 STATS = config['MONGO_DETAILS']['STATS']
+DISCOVERER = 'tools_discoverer_w_index'
 
 # hardcaded to test the new db configuration
 connection = MongoClient(DBHOST, int(DBPORT))
-tools_collection = connection[DATABASE][TOOLS]
+tools_collection = connection['observatory2']['tools']
+discoverer_collection = connection['observatory2'][DISCOVERER]
 stats = connection[DATABASE][STATS]
 
 
@@ -26,8 +30,8 @@ stats = connection[DATABASE][STATS]
 app = Flask(__name__)
 
 ## CORS
-CORS(app,resources={r"/api": {"origins": "*"}})
-app.config['CORS_HEADERS'] = 'Content-Type'
+cors = CORS(app, resources={r"/*": {"origins": "*", "allow_headers": "*", "expose_headers": "*"}})
+
 
 
 def process_request(action, parameters):
@@ -113,6 +117,13 @@ def make_query(variable_name, parameters):
             }))
     
     return record
+
+def query_tools_type_source():
+    '''
+    Returns a list of dictionaries with name, type and sources of tools
+    '''
+    return list(discoverer_collection.find({},{'_id':0,'label':1,'type':1,'sources_labels':1}))
+
 
 #####
 ## Requests regarding docs in `stats` collection
@@ -218,12 +229,6 @@ def types_count():
 
 #### FAIRness
 
-# FAIR scores
-@app.route('/stats/tools/fair_scores')
-@cross_origin(origin='*',headers=['Content-Type'])
-def fair_scores():
-    resp = process_request(action_fair_scores_query, request.args)
-    return(resp)
 
 # FAIR scores summary
 @app.route('/stats/tools/fair_scores_summary')
@@ -232,6 +237,79 @@ def fair_scores_summary():
     resp = make_query('FAIR_scores_summary', request.args)
     return(resp)
 
+##################################
+## Utils
+##################################
+def process_tool(tool):
+    '''
+    Processes a tool to return a dictionary with name, type and sources
+    '''
+    tool['label'] = tool['label'][0]
+    
+    return tool
+
+@app.route('/tools/names_type_labels')
+@cross_origin(origin='*',headers=['Content-Type'])
+def names_type_labels():
+    tools = list(discoverer_collection.find({},{'_id':0, '@id':1, 'label':1,'type':1,'sources_labels':1}))
+    resp = []
+    for tool in tools:
+        resp.append(process_tool(tool))    
+    return(resp)
+
+@app.route('/tools')
+@cross_origin(origin='*',headers=['Content-Type'])
+def tool_metadata():
+    id_ = request.args.get('id')
+    tool = tools_collection.find({'@id':id_})
+    tool = tool[0]
+    tool.pop('_id')
+    resp = make_response(jsonify(tool), 200)
+     
+    return(resp)
+
+# Evaluate FAIRness of a tool given its metadata
+# TODO: complete
+@app.route('/tools/evaluate')
+@cross_origin(origin='*',headers=['Content-Type'])
+def evaluate():
+    data = request.get_json()
+    if data:
+        # TODO:
+        # Evaluate metadata
+        pass
+    else:
+        data = {'message': 'No tool id or metadata provided', 'code': 'ERROR'}
+        resp = make_response(data, 400)
+        return(resp)
+     
+    return(resp)
+
+# Evaluate FAIRness of a tool given its id
+@app.route('/tools/evaluateId', methods=['POST', 'GET'])
+@cross_origin(origins='*')
+def evaluateId():
+    if request.method == 'POST':
+        data = request.get_json()
+        id_ = data.get('id')
+        # Get tool metadata
+        if data:
+            tool = tools_collection.find({'@id':id_})
+            # Evaluate metadata
+            scores = computeScores_from_list(list(tool))
+            # Return scores
+            resp = make_response(jsonify(scores), 200)
+        else:
+            data = {'message': 'No tool id or metadata provided', 'code': 'ERROR'}
+            resp = make_response(data, 400)
+            resp.headers.add('Access-Control-Allow-Origin', '*')
+            return(resp)
+
+     
+        return(resp)
+
+
+# Tools name, type and sources
 #####
 ## Requests regarding docs in `tools_collection` collection
 ####
@@ -256,6 +334,9 @@ def tools():
         resp = make_response(jsonify(data), 201)
     finally:
         return resp
+
+
+
 
 # Retrieve description of a tool by its name
 # name as parameter
