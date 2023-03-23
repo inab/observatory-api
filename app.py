@@ -5,7 +5,6 @@ import configparser
 from pymongo import MongoClient
 from flask import Flask, request, jsonify, make_response
 from flask_cors import CORS,cross_origin
-import FAIRsoft
 from FAIRsoft.indicators_evaluation.FAIR_indicators_eval import computeScores_from_list
 
 # connecting to db
@@ -235,6 +234,13 @@ def types_count():
 @cross_origin(origin='*',headers=['Content-Type'])
 def fair_scores_summary():
     resp = make_query('FAIR_scores_summary', request.args)
+    return(resp)
+
+# FAIR scores means 
+@app.route('/stats/tools/fair_scores_means')
+@cross_origin(origin='*',headers=['Content-Type'])
+def fair_scores_means():
+    resp = make_query('FAIR_scores_means', request.args)
     return(resp)
 
 ##################################
