@@ -17,3 +17,6 @@ sudo docker login registry.gitlab.bsc.es
 sudo docker-compose up --remove-orphans --force-recreate --renew-anon-volumes
 ```
 
+### Collections 
+ 
+Most endpoints use the `observatory2.tools` collection. The endpoint `GET "/tools/names_type_labels"` uses the collection `observatory2.tools_discoverer_w_index`. This is due to this collection being processed to contain information of types and labels in a more convenient way. 

@@ -20,17 +20,14 @@ DISCOVERER = 'tools_discoverer_w_index'
 # hardcaded to test the new db configuration
 connection = MongoClient(DBHOST, int(DBPORT))
 tools_collection = connection['observatory2']['tools']
-discoverer_collection = connection['observatory2'][DISCOVERER]
+discoverer_collection = connection['observatory2'][DISCOVERER] # used by endpoint "/tools/names_type_labels"
 stats = connection[DATABASE][STATS]
-
-
         
 ## Init app
 app = Flask(__name__)
 
 ## CORS
 cors = CORS(app, resources={r"/*": {"origins": "*", "allow_headers": "*", "expose_headers": "*"}})
-
 
 
 def process_request(action, parameters):
@@ -117,17 +114,12 @@ def make_query(variable_name, parameters):
     
     return record
 
-def query_tools_type_source():
-    '''
-    Returns a list of dictionaries with name, type and sources of tools
-    '''
-    return list(discoverer_collection.find({},{'_id':0,'label':1,'type':1,'sources_labels':1}))
 
+## ROUTES ##
 
 #####
 ## Requests regarding docs in `stats` collection
 ####
-
 
 ####### Trends 
 
@@ -228,7 +220,6 @@ def types_count():
 
 #### FAIRness
 
-
 # FAIR scores summary
 @app.route('/stats/tools/fair_scores_summary')
 @cross_origin(origin='*',headers=['Content-Type'])
@@ -254,6 +245,7 @@ def process_tool(tool):
     
     return tool
 
+# Retuns a list of tools with name, type and sources
 @app.route('/tools/names_type_labels')
 @cross_origin(origin='*',headers=['Content-Type'])
 def names_type_labels():
@@ -263,6 +255,8 @@ def names_type_labels():
         resp.append(process_tool(tool))    
     return(resp)
 
+# returns a tool given its id
+# Used by the FAIR evaluator to retrieve metadata of a tool
 @app.route('/tools')
 @cross_origin(origin='*',headers=['Content-Type'])
 def tool_metadata():
@@ -321,7 +315,7 @@ def evaluateId():
 ####
 
 # Retrieve all tools
-@app.route('/tools', methods=['GET'])
+@app.route('/alltools', methods=['GET'])
 @cross_origin(origin='*',headers=['Content-Type'])
 def tools():
     try:
