@@ -105,7 +105,10 @@ def prepareDocumentation(metadata):
             new_item = []
             if type(item[1])==str:
                 if match_url(item[1]):
-                    new_item.append(item[0])
+                    if item[0] == 'documentation':
+                        new_item.append('general')
+                    else:
+                        new_item.append(item[0])
                     new_item.append(item[1])
                     new_documentation.append(new_item)
 
