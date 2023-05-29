@@ -359,7 +359,9 @@ def clean_long(string):
 def build_organization(string):
     return {
         'type': 'organization',
-        'first_name': string
+        'name': string,
+        'email': '',
+        'maintainer': False
         }
 
 def build_person(string):
@@ -367,22 +369,15 @@ def build_person(string):
     Extract first and last name from a string
     '''
     if string:
-        names = string.split()
-        if len(names) == 1:
-            return {
-                'type': 'person' ,
-                'first_name': names[0], 
-                'last_name': '',
-                'email': '',
-                'maintainer': False
-                }
-        else:
-            return {
-                'type': 'person', 
-                'first_name': names[0], 
-                'last_name': names[-1],
-                'email': '',
-                'maintainer': False}
+        return {
+            'type': 'person' ,
+            'name': string, 
+            'email': '',
+            'maintainer': False
+            }
+    else:
+        return ''
+        
 
 
 def build_authors(authors):

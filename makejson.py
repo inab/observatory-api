@@ -180,14 +180,13 @@ def get_maintainer(authors):
                 if author.get('type') == 'Person':
                     new_maintainer = {
                     "@type": "Person",
-                    "givenName": author.get('first_name'),
-                    "familyName": author.get('last_name'),
+                    "name": author.get('name'),
                     "email": author.get('email')
                 }
                 else:  
                     new_maintainer = {
                         "@type": "Organization",
-                        "name": author.get('first_name'),
+                        "name": author.get('name'),
                         "email": author.get('email')
                     }
                 maintainers.append(remove_empty_values(new_maintainer))
