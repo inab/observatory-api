@@ -13,13 +13,20 @@ def remove_empty_values(d):
     return {k: v for k, v in d.items() if v}
 
 def get_single_author(author):
-    new_author = {
+    if author.get('type') == 'Person':
+        new_author = {
         "@type": "Person",
-        "givenName": author.get('name'),
-        "familyName": author.get('surname'),
+        "givenName": author.get('first_name'),
+        "familyName": author.get('last_name'),
         "email": author.get('email')
     }
-    
+    else:  
+        new_author = {
+            "@type": "Organization",
+            "name": author.get('first_name'),
+            "email": author.get('email')
+        }
+
     return remove_empty_values(new_author)
 
 
@@ -170,12 +177,19 @@ def get_maintainer(authors):
     if authors:
         for author in authors:
             if author.get('maintainer') == True:
-                new_maintainer = {
+                if author.get('type') == 'Person':
+                    new_maintainer = {
                     "@type": "Person",
-                    "givenName": author.get('name'),
-                    "familyName": author.get('surname'),
+                    "givenName": author.get('first_name'),
+                    "familyName": author.get('last_name'),
                     "email": author.get('email')
                 }
+                else:  
+                    new_maintainer = {
+                        "@type": "Organization",
+                        "name": author.get('first_name'),
+                        "email": author.get('email')
+                    }
                 maintainers.append(remove_empty_values(new_maintainer))
         return maintainers
     else:
@@ -183,7 +197,7 @@ def get_maintainer(authors):
 
 def get_webpage(webpages):
     if webpages:
-        return webpages[0]
+        return webpages
     else:
         return ""
 

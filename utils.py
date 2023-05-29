@@ -88,7 +88,30 @@ def prepareDocumentation(metadata):
     ]
     
     '''
-    items = metadata['documentation']
+    def match_url(string):
+        # either http or https
+        pattern = re.compile(r'https?://\S+')
+        if pattern.match(string):
+            return True
+        else:
+            return False
+
+    def clean_documentation(documentation):
+        '''
+        Removes the documentation items that are not urls
+        '''
+        new_documentation = []
+        for item in documentation:
+            new_item = []
+            if type(item[1])==str:
+                if match_url(item[1]):
+                    new_item.append(item[0])
+                    new_item.append(item[1])
+                    new_documentation.append(new_item)
+
+        return new_documentation
+
+    items = clean_documentation(metadata['documentation'])
     new_items = []
     # look up for each item in the list the corresponding label
     for item in items:
@@ -216,21 +239,187 @@ def getWebPage(metadata):
 
     return metadata
 
+def clean_brakets(string):
+    '''
+    Remove anything between {}, [], or <>, or after {, [, <
+    '''
+    def clena_after_braket(string):
+        '''
+        Remove anything between {}, [], or <>
+        '''
+        pattern = re.compile(r'\{.*|\[.*|\(.*|\<.*')
+        return re.sub(pattern, '', string)
+
+    def clean_between_brakets(string):
+        '''
+        Remove anything between {, [, <
+        '''
+        pattern = re.compile(r'\{.*?\}|\[.*?\]|\(.*?\)|\<.*?\>')
+        return re.sub(pattern, '', string)
+
+
+    string = clean_between_brakets(string)
+    string = clena_after_braket(string)
+    return string
+
+def clean_doctor(string):
+    '''
+    remove title at the begining of the string
+    '''
+    pattern = re.compile(r'^Dr\.|Dr |Dr\. |Dr')
+    return re.sub(pattern, '', string)
+
+def keep_after_code(string):
+    '''
+    Remove anything before code and others
+    '''
+    if 'initial R code' in string:
+        return ''
+    if 'contact form' in string:
+        return ''
+    else:
+        pattern = re.compile(r'.*?code')
+        string = re.sub(pattern, '', string)
+        pattern = re.compile(r'.*?Code')
+        string = re.sub(pattern, '', string)
+        pattern = re.compile(r'.*?from')
+        string = re.sub(pattern, '', string)
+        return re.sub(pattern, '', string)
+
+def clean_first_end_parenthesis(string):
+    if string[0] == '(' and string[-1] == ')':
+        string = string[1:]
+        string = string[:-1]
+
+    return string
+
+def clean_spaces(string):
+    '''
+    Clean spaces around the string
+    '''
+    return string.strip()
+
+
+def classify_person_organization(string):
+    '''
+    tokenize the string
+    if any of the words in the string is in the list of keywords
+    then it is an institution
+    otherwise it is a person
+    '''
+    inst_keywords = [
+        'university',
+        'université',
+        'universidad',
+        'universidade',
+        'università',
+        'universität',
+        'institut',
+        'institute',
+        'college',
+        'school',
+        'department',
+        'laboratory',
+        'laboratoire',
+        'lab',
+        'center',
+        'centre',
+        'research',
+        'researcher',
+        'researchers',
+        'group',
+        'support',
+        'foundation',
+        'company',
+        'corporation',
+        'team',
+        'helpdesk',
+        'service',
+        'platform',
+        'program',
+        'programme',
+        'community'
+    ]
+    words = string.split()
+    for word in words:
+        if word.lower() in inst_keywords:
+            return 'organization'
+    return 'person'
+
+def clean_long(string):
+    if len(string.split()) >= 5:
+        return ''
+    else:
+        return string
+
+
+def build_organization(string):
+    return {
+        'type': 'organization',
+        'first_name': string
+        }
+
+def build_person(string):
+    '''
+    Extract first and last name from a string
+    '''
+    if string:
+        names = string.split()
+        if len(names) == 1:
+            return {
+                'type': 'person' ,
+                'first_name': names[0], 
+                'last_name': '',
+                'email': '',
+                'maintainer': False
+                }
+        else:
+            return {
+                'type': 'person', 
+                'first_name': names[0], 
+                'last_name': names[-1],
+                'email': '',
+                'maintainer': False}
+
+
+def build_authors(authors):
+    '''
+    Build a list of authors
+    '''
+    new_authors = []
+    for author in authors:
+        name = clean_first_end_parenthesis(author)
+        name = clean_brakets(name)
+        name = clean_doctor(name)
+        name = keep_after_code(name)
+        name = clean_spaces(name)
+        classification = classify_person_organization(name)
+        if classification == 'person':
+            if name:
+                name = clean_long(name)
+                person = build_person(name)
+                new_authors.append(person)
+
+        else:
+            organization = build_organization(name)
+            new_authors.append(organization)
+
+    return new_authors
+
 def prepareAuthors(tool):
     '''
     {
         "name": "name1",
-        "email": "email1"
-        "maintainer: true/false"
+        "email": "email1",
+        "type": "person/organization",
+        "maintainer": "true/false"
     }
     '''
+    authors = build_authors(tool['authors'])
+
     new_authors = []
-    for author in tool['authors']:
-        new_author = {
-            'name': author,
-            'email': '',
-            'maintainer': False
-        }
+    for author in authors:
+        new_author = author
         new_authors.append(new_author)
     
     tool['authors'] = new_authors
