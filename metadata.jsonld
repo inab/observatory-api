@@ -1,0 +1,118 @@
+{
+    "@context": "http://schema.org/",
+    "@type": "SoftwareApplication",
+    "applicationCategory": "cmd",
+    "name": "trimal",
+    "description": "Tool for the automated removal of spurious sequences or poorly aligned regions from a multiple sequence alignment.",
+    "author": {
+        "@type": "Person",
+        "givenName": "Salvador",
+        "familyName": "Capella-Gutierrez",
+        "email": "scapella@bsc.es"
+        },
+    "license": "https://spdx.org/licenses/GPL-2.0+.html",
+    "url": "http://trimal.cgenomics.org/",
+    "version": "1.4.1",
+    "codeRepository": "https://github.com/scapella/trimal",
+    "keywords": [
+        {
+            "@type": "DefinedTerm",
+            "name": "sequence sites",
+            "inDefinedTermSet": "http://edamontology.org",
+            "identifier": "http://edamontology.org/topic_0160",
+            "url": "http://edamontology.org/topic_0160"
+        },
+        {
+            "@type": "DefinedTerm",
+            "name": "sequencing",
+            "inDefinedTermSet": "http://edamontology.org",
+            "identifier": "http://edamontology.org/topic_3168",
+            "url": "http://edamontology.org/topic_3168"
+        },
+        {
+            "@type": "DefinedTerm",
+            "name": "sequence analysis",
+            "inDefinedTermSet": "http://edamontology.org",
+            "identifier": "http://edamontology.org/topic_0080",
+            "url": "http://edamontology.org/topic_0080"
+        }
+    ],
+    "downloadURL": [
+        "http://trimal.cgenomics.org/_media/trimal.v1.4.1.tar.gz",
+        "http://trimal.cgenomics.org/_media/trimal.v1.4.1.zip",
+        "http://trimal.cgenomics.org/_media/trimal.v1.4.1.tar.bz2"
+    ],
+    "referencePublication": {
+        "@type": "Article",
+        "name": "trimAl: a tool for automated alignment trimming in large-scale phylogenetic analyses",
+        "author": [
+            {
+                "@type": "Person",
+                "givenName": "Salvador",
+                "familyName": "Capella-Gutierrez",
+                "email": "scapella@bsc.es"
+            }
+        ],
+        "datePublished": "2009-01-01",
+        "isPartOf": {
+            "@type": "PublicationVolume",
+            "name": "Bioinformatics"
+        },
+        "identifier": [
+            {
+                "@type": "PropertyValue",
+                "propertyID": "doi",
+                "value": "10.1093/bioinformatics/btp348"
+            },
+            {
+                "@type": "PropertyValue",
+                "propertyID": "pmid",
+                "value": "19505945"
+            },
+            {
+                "@type": "PropertyValue",
+                "propertyID": "pmcid",
+                "value": "PMC2705234"
+            }
+        ]
+    },
+    "operatingSystem": [
+        "Linux",
+        "MacOS",
+        "Windows"
+    ],
+    "softwareHelp": [
+        {
+            "@type": "CreativeWork",
+            "name": "general",
+            "url": "http://trimal.cgenomics.org/getting_started_with_trimal_v1.2"
+        }
+    ],
+    "readme": "http://trimal.cgenomics.org/_media/trimal.v1.4.1.readme",
+    "softwareRequirements": [
+            "compiler_cxx",
+            "make"
+    ],
+    "softwareVersion": "1.4.1",
+    "isAccessibleForFree": true,
+    "mantainer": {
+        "@type": "Person",
+        "givenName": "Salvador",
+        "familyName": "Capella-Gutierrez",
+        "email": "scapella@bsc.es"
+    },
+    "output": [
+        "http://edamontology.org/format_1982",
+        "http://edamontology.org/format_2330",
+        "http://edamontology.org/format_2331"
+    ],
+    "applicationSubCategory": [
+        {
+            "@type": "DefinedTerm",
+            "name": "sequence alignment",
+            "inDefinedTermSet": "http://edamontology.org",
+            "identifier": "http://edamontology.org/topic_0081",
+            "url": "http://edamontology.org/topic_0081"
+        }
+    ]
+}
