@@ -7,6 +7,8 @@ name = "pypi"
 pymongo = "*"
 flask = "*"
 flask-cors = "*"
+setuptools = "*"
+fairsoft = {path = "/Users/evabsc/projects/FAIRsoft/FAIRsoft_ETL/FAIRsoft"}
 
 [dev-packages]
 

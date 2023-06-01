@@ -1,34 +1,27 @@
 
-import pymongo
-import configparser
+import json
 
-from pymongo import MongoClient
 from flask import Flask, request, jsonify, make_response
 from flask_cors import CORS,cross_origin
 
-# connecting to db
-config = configparser.ConfigParser()
-config.read('config_db.ini')
-DBHOST = config['MONGO_DETAILS']['DBHOST']
-DBPORT = config['MONGO_DETAILS']['DBPORT']
-DATABASE = config['MONGO_DETAILS']['DATABASE']
-TOOLS = config['MONGO_DETAILS']['TOOLS']
-STATS = config['MONGO_DETAILS']['STATS']
-
-# hardcaded to test the new db configuration
-connection = MongoClient(DBHOST, int(DBPORT))
-tools_collection = connection[DATABASE][TOOLS]
-stats = connection[DATABASE][STATS]
-
+from utils import prepareToolMetadata, prepareMetadataForEvaluation, keep_first_label, connect_DB
+from prepareVocabularies import prepareEDAM
+from FAIR_indicators_eval import computeScores_from_list
+from makejson import build_json_ld
 
         
 ## Init app
 app = Flask(__name__)
 
 ## CORS
-CORS(app,resources={r"/api": {"origins": "*"}})
-app.config['CORS_HEADERS'] = 'Content-Type'
+cors = CORS(app, resources={r"/*": {"origins": "*", "allow_headers": "*", "expose_headers": "*"}})
 
+## Connect to DB
+
+tools_collection, discoverer_collection, stats = connect_DB()
+
+
+##### helper function for routes #####
 
 def process_request(action, parameters):
     try:
@@ -114,10 +107,14 @@ def make_query(variable_name, parameters):
     
     return record
 
-#####
-## Requests regarding docs in `stats` collection
-####
 
+## -------------------- ##
+##       ROUTES         ##
+## -------------------- ##
+
+##-------------------------------------------------- ##
+## Requests regarding docs in `stats` collection
+##-------------------------------------------------- ##
 
 ####### Trends 
 
@@ -157,6 +154,12 @@ def version_control_repositories():
     resp = make_query('version_control_repositories', request.args)
     return(resp)
 
+# publications percentage in top most frequent journals and IF - publications_journals_IF
+@app.route('/stats/tools/publications_journals_IF')
+@cross_origin(origin='*',headers=['Content-Type'])
+def publications_journals_IF():
+    resp = make_query('publications_journals_IF', request.args)
+    return(resp)
 
 #### Data 
 
@@ -212,13 +215,6 @@ def types_count():
 
 #### FAIRness
 
-# FAIR scores
-@app.route('/stats/tools/fair_scores')
-@cross_origin(origin='*',headers=['Content-Type'])
-def fair_scores():
-    resp = process_request(action_fair_scores_query, request.args)
-    return(resp)
-
 # FAIR scores summary
 @app.route('/stats/tools/fair_scores_summary')
 @cross_origin(origin='*',headers=['Content-Type'])
@@ -226,12 +222,220 @@ def fair_scores_summary():
     resp = make_query('FAIR_scores_summary', request.args)
     return(resp)
 
-#####
+# FAIR scores means 
+@app.route('/stats/tools/fair_scores_means')
+@cross_origin(origin='*',headers=['Content-Type'])
+def fair_scores_means():
+    resp = make_query('FAIR_scores_means', request.args)
+    return(resp)
+
+##-------------------------------------------------- ##
+##  Metadata
+##-------------------------------------------------- ##
+
+# retuns a list of tools with name, type and sources
+@app.route('/tools/names_type_labels')
+@cross_origin(origin='*',headers=['Content-Type'])
+def names_type_labels():
+    tools = list(discoverer_collection.find({ 
+            'source' : { '$ne' : ['galaxy_metadata'] } # remove tools only in galaxy_metadata
+        },
+        {
+            '_id':0, 
+            '@id':1, 
+            'label':1,
+            'type':1,
+            'sources_labels':1, 
+            'name':1
+        }
+        ))
+    resp = []
+    for tool in tools:
+        resp.append(keep_first_label(tool))    
+    return(resp)
+        
+# returns a tool given its id
+# Used by the FAIR evaluator to retrieve metadata of a tool
+@app.route('/tools')
+@cross_origin(origin='*',headers=['Content-Type'])
+def tool_metadata():
+    name = request.args.get('name')
+    type_ = request.args.get('type')
+    tool = tools_collection.find({'name': name, 'type': type_})
+    tool = tool[0]
+    
+    tool = prepareToolMetadata(tool)
+
+    resp = make_response(jsonify(tool), 200)
+
+    return(resp)
+
+# return JSON-LD of a tool given its metadata from the FAIR evaluator
+@app.route('/tools/jsonld', methods=['POST'])
+@cross_origin(origin='*',headers=['Content-Type'])
+def tool_jsonld():
+    try:
+        tool = request.get_json()
+        tool = tool['data']
+        tool = prepareMetadataForEvaluation(tool)
+        tool = build_json_ld(tool)
+    except:
+        data = {'Something went wrong when building the JSON-LD :('}
+        resp = make_response(data, 400)
+    else:
+        resp = make_response(jsonify(tool), 200)
+
+    return(resp)
+
+
+## -------------------------------------------------- ##
+##  SPDX and EDAM
+## -------------------------------------------------- ##
+
+# returns EDAM terms
+@app.route('/EDAMTerms')
+@cross_origin(origin='*',headers=['Content-Type'])
+def EDAMTerms():
+    try:
+        EDAMVocabularyItems = prepareEDAM()
+    except:
+        data = {'Something went wrong when retrieving the EDAM vocabulary :('}
+        resp = make_response(data, 400)
+
+    else:
+        resp = make_response(jsonify(EDAMVocabularyItems), 200)
+
+    return resp
+
+# returns SPDX licenses
+@app.route('/SPDXLicenses')
+@cross_origin(origin='*',headers=['Content-Type'])
+def SPDXLicenses():
+    # from file licenses.json
+    try:
+        with open('licenses.json') as f:
+            data = json.load(f)
+        
+        SPDXLicenses = []
+        for license in data['licenses']:
+            SPDXLicenses.append(license['name'])
+    except:
+        data = {'Something went wrong when retrieving the SPDX licenses :('}
+        resp = make_response(data, 400)
+    else:
+        resp = make_response(jsonify(SPDXLicenses), 200)
+
+    return resp
+
+# returns the URL of a given SPDX license identifier
+@app.route('/SPDXLicenses/url/<license>')
+@cross_origin(origin='*',headers=['Content-Type'])
+def SPDXLicenseURL(license):
+    # from file licenses.json
+    try:
+        with open('licenses.json') as f:
+            data = json.load(f)
+        URL=''
+        for l in data['licenses']:
+            if l['name'] == license:
+                URL = l['reference']
+                break
+    except:
+        data = {'Something went wrong when retrieving the URL of the SPDX license :('}
+        resp = make_response(data, 400)
+    else:
+        data = {'URL': URL}
+        resp = make_response(jsonify(data), 200)
+
+    return resp
+
+# returns the SPDX license identifier that perfectly matches a given license name
+@app.route('/SPDXLicenses/match/<license>')
+@cross_origin(origin='*',headers=['Content-Type'])
+def SPDXLicenseMatch(license):
+    # from file licenses.json
+    try:
+        with open('licenses.json') as f:
+            data = json.load(f)
+        match=''
+        for l in data['licenses']:
+            if l['name'] == license:
+                match = l['licenseId']
+                break
+    except:
+        data = {'Something went wrong when retrieving the SPDX license :('}
+        resp = make_response(data, 400)
+    else:
+        data = {'match': match}
+        resp = make_response(jsonify(data), 200)
+
+    return resp
+
+
+## -------------------------------------------------- ##
+##  FAIR evaluation
+## -------------------------------------------------- ##
+
+# Evaluate FAIRness of a tool given its metadata
+@app.route('/tools/evaluate', methods=['POST', 'GET'])
+@cross_origin(origin='*',headers=['Content-Type'])
+def evaluate():
+    '''
+    Metadata is sent in the body of the request, inside a json object, 
+    in the `tool_metadata` field.
+    {
+        "tool_metadata": {
+            "name": "tool name",
+            ...
+        }       
+    }
+    '''
+    data = request.get_json()
+    if data:
+        # Pre-process metadata
+        tool = prepareMetadataForEvaluation(data['tool_metadata'])
+        # Evaluate metadata
+        scores = computeScores_from_list([tool])
+        # Return scores
+        resp = make_response(jsonify(scores), 200)
+
+    else:
+        data = {'message': 'No metadata provided', 'code': 'ERROR'}
+        resp = make_response(data, 400)
+        return(resp)
+     
+    return(resp)
+
+# Evaluate FAIRness of a tool given its id
+@app.route('/tools/evaluateId', methods=['POST', 'GET'])
+@cross_origin(origins='*')
+def evaluateId():
+    if request.method == 'POST':
+        data = request.get_json()
+        id_ = data.get('id')
+        # Get tool metadata
+        if data:
+            tool = tools_collection.find({'@id':id_})
+            # Evaluate metadata
+            scores = computeScores_from_list(list(tool))
+            # Return scores
+            resp = make_response(jsonify(scores), 200)
+        else:
+            data = {'message': 'No tool id or metadata provided', 'code': 'ERROR'}
+            resp = make_response(data, 400)
+            resp.headers.add('Access-Control-Allow-Origin', '*')
+            return(resp)
+
+     
+        return(resp)
+
+
+##--------------------------------------------------------------##
 ## Requests regarding docs in `tools_collection` collection
-####
+##--------------------------------------------------------------##
 
 # Retrieve all tools
-@app.route('/tools', methods=['GET'])
+@app.route('/alltools', methods=['GET'])
 @cross_origin(origin='*',headers=['Content-Type'])
 def tools():
     try:
@@ -250,6 +454,7 @@ def tools():
         resp = make_response(jsonify(data), 201)
     finally:
         return resp
+
 
 # Retrieve description of a tool by its name
 # name as parameter
@@ -272,9 +477,13 @@ def description():
         return resp
 
 
+## ------------------------------------------##
+##   START APP
+## ------------------------------------------##
 
-
-
-# Start the app
 if __name__ == '__main__':
     app.run(debug=True, port=3000)
+
+
+
+
