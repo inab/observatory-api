@@ -600,18 +600,17 @@ def keep_first_label(tool):
 def connect_DB():
     # connecting to db
     config = configparser.ConfigParser()
-    config.read('config_db.ini')
+    config.read('./api-variables/config_db.ini')
     DBHOST = config['MONGO_DETAILS']['DBHOST']
     DBPORT = config['MONGO_DETAILS']['DBPORT']
     DATABASE = config['MONGO_DETAILS']['DATABASE']
-    TOOLS = config['MONGO_DETAILS']['TOOLS']
     STATS = config['MONGO_DETAILS']['STATS']
-    DISCOVERER = 'tools_discoverer_w_index'
+    TOOLS = config['MONGO_DETAILS']['TOOLS']
 
     # hardcaded to test the new db configuration
     connection = MongoClient(DBHOST, int(DBPORT))
-    tools_collection = connection['observatory']['tools']
-    discoverer_collection = connection['observatory'][DISCOVERER] # used by endpoint "/tools/names_type_labels"
+    tools_collection = connection['observatory'][TOOLS]
+    discoverer_collection = connection['observatory'][TOOLS] # used by endpoint "/tools/names_type_labels"
     stats = connection[DATABASE][STATS]
 
     return tools_collection, discoverer_collection, stats
