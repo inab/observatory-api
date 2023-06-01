@@ -610,8 +610,8 @@ def connect_DB():
 
     # hardcaded to test the new db configuration
     connection = MongoClient(DBHOST, int(DBPORT))
-    tools_collection = connection['observatory2']['tools']
-    discoverer_collection = connection['observatory2'][DISCOVERER] # used by endpoint "/tools/names_type_labels"
+    tools_collection = connection['observatory']['tools']
+    discoverer_collection = connection['observatory'][DISCOVERER] # used by endpoint "/tools/names_type_labels"
     stats = connection[DATABASE][STATS]
 
     return tools_collection, discoverer_collection, stats
