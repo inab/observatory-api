@@ -237,7 +237,18 @@ def fair_scores_means():
 @app.route('/tools/names_type_labels')
 @cross_origin(origin='*',headers=['Content-Type'])
 def names_type_labels():
-    tools = list(discoverer_collection.find({},{'_id':0, '@id':1, 'label':1,'type':1,'sources_labels':1, 'name':1}))
+    tools = list(discoverer_collection.find({ 
+            'source' : { '$ne' : ['galaxy_metadata'] } # remove tools only in galaxy_metadata
+        },
+        {
+            '_id':0, 
+            '@id':1, 
+            'label':1,
+            'type':1,
+            'sources_labels':1, 
+            'name':1
+        }
+        ))
     resp = []
     for tool in tools:
         resp.append(keep_first_label(tool))    
