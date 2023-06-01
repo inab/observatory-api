@@ -607,12 +607,10 @@ def connect_DB():
     DATABASE = config['MONGO_DETAILS']['DATABASE']
     STATS = config['MONGO_DETAILS']['STATS']
     TOOLS = config['MONGO_DETAILS']['TOOLS']
-    DISCOVERER = config['MONGO_DETAILS']['DISCOVERER']
 
     # hardcaded to test the new db configuration
     connection = MongoClient(DBHOST, int(DBPORT))
     tools_collection = connection[DATABASE][TOOLS]
-    discoverer_collection = connection[DATABASE][DISCOVERER] # used by endpoint "/tools/names_type_labels"
     stats = connection[DATABASE][STATS]
 
-    return tools_collection, discoverer_collection, stats
+    return tools_collection, stats

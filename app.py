@@ -18,7 +18,7 @@ cors = CORS(app, resources={r"/*": {"origins": "*", "allow_headers": "*", "expos
 
 ## Connect to DB
 
-tools_collection, discoverer_collection, stats = connect_DB()
+tools_collection, stats = connect_DB()
 
 
 ##### helper function for routes #####
@@ -237,7 +237,7 @@ def fair_scores_means():
 @app.route('/tools/names_type_labels')
 @cross_origin(origin='*',headers=['Content-Type'])
 def names_type_labels():
-    tools = list(discoverer_collection.find({ 
+    tools = list(tools_collection.find({ 
             'source' : { '$ne' : ['galaxy_metadata'] } # remove tools only in galaxy_metadata
         },
         {
