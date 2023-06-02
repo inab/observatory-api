@@ -1,4 +1,4 @@
-
+from datetime import datetime
 
 def get_description(descriptions):
     if descriptions:
@@ -13,18 +13,17 @@ def remove_empty_values(d):
     return {k: v for k, v in d.items() if v}
 
 def get_single_author(author):
-    if author.get('type') == 'Person':
+    if author.get('type').lower() == 'person':
         new_author = {
-        "@type": "Person",
-        "givenName": author.get('first_name'),
-        "familyName": author.get('last_name'),
-        "email": author.get('email')
+        "@type": "https://schema.org/Person",
+        "schema:name": author.get('name'),
+        "schema:email": author.get('email')
     }
     else:  
         new_author = {
-            "@type": "Organization",
-            "name": author.get('first_name'),
-            "email": author.get('email')
+            "@type": "https://schema.org/Organization",
+            "schema:name": author.get('first_name'),
+            "schema:email": author.get('email')
         }
 
     return remove_empty_values(new_author)
@@ -48,9 +47,9 @@ def get_license(licenses):
     if licenses:
         for license in licenses:
             new_license = {
-                "@type": "CreativeWork",
-                "name": license.get('name'),
-                "url": license.get('url')
+                "@type": "https://schema.org/CreativeWork",
+                "schema:name": license.get('name'),
+                "schema:url": license.get('url')
             }
             
             new_licenses.append(remove_empty_values(new_license))
@@ -66,22 +65,14 @@ def get_keywords(topics):
         for topic in topics:
             if topic.get('vocabulary') == 'EDAM' and topic.get('uri').startswith('http://edamontology.org/'):
                 identifier = f"edam:{topic['uri'].split('/')[-1]}"
-                new_topic = {
-                    "@id": identifier,
-                }
-                new_topics.append(remove_empty_values(new_topic))
+                new_topics.append(identifier)
+
             else:
                 if topic.get('uri'):
                     identifier = topic.get('uri')
-                    new_topic = {
-                        "@id": identifier,
-                    }
-                    new_topics.append(remove_empty_values(new_topic))
+                    new_topics.append(identifier)
                 else:
-                    new_topic = {
-                        "@id": topic.get('term'),
-                    }
-                    new_topics.append(remove_empty_values(new_topic))
+                    new_topics.append(identifier)
             
         return new_topics
     
@@ -105,11 +96,11 @@ def get_citation(citations):
                 })
             if citation.get('title') and citation.get('authors') and citation.get('journal'):
                 new_citation.append({
-                    "@type": "CreativeWork",
+                    "@type": "https://schema.org/CreativeWork",
                     "@id": f"doi:{citation.get('doi')}",
-                    "name": citation.get('title'),
-                    "author": get_single_author(citation.get('authors')),
-                    "isPartOf": citation.get('journal')
+                    "schema:name": citation.get('title'),
+                    "schema:author": get_single_author(citation.get('authors')),
+                    "schema:isPartOf": citation.get('journal')
                 })
             
                 new_citations.append(remove_empty_values(new_citation))
@@ -126,15 +117,13 @@ def get_input(inputs):
         for input in inputs:
             if input.get('uri'):
                 new_input = {
-                    "@type": "FormatParameter",
-                    "encodingFormat": {
-                        "@id": f"edam:{input.get('uri').split('/')[-1]}"
-                    }
+                    "@type": "https://bioschemas.org/FormatParameter",
+                    "biochemas:encodingFormat": f"edam:{input.get('uri').split('/')[-1]}"
                 }
             else:
                 new_input = {
-                    "@type": "FormatParameter",
-                    "encodingFormat": input.get('term')
+                    "@type": "https://bioschemas.org/FormatParameter",
+                    "bioschemas:encodingFormat": input.get('term')
                 }
 
             items.append(remove_empty_values(new_input))
@@ -175,17 +164,17 @@ def get_maintainer(authors):
     if authors:
         for author in authors:
             if author.get('maintainer') == True:
-                if author.get('type') == 'Person':
+                if author.get('type').lower() == 'person':
                     new_maintainer = {
-                    "@type": "Person",
-                    "name": author.get('name'),
-                    "email": author.get('email')
+                    "@type": "https://schema.org/Person",
+                    "schema:name": author.get('name'),
+                    "schema:email": author.get('email')
                 }
                 else:  
                     new_maintainer = {
-                        "@type": "Organization",
-                        "name": author.get('name'),
-                        "email": author.get('email')
+                        "@type": "https://schema.org/Organization",
+                        "schema:name": author.get('name'),
+                        "schema:email": author.get('email')
                     }
                 maintainers.append(remove_empty_values(new_maintainer))
         return maintainers
@@ -197,35 +186,60 @@ def get_webpage(webpages):
         return webpages
     else:
         return ""
+    
+def get_type(type):
+    value = f'htpps://openebench.bsc.es/bioschemas/oebtools#{type}'
+    return value
+
+def get_identifier(meta):
+    value = f"https://openebench.bsc.es/bioschemas/tools/observatory:{meta.get('name')}:{meta.get('version')}/{meta.get('type')}"
+    return value
+
+
+def build_date():
+    # current date and time
+    now = datetime.now()
+
+    t = now.strftime("%H:%M:%S")
+    print("Time:", t)
+
+    s1 = now.strftime("%m/%d/%YT%H:%M:%SZ")
+
+    return s1
 
 def build_json_ld(meta):
     """
     Build JSON-LD from tool metadata
     """
-    context = "http://schema.org/" # chance for OEB
+    context =  {
+        "@import" : "https://openebench.bsc.es/bioschemas/oebtools.jsonld"
+    }
     metadata = {
         "@context": context,
-        "@type": "SoftwareApplication",
-        "additionalType": meta.get('type'),
-        "name": meta.get('name'),
-        "description": get_description(meta.get('descriptions')),
-        "author": get_authors(meta.get('authors')),
-        "license": get_license(meta.get('license')),
-        "url": get_webpage(meta.get('webpages')),
-        "version" : meta.get('version'),
-        "codeRepository": meta.get('repository'),
-        "applicationSubcategory": get_keywords(meta.get('topics')),
-        "featureList": get_keywords(meta.get('operations')),
-        "downloadURL": meta.get('download'),
-        "operatingSystem": meta.get('os'),
-        "citation": get_citation(meta.get('publication')),
-        "softwareRequirements": meta.get('dependencies'),
-        "isAccessibleForFree": meta.get('registration_not_manadatory'),
-        "input": get_input(meta.get('input')),
-        "output": get_input(meta.get('output')),
-        "readme": get_readme(meta.get('documentation')),
-        "softwareHelp": get_help(meta.get('documentation')),
-        "maintainer": get_maintainer(meta.get('authors')),
+        "@type": get_type(meta.get('type')),
+        "schema:applicationSubcategory": get_keywords(meta.get('topics')),
+        "schema:additionalType": meta.get('type'),
+        "schema:name": meta.get('name'),
+        "@id": get_identifier(meta),
+        "schema:url": get_webpage(meta.get('webpages')),
+        "schema:description": get_description(meta.get('description')),
+        "schema:applicationCategory": meta.get('type'),
+        "schema:operatingSystem": meta.get('os'),
+        "schema:license":get_license(meta.get('license')),
+        "schema:author": get_authors(meta.get('authors')),
+        "schema:maintainer": get_maintainer(meta.get('authors')),
+        "schema:softwareVersion" : meta.get('version'),
+        "schema:codeRepository": meta.get('repository'),
+        "schema:featureList": get_keywords(meta.get('operations')),
+        "bioschemas:input": get_input(meta.get('input')),
+        "bioschemas:output": get_input(meta.get('output')),
+        "schema:downloadURL": meta.get('download'),
+        "schema:softwareHelp": get_help(meta.get('documentation')),
+        "schema:citation": get_citation(meta.get('publication')),
+        "schema:requirements": meta.get('dependencies'),
+        "schema:isAccessibleForFree": meta.get('registration_not_manadatory'),
+        "schema:dateModified": build_date(),
+        
     }
 
     metadata = remove_empty_values(metadata)
