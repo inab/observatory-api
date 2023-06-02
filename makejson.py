@@ -64,7 +64,6 @@ def get_keywords(topics):
     new_topics = []
     if topics:
         for topic in topics:
-            
             if topic.get('vocabulary') == 'EDAM' and topic.get('uri').startswith('http://edamontology.org/'):
                 identifier = f"edam:{topic['uri'].split('/')[-1]}"
                 new_topic = {
@@ -73,7 +72,7 @@ def get_keywords(topics):
                 new_topics.append(remove_empty_values(new_topic))
             else:
                 if topic.get('uri'):
-                    identifier = topics.get('uri')
+                    identifier = topic.get('uri')
                     new_topic = {
                         "@id": identifier,
                     }
@@ -88,7 +87,6 @@ def get_keywords(topics):
     
     else:
         return ""
-    
     
 
 

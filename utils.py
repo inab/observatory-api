@@ -509,7 +509,7 @@ def preparePublications(tool):
 
 
 def prepareSrc(tool):
-    print(tool['src'])
+    #print(tool['src'])
     links=set(tool['src'])
     tool['src'] = list(links)
     return tool
@@ -572,8 +572,8 @@ def prepareMetadataForEvaluation(metadata):
     for field in fields:
         new_list = [] 
         for item in metadata[field]:
-            print(item)
-            print(field)
+            #print(item)
+            #print(field)
             new_item = item['term']
             new_list.append(new_item)
         
@@ -600,7 +600,7 @@ def keep_first_label(tool):
 def connect_DB():
     # connecting to db
     config = configparser.ConfigParser()
-    config.read('/api-variables/config_db.ini')
+    config.read('./api-variables/config_db.ini')
     #config.read('config_db.ini')
     DBHOST = config['MONGO_DETAILS']['DBHOST']
     DBPORT = config['MONGO_DETAILS']['DBPORT']
