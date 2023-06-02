@@ -1,10 +1,6 @@
 FROM python:3.6-alpine
 FROM ubuntu
 
-
-# Copy configuration file
-COPY config_db.ini ./config_db.ini
-
 # Copy the dependencies
 COPY requirements.txt ./
 
