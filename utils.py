@@ -439,15 +439,19 @@ def prepareLicense(tool):
         z = re.match("(.*)\s?\+\s?file\s?LICENSE", license)
         if z:
             license = z.groups(0)[0]
+        if 'file' in license:
+            license = ''
         return license
     
     new_licenses = []
     for license in tool['license']:
-        new_license = {
-            'name': remove_file_LICENSE(license),
-            'url': ''
-        }
-        new_licenses.append(new_license)
+        new_lic = remove_file_LICENSE(license)
+        if new_lic:
+            new_license = {
+                'name': new_lic,
+                'url': ''
+            }
+            new_licenses.append(new_license)
     
     tool['license'] = new_licenses
     return tool
