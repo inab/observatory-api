@@ -385,22 +385,27 @@ def build_authors(authors):
     Build a list of authors
     '''
     new_authors = []
+    seen_authors = set()
     for author in authors:
         name = clean_first_end_parenthesis(author)
         name = clean_brakets(name)
         name = clean_doctor(name)
         name = keep_after_code(name)
         name = clean_spaces(name)
-        classification = classify_person_organization(name)
-        if classification == 'person':
-            if name:
-                name = clean_long(name)
-                person = build_person(name)
-                new_authors.append(person)
-
+        if name in seen_authors:
+            continue
         else:
-            organization = build_organization(name)
-            new_authors.append(organization)
+            seen_authors.add(name)
+            classification = classify_person_organization(name)
+            if classification == 'person':
+                if name:
+                    name = clean_long(name)
+                    person = build_person(name)
+                    new_authors.append(person)
+
+            else:
+                organization = build_organization(name)
+                new_authors.append(organization)
 
     return new_authors
 
@@ -413,14 +418,9 @@ def prepareAuthors(tool):
         "maintainer": "true/false"
     }
     '''
-    authors = build_authors(tool['authors'])
+    authors = build_authors(tool['authors'])    
+    tool['authors'] = authors
 
-    new_authors = []
-    for author in authors:
-        new_author = author
-        new_authors.append(new_author)
-    
-    tool['authors'] = new_authors
     return tool
     
 
