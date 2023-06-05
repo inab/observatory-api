@@ -149,20 +149,41 @@ def prepareDataFormats(metadata, field):
     items = metadata[field]
     new_items = []
     # look up for each item in the list the corresponding label
+    print(items)
     for item in items:
-        datatype = {
-            'vocabulary': 'EDAM',
-            'term': EDAMDict[item['datatype']],
-            'uri': item['datatype']
-        }
-        for format in item['formats']:
-            format = {
+        if 'datatype' in item:
+            datatype = {
                 'vocabulary': 'EDAM',
-                'term': EDAMDict[format],
-                'uri': format,
-                'datatype': datatype
+                'term': EDAMDict[item['datatype']],
+                'uri': item['datatype']
+            }
+        else:
+            datatype = {}
+
+        # fix this ugly hack later
+        if 'format' in item:
+            format = {
+                'vocabulary': '',
+                'term': item['format']['term'],
+                'uri': item['format']['uri'],
             }
             new_items.append(format)
+        else:
+            for format in item['formats']:
+                if datatype:
+                    format = {
+                        'vocabulary': 'EDAM',
+                        'term': EDAMDict[format],
+                        'uri': format,
+                        'datatype': datatype
+                    }
+                else:
+                    format = {
+                        'vocabulary': 'EDAM',
+                        'term': EDAMDict[format],
+                        'uri': format
+                    }
+                new_items.append(format)
     
     metadata[field] = new_items
     
@@ -235,6 +256,13 @@ def getWebPage(metadata):
         if x:
             new_links.append(link)
         else:
+            if 'https://bioconductor.org/packages/' in link:
+                # raplave version number for 'release'
+                link = link.split('/')
+                link[4] = 'release'
+                link = '/'.join(link)
+                print(link)
+
             webpages.append(link)
     
     metadata['webpage'] = webpages
@@ -457,8 +485,10 @@ def prepareLicense(tool):
     return tool
 
 def prepareDescription(tool):
+    
     description = set(tool['description'])
     tool['description'] = list(description)
+    print(tool['description'])
     return tool
 
 def preparePublications(tool):
@@ -505,10 +535,14 @@ def preparePublications(tool):
         return new_publications
     
     publications = tool['publication']
-    for id_ in identifiers:
-        publications = merge_by_id(publications, id_)
+    try:
+        for id_ in identifiers:
+            publications = merge_by_id(publications, id_)
+    except:
+        pass
     
-    tool['publication'] = publications
+    else:
+        tool['publication'] = publications
     
     return tool
 
