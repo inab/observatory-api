@@ -472,12 +472,13 @@ def preparePublications(tool):
 
     def merge_by_id(publications, id_):
         seen_ids = []
-        ids= [pub.get(id_) for pub in publications]
+        ids = [pub.get(id_) for pub in publications]
         new_publications = []
         
         # get indexes of repeated pmcids
         for id in ids:
             if id != None:
+                id = id.rstrip('.')
                 if id in seen_ids:
                     continue
                 else:
