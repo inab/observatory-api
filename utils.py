@@ -249,24 +249,17 @@ def getWebPage(metadata):
     '''
     Returns the webpage of a tool
     '''
-    webpages= []
-    new_links= []
+    webpages= set()
+    new_links= set()
     for link in metadata['links']:
         x = re.search("^(.*)(\.)(rar|bz2|tar|gz|zip|bz|json|txt|js|py|md)$", link)
         if x:
-            new_links.append(link)
+            new_links.add(link)
         else:
-            if 'https://bioconductor.org/packages/' in link:
-                # raplave version number for 'release'
-                link = link.split('/')
-                link[4] = 'release'
-                link = '/'.join(link)
-                print(link)
-
-            webpages.append(link)
+            webpages.add(link)
     
-    metadata['webpage'] = webpages
-    metadata['links'] = new_links
+    metadata['webpage'] = list(webpages)
+    metadata['links'] = list(new_links)
 
     return metadata
 
@@ -288,9 +281,18 @@ def clean_brakets(string):
         pattern = re.compile(r'\{.*?\}|\[.*?\]|\(.*?\)|\<.*?\>')
         return re.sub(pattern, '', string)
 
+    def clean_before_braket(string):
+        '''
+        Remove anything before }, ], or >
+        '''
+        pattern = re.compile(r'.*?\}.*?|.*?\].*?|.*?\>.*?')
+        return re.sub(pattern, '', string)
+
 
     string = clean_between_brakets(string)
     string = clena_after_braket(string)
+    string = clean_before_braket(string)
+
     return string
 
 def clean_doctor(string):
@@ -538,11 +540,12 @@ def preparePublications(tool):
     try:
         for id_ in identifiers:
             publications = merge_by_id(publications, id_)
-    except:
+            tool['publication'] = publications
+    except Exception as e:
+        print(e)
         pass
-    
     else:
-        tool['publication'] = publications
+        pass
     
     return tool
 
@@ -639,7 +642,7 @@ def keep_first_label(tool):
 def connect_DB():
     # connecting to db
     config = configparser.ConfigParser()
-    config.read('./api-variables/config_db.ini')
+    config.read('/api-variables/config_db.ini')
     #config.read('config_db.ini')
     DBHOST = config['MONGO_DETAILS']['DBHOST']
     DBPORT = config['MONGO_DETAILS']['DBPORT']
