@@ -9,6 +9,7 @@ flask = "*"
 flask-cors = "*"
 setuptools = "*"
 fairsoft = {path = "/Users/evabsc/projects/FAIRsoft/FAIRsoft_ETL/FAIRsoft"}
+urllib3 = "==1.26.6"
 
 [dev-packages]
 

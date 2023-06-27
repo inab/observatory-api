@@ -642,7 +642,7 @@ def keep_first_label(tool):
 def connect_DB():
     # connecting to db
     config = configparser.ConfigParser()
-    config.read('/api-variables/config_db.ini')
+    config.read('./api-variables/config_db.ini')
     #config.read('config_db.ini')
     DBHOST = config['MONGO_DETAILS']['DBHOST']
     DBPORT = config['MONGO_DETAILS']['DBPORT']

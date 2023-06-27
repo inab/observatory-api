@@ -1,5 +1,6 @@
 
 import json
+import requests 
 
 from flask import Flask, request, jsonify, make_response
 from flask_cors import CORS,cross_origin
@@ -473,6 +474,33 @@ def description():
         print(err)
     else:
         resp = make_response(jsonify(data), 201)
+    finally:
+        return resp
+    
+##--------------------------------------------------------------##
+## Request to download file.
+##--------------------------------------------------------------##
+@app.route('/download', methods=['GET', 'POST'])
+@cross_origin(origin='*',headers=['Content-Type'])
+def download():
+    '''
+    Downloads the file in argument 'url'. Needed to download GitHub raw files.
+    '''
+    try: 
+        data = request.get_json()
+        url = data.get('data')
+        if url:
+            r = requests.get(url, allow_redirects=True)
+            data = r.content
+        else:
+            data = {'message': 'No url provided', 'code': 'ERROR'}
+            resp = make_response(data, 400)
+            return(resp)
+    except Exception as err:
+        resp = make_response(err, 400)
+        print(err)
+    else:
+        resp = make_response(data, 201)
     finally:
         return resp
 
