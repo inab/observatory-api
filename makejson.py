@@ -250,7 +250,7 @@ def build_json_ld(meta):
 
 
 
-def get_topics(topics):
+def build_fe_topics(topics):
     if topics:
         items = []
         for topic in topics:
@@ -266,6 +266,12 @@ def get_topics(topics):
         return ""
     
 
+def build_fe_description(description):
+    if description:
+        return [description]
+    else:
+        return ""
+
 
 def build_frontend_metadata(meta):
     '''
@@ -273,10 +279,10 @@ def build_frontend_metadata(meta):
     '''
     metadata = {
         "type": meta.get('@type'),
-        "topics":'',
-        "name":'',
-        "webpages":'',
-        "description":'',
+        "topics":build_fe_topics(meta.get('schema:applicationSubcategory')),
+        "name":meta.get('schema:name'),
+        "webpages":meta.get('schema:url'),
+        "description":build_fe_description(meta.get('schema:description')),
         "os":'',
         "authors":'',
         "version":'',
