@@ -273,18 +273,65 @@ def build_fe_description(description):
         return ""
 
 
+def build_fe_license(licenses):
+    '''
+    [{   
+        "@type": "https://schema.org/CreativeWork",
+        "schema:name": "MIT License",
+    },
+    ...
+    ]
+    '''
+    new_licenses = []
+    if licenses:
+        for license in licenses:
+            new_licenses.append(license['schema:name'])
+        return new_licenses
+    else:
+        return ""
+    
+def build_fe_authors(authors):
+    '''
+    [
+        {
+            "@type": "https://schema.org/Person",
+            "schema:name": "John Doe",
+            "schema:email": "email@gmail.com"
+        },
+        ...
+    ]
+    '''
+    new_authors = []
+    if authors:
+        for author in authors:
+            new_author = {
+                "type": author['@type'].split('/')[-1].lower(),
+                "name": author['schema:name'],
+                "email": author['schema:email'],
+                "maintainer": False 
+            }
+            new_authors.append(remove_empty_values(new_author))
+        
+        return new_authors
+    
+    else:
+        return ""
+
+
 def build_frontend_metadata(meta):
     '''
     Build frontend metadata from bioschema metadata
     '''
     metadata = {
         "type": meta.get('@type'),
-        "topics":build_fe_topics(meta.get('schema:applicationSubcategory')),
-        "name":meta.get('schema:name'),
-        "webpages":meta.get('schema:url'),
-        "description":build_fe_description(meta.get('schema:description')),
-        "os":'',
-        "authors":'',
+        "topics": build_fe_topics(meta.get('schema:applicationSubcategory')),
+        "name": meta.get('schema:name'),
+        "webpages": meta.get('schema:url'),
+        "description": build_fe_description(meta.get('schema:description')),
+        "os": meta.get('schema:operatingSystem'),
+        "license": build_fe_license(meta.get('schema:license')),
+        "authors":build_fe_authors(meta.get('schema:author')),
+        
         "version":'',
         "repository":'',
         "operations":'',
