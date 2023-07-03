@@ -492,6 +492,9 @@ def download():
         if url:
             r = requests.get(url, allow_redirects=True)
             data = r.content
+            my_json = data.decode('utf8').replace("'", '"')
+            data = json.loads(my_json)
+            data = json.dumps(data, indent=4, sort_keys=True)
         else:
             data = {'message': 'No url provided', 'code': 'ERROR'}
             resp = make_response(data, 400)

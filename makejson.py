@@ -1,4 +1,5 @@
 from datetime import datetime
+from EDAM_forFE import EDAMDict 
 
 def get_description(descriptions):
     if descriptions:
@@ -242,6 +243,50 @@ def build_json_ld(meta):
         
     }
 
+
     metadata = remove_empty_values(metadata)
 
     return metadata
+
+
+
+def get_topics(topics):
+    if topics:
+        items = []
+        for topic in topics:
+            uri = f'https://edamontology.org/{topic}'
+            new_topic = {
+                "term": EDAMDict.get(uri),
+                "uri": uri,
+                "vocabulary":'EDAM'
+            }
+            items.append(remove_empty_values(new_topic))
+        return items
+    else:
+        return ""
+    
+
+
+def build_frontend_metadata(meta):
+    '''
+    Build frontend metadata from bioschema metadata
+    '''
+    metadata = {
+        "type": meta.get('@type'),
+        "topics":'',
+        "name":'',
+        "webpages":'',
+        "description":'',
+        "os":'',
+        "authors":'',
+        "version":'',
+        "repository":'',
+        "operations":'',
+        "input":'',
+        "output":'',
+        "download":'',
+        "documentation":'',
+        "publication":'',
+        "dependencies":'',
+        "registration_not_manadatory":''
+    }
