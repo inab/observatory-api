@@ -30,6 +30,8 @@ def get_single_author(author):
     return remove_empty_values(new_author)
 
 
+
+
 def get_authors(authors):
     new_authors = []
     if authors:
@@ -83,6 +85,9 @@ def get_keywords(topics):
 
 
 def get_citation(citations):
+    '''
+    Add journal information to the citation. Not in Forntend
+    '''
     new_citations = []
     if citations:
         for citation in citations:
@@ -95,16 +100,16 @@ def get_citation(citations):
                 new_citation.append({
                     "@id": citation.get('doi'),
                 })
-            if citation.get('title') and citation.get('authors') and citation.get('journal'):
+
+            if citation.get('title'):
                 new_citation.append({
                     "@type": "https://schema.org/CreativeWork",
                     "@id": f"doi:{citation.get('doi')}",
                     "schema:name": citation.get('title'),
-                    "schema:author": get_single_author(citation.get('authors')),
-                    "schema:isPartOf": citation.get('journal')
+                    #"schema:isPartOf": citation.get('journal')
                 })
             
-                new_citations.append(remove_empty_values(new_citation))
+            new_citations.append(new_citation)
 
         return new_citations
     
@@ -243,7 +248,6 @@ def build_json_ld(meta):
         
     }
 
-
     metadata = remove_empty_values(metadata)
 
     return metadata
@@ -347,6 +351,33 @@ def build_fe_input_output(input_output):
         return ""
 
 
+def build_fe_help(help):
+    new_items = []
+    if help:
+        for item in help:
+            new_item = {
+                '@id' : item.get('url'),
+            }
+            new_items.append(remove_empty_values(new_item))
+        return new_items
+    else:
+        return ""
+
+
+def build_fe_publication(publication):
+    new_publications = []
+    for pub in publication:
+        new_pub = {
+            "doi": pub.get('doi'),
+            "pmid": pub.get('pmid'),
+            "pmcid": pub.get('pmcid'),
+            "title": pub.get('title'),
+            "year": ''
+        }
+        
+        new_publications.append(remove_empty_values(new_pub))
+    
+    return new_publications
 
 def build_frontend_metadata(meta):
     '''
@@ -366,11 +397,11 @@ def build_frontend_metadata(meta):
         "operations":build_fe_topics_operations(meta.get('schema:featureList')),
         "input":build_fe_input_output(meta.get('bioschemas:input')),
         "output":build_fe_input_output(meta.get('bioschemas:output')),
-        "download":'',
-        "documentation":'',
-        "publication":'',
-        "dependencies":'',
-        "registration_not_manadatory":''
+        "download":meta.get('schema:downloadURL'),
+        "documentation": build_fe_help(meta.get('schema:softwareHelp')),
+        "publication":build_fe_publication(meta.get('schema:citation')),
+        "dependencies": meta.get('schema:requirements'),
+        "registration_not_manadatory": meta.get('schema:isAccessibleForFree'),
     }
 
     return
