@@ -250,11 +250,12 @@ def build_json_ld(meta):
 
 
 
-def build_fe_topics(topics):
+def build_fe_topics_operations(topics):
     if topics:
         items = []
         for topic in topics:
-            uri = f'https://edamontology.org/{topic}'
+            label = topic.get('term').split(':')[-1]
+            uri = f'https://edamontology.org/{label}'
             new_topic = {
                 "term": EDAMDict.get(uri),
                 "uri": uri,
@@ -317,6 +318,35 @@ def build_fe_authors(authors):
     else:
         return ""
 
+def build_fe_version(version):
+    if version:
+        return [version]
+    else:
+        return ""
+    
+
+def build_fe_input_output(input_output):
+    if input_output:
+        items = []
+        for io in input_output:
+            label = io.get('term').split(':')[-1]
+            uri = f'https://edamontology.org/{label}'
+            new_io = {
+                "datatype": {
+                    "term":"",
+                    "uri":"",
+                    "vocabulary":""
+                },
+                "term": EDAMDict.get(uri),
+                "uri": uri,
+                "vocabulary":"EDAM"
+            }
+            items.append(remove_empty_values(new_io))
+        return items
+    else:
+        return ""
+
+
 
 def build_frontend_metadata(meta):
     '''
@@ -324,22 +354,23 @@ def build_frontend_metadata(meta):
     '''
     metadata = {
         "type": meta.get('@type'),
-        "topics": build_fe_topics(meta.get('schema:applicationSubcategory')),
+        "topics": build_fe_topics_operations(meta.get('schema:applicationSubcategory')),
         "name": meta.get('schema:name'),
         "webpages": meta.get('schema:url'),
         "description": build_fe_description(meta.get('schema:description')),
         "os": meta.get('schema:operatingSystem'),
         "license": build_fe_license(meta.get('schema:license')),
-        "authors":build_fe_authors(meta.get('schema:author')),
-        
-        "version":'',
-        "repository":'',
-        "operations":'',
-        "input":'',
-        "output":'',
+        "authors": build_fe_authors(meta.get('schema:author')),
+        "version": build_fe_version(meta.get('schema:softwareVersion')),
+        "repository": meta.get('schema:codeRepository'),
+        "operations":build_fe_topics_operations(meta.get('schema:featureList')),
+        "input":build_fe_input_output(meta.get('bioschemas:input')),
+        "output":build_fe_input_output(meta.get('bioschemas:output')),
         "download":'',
         "documentation":'',
         "publication":'',
         "dependencies":'',
         "registration_not_manadatory":''
     }
+
+    return
