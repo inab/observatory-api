@@ -269,7 +269,7 @@ def build_fe_topics_operations(topics):
             items.append(remove_empty_values(new_topic))
         return items
     else:
-        return ""
+        return []
     
 
 def build_fe_description(description):
@@ -277,7 +277,7 @@ def build_fe_description(description):
     if description:
         return [description]
     else:
-        return ""
+        return []
 
 
 def build_fe_license(licenses):
@@ -293,11 +293,15 @@ def build_fe_license(licenses):
     new_licenses = []
     if licenses:
         for license in licenses:
-            new_licenses.append(license['schema:name'])
+            new_license = {
+                'name': license['schema:name'],
+                'url':''
+            }
+            new_licenses.append(new_license)
         return new_licenses
     else:
-        return ""
-    
+        return []
+
 def build_fe_authors(authors):
     '''
     [
@@ -329,14 +333,14 @@ def build_fe_authors(authors):
         return new_authors
     
     else:
-        return ""
+        return []
 
 def build_fe_version(version):
     print('building version')
     if version:
         return [version]
     else:
-        return ""
+        return []
     
 
 def build_fe_input_output(input_output):
@@ -360,7 +364,7 @@ def build_fe_input_output(input_output):
             items.append(remove_empty_values(new_io))
         return items
     else:
-        return ""
+        return []
 
 
 def build_fe_help(help):
@@ -376,7 +380,7 @@ def build_fe_help(help):
                 new_items.append(new_item)
         return new_items
     else:
-        return ""
+        return []
 
 
 def build_fe_publication(publication: list) -> list:
@@ -393,39 +397,41 @@ def build_fe_publication(publication: list) -> list:
     '''
     print('building publication')
     new_publications = []
-    for item in publication:
-        for pub in item:
-            new_pub = {}
-            if type(pub) == str:
-                if 'pmcid:' in pub:
-                    new_pub['pmcid'] = pub.split(':')[-1]
-                elif 'pmid:' in pub:
-                    new_pub['pmid'] = pub.split(':')[-1]
-            
-            elif type(pub) == dict:
-
-                if pub.get('@type') == 'https://schema.org/CreativeWork':
-                    try:
-                        new_pub['doi'] = pub.get('@id').split(':')[-1]
-                        new_pub['title'] = pub.get('schema:name')
-                        new_pub['year'] = pub.get('schema:datePublished')
-                        if 'pmid:' in pub.get('pmid'):
-                            new_pub['pmid'] = pub.get('pmid').split(':')[-1]
-                        if 'pmcid:' in pub.get('pmcid'):
-                            new_pub['pmcid'] = pub.get('pmcid').split(':')[-1]
-    
-                    except:
-                        print(f'Publication {pub} could not be parsed, skipping publication')
+    if publication:
+        for item in publication:
+            print(item)
+            for pub in item:
+                new_pub = {}
+                if type(pub) == str:
+                    if 'pmcid:' in pub:
+                        new_pub['pmcid'] = pub.split(':')[-1]
+                    elif 'pmid:' in pub:
+                        new_pub['pmid'] = pub.split(':')[-1]
                 
-                elif pub.get('@id'):
-                    new_pub['doi'] = pub.get('@id')
-            
-            else:
-                print(f'Publication {pub} could not be parsed. Unknown type. Skipping publication')
-            
-            if new_pub:
-                new_publications.append(remove_empty_values(new_pub))
-    
+                elif type(pub) == dict:
+
+                    if pub.get('@type') == 'https://schema.org/CreativeWork':
+                        try:
+                            new_pub['doi'] = pub.get('@id').split(':')[-1]
+                            new_pub['title'] = pub.get('schema:name')
+                            new_pub['year'] = pub.get('schema:datePublished')
+                            if 'pmid:' in pub.get('pmid'):
+                                new_pub['pmid'] = pub.get('pmid').split(':')[-1]
+                            if 'pmcid:' in pub.get('pmcid'):
+                                new_pub['pmcid'] = pub.get('pmcid').split(':')[-1]
+        
+                        except:
+                            print(f'Publication {pub} could not be parsed, skipping publication')
+                    
+                    elif pub.get('@id'):
+                        new_pub['doi'] = pub.get('@id')
+                
+                else:
+                    print(f'Publication {pub} could not be parsed. Unknown type. Skipping publication')
+                
+                if new_pub:
+                    new_publications.append(remove_empty_values(new_pub))
+        
     return new_publications
 
 def build_fe_edam_topics_operations(topics):
@@ -438,7 +444,18 @@ def build_fe_edam_topics_operations(topics):
             items.append(uri)
         return items
     else:
-        return ""
+        return []
+
+
+def build_fe_links(meta):
+    print('building links')
+    new_links = []
+    if meta.get('schema:codeRepository'):
+        new_links += meta.get('schema:codeRepository')
+    if meta.get('schema:downloadUrl'):
+        new_links += meta.get('schema:downloadUrl')
+    
+    return new_links
 
 
 def build_frontend_metadata(meta):
@@ -446,28 +463,38 @@ def build_frontend_metadata(meta):
     Build frontend metadata from bioschema metadata
     '''
     metadata = {
-        "type": meta.get('@type'),
+        "type": meta.get('@type') if meta.get('@type') else "",
         "topics": build_fe_topics_operations(meta.get('schema:applicationSubcategory')),
-        "name": meta.get('schema:name'),
-        "webpage": meta.get('schema:url'),
+        "name": meta.get('schema:name') if meta.get('schema:name') else "",
+        "webpage": meta.get('schema:url') if meta.get('schema:url') else "",
         "description": build_fe_description(meta.get('schema:description')),
-        "os": meta.get('schema:operatingSystem'),
+        "os": meta.get('schema:operatingSystem') if meta.get('schema:operatingSystem') else [],
         "license": build_fe_license(meta.get('schema:license')),
         "authors": build_fe_authors(meta.get('schema:author')),
         "version": build_fe_version(meta.get('schema:softwareVersion')),
-        "repository": meta.get('schema:codeRepository'),
+        "repository":meta.get('schema:codeRepository') if meta.get('schema:codeRepository') else [],
         "operations":build_fe_topics_operations(meta.get('schema:featureList')),
         "input":build_fe_input_output(meta.get('bioschemas:input')),
         "output":build_fe_input_output(meta.get('bioschemas:output')),
-        "download":meta.get('schema:downloadURL'),
+        "download":meta.get('schema:downloadURL') if meta.get('schema:downloadURL') else [],
         "documentation": build_fe_help(meta.get('schema:softwareHelp')),
         "publication":build_fe_publication(meta.get('schema:citation')),
-        "dependencies": meta.get('schema:requirements'),
-        "registration_not_manadatory": meta.get('schema:isAccessibleForFree'),
+        "dependencies": meta.get('schema:requirements') if meta.get('schema:requirements') else [],
+        "registration_not_mandatory": meta.get('schema:isAccessibleForFree') if meta.get('schema:isAccessibleForFree') else False,
         "edam_topics": build_fe_edam_topics_operations(meta.get('schema:applicationSubcategory')),
         "edam_operations": build_fe_edam_topics_operations(meta.get('schema:featureList')),
-
+        "label": [meta.get('schema:name')] if meta.get('schema:name') else [],
+        "src":meta.get('schema:codeRepository') if meta.get('schema:codeRepository') else [],
+        "links":build_fe_links(meta),
+        "api_lib":False,
+        "test":[],
+        "source":[],
+        "registries": [],
+        "e_infrastructures": [],
+        "operational": None,
+        "inst_instr": False,
+        "contribPolicy": [],
+        "other_versions": []
     }
-
 
     return metadata

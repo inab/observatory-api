@@ -444,6 +444,7 @@ def map():
     for metadata edition.
     '''
     data = request.get_json()
+    print(data)
     if data:
         try:
             # 1. Map metadata
