@@ -98,7 +98,7 @@ def get_citation(citations):
                 new_citation.append(f"pmid:{citation.get('pmid')}")
             if citation.get('doi'):
                 new_citation.append({
-                    "@id": citation.get('doi'),
+                    "@id": f"doi:{citation.get('doi')}",
                 })
 
             if citation.get('title'):
@@ -255,10 +255,11 @@ def build_json_ld(meta):
 
 
 def build_fe_topics_operations(topics):
+    print('building topics')
     if topics:
         items = []
         for topic in topics:
-            label = topic.get('term').split(':')[-1]
+            label = topic.split(':')[-1]
             uri = f'https://edamontology.org/{label}'
             new_topic = {
                 "term": EDAMDict.get(uri),
@@ -272,6 +273,7 @@ def build_fe_topics_operations(topics):
     
 
 def build_fe_description(description):
+    print('building description')
     if description:
         return [description]
     else:
@@ -287,6 +289,7 @@ def build_fe_license(licenses):
     ...
     ]
     '''
+    print('building license')
     new_licenses = []
     if licenses:
         for license in licenses:
@@ -306,23 +309,30 @@ def build_fe_authors(authors):
         ...
     ]
     '''
+    print('building authors')
     new_authors = []
     if authors:
         for author in authors:
-            new_author = {
-                "type": author['@type'].split('/')[-1].lower(),
-                "name": author['schema:name'],
-                "email": author['schema:email'],
-                "maintainer": False 
-            }
-            new_authors.append(remove_empty_values(new_author))
-        
+            try:
+                type = author.get('@type').split('/')[-1].lower()
+            except:
+                print('Author type not found, skipping author')
+            else:
+                new_author = {
+                    "type": type,
+                    "name": author.get('schema:name'),
+                    "email": author.get('schema:email'),
+                    "maintainer": False 
+                }
+                new_authors.append(remove_empty_values(new_author))
+            
         return new_authors
     
     else:
         return ""
 
 def build_fe_version(version):
+    print('building version')
     if version:
         return [version]
     else:
@@ -330,10 +340,12 @@ def build_fe_version(version):
     
 
 def build_fe_input_output(input_output):
+    print('building input output')
     if input_output:
         items = []
         for io in input_output:
-            label = io.get('term').split(':')[-1]
+        
+            label = io.get('biochemas:encodingFormat').split(':')[-1]
             uri = f'https://edamontology.org/{label}'
             new_io = {
                 "datatype": {
@@ -352,32 +364,82 @@ def build_fe_input_output(input_output):
 
 
 def build_fe_help(help):
+    print('building help')
     new_items = []
     if help:
         for item in help:
-            new_item = {
-                '@id' : item.get('url'),
-            }
-            new_items.append(remove_empty_values(new_item))
+            if item.get('@id'):
+                new_item = {
+                    'url' : item.get('@id'),
+                    'type': '',
+                }
+                new_items.append(new_item)
         return new_items
     else:
         return ""
 
 
-def build_fe_publication(publication):
+def build_fe_publication(publication: list) -> list:
+    '''
+    [
+        [
+            "pmcid:PMC2712344",
+            "pmid:19505945",
+            {
+                "@id": "10.1093/bioinformatics/btp348"
+            }
+        ]
+    ]
+    '''
+    print('building publication')
     new_publications = []
-    for pub in publication:
-        new_pub = {
-            "doi": pub.get('doi'),
-            "pmid": pub.get('pmid'),
-            "pmcid": pub.get('pmcid'),
-            "title": pub.get('title'),
-            "year": ''
-        }
-        
-        new_publications.append(remove_empty_values(new_pub))
+    for item in publication:
+        for pub in item:
+            new_pub = {}
+            if type(pub) == str:
+                if 'pmcid:' in pub:
+                    new_pub['pmcid'] = pub.split(':')[-1]
+                elif 'pmid:' in pub:
+                    new_pub['pmid'] = pub.split(':')[-1]
+            
+            elif type(pub) == dict:
+
+                if pub.get('@type') == 'https://schema.org/CreativeWork':
+                    try:
+                        new_pub['doi'] = pub.get('@id').split(':')[-1]
+                        new_pub['title'] = pub.get('schema:name')
+                        new_pub['year'] = pub.get('schema:datePublished')
+                        if 'pmid:' in pub.get('pmid'):
+                            new_pub['pmid'] = pub.get('pmid').split(':')[-1]
+                        if 'pmcid:' in pub.get('pmcid'):
+                            new_pub['pmcid'] = pub.get('pmcid').split(':')[-1]
+    
+                    except:
+                        print(f'Publication {pub} could not be parsed, skipping publication')
+                
+                elif pub.get('@id'):
+                    new_pub['doi'] = pub.get('@id')
+            
+            else:
+                print(f'Publication {pub} could not be parsed. Unknown type. Skipping publication')
+            
+            if new_pub:
+                new_publications.append(remove_empty_values(new_pub))
     
     return new_publications
+
+def build_fe_edam_topics_operations(topics):
+    print('building edam topics operations')
+    if topics:
+        items = []
+        for topic in topics:
+            label = topic.split(':')[-1]
+            uri = f'https://edamontology.org/{label}'
+            items.append(uri)
+        return items
+    else:
+        return ""
+
 
 def build_frontend_metadata(meta):
     '''
@@ -387,7 +449,7 @@ def build_frontend_metadata(meta):
         "type": meta.get('@type'),
         "topics": build_fe_topics_operations(meta.get('schema:applicationSubcategory')),
         "name": meta.get('schema:name'),
-        "webpages": meta.get('schema:url'),
+        "webpage": meta.get('schema:url'),
         "description": build_fe_description(meta.get('schema:description')),
         "os": meta.get('schema:operatingSystem'),
         "license": build_fe_license(meta.get('schema:license')),
@@ -402,6 +464,10 @@ def build_frontend_metadata(meta):
         "publication":build_fe_publication(meta.get('schema:citation')),
         "dependencies": meta.get('schema:requirements'),
         "registration_not_manadatory": meta.get('schema:isAccessibleForFree'),
+        "edam_topics": build_fe_edam_topics_operations(meta.get('schema:applicationSubcategory')),
+        "edam_operations": build_fe_edam_topics_operations(meta.get('schema:featureList')),
+
     }
 
-    return
+
+    return metadata

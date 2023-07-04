@@ -229,18 +229,21 @@ def prepareListsIds(metadata):
         'publication'
     ]
 
+    print(metadata)
     for field in fields:
+        print(f'Adding ids to field: {field}')
         new_list = [] 
         i=0
-        for item in metadata[field]:
-            new_item ={
-                'term': item,
-                'id': i
-            }
-            new_list.append(new_item)
-            i+=1
+        if metadata.get(field):
+            for item in metadata.get(field):
+                new_item ={
+                    'term': item,
+                    'id': i
+                }
+                new_list.append(new_item)
+                i+=1
 
-        metadata[field] = new_list
+            metadata[field] = new_list
     
     return metadata
 
@@ -612,10 +615,9 @@ def prepareMetadataForEvaluation(metadata):
     ]
 
     for field in fields:
+        print('preparing field: ', field)
         new_list = [] 
         for item in metadata[field]:
-            #print(item)
-            #print(field)
             new_item = item['term']
             new_list.append(new_item)
         

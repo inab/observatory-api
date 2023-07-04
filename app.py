@@ -5,10 +5,10 @@ import requests
 from flask import Flask, request, jsonify, make_response
 from flask_cors import CORS,cross_origin
 
-from utils import prepareToolMetadata, prepareMetadataForEvaluation, keep_first_label, connect_DB
+from utils import prepareToolMetadata, prepareMetadataForEvaluation, prepareListsIds, keep_first_label, connect_DB
 from prepareVocabularies import prepareEDAM
 from FAIR_indicators_eval import computeScores_from_list
-from makejson import build_json_ld
+from makejson import build_json_ld, build_frontend_metadata
 
         
 ## Init app
@@ -430,6 +430,43 @@ def evaluateId():
      
         return(resp)
 
+##--------------------------------------------------------------##
+## Request to map bioschemas/OEB file to UI model for metadata
+## edition and FAIR evaluation
+## (context: https://openebench.bsc.es/bioschemas/oebtools.jsonld)
+##--------------------------------------------------------------##
+
+@app.route('/map', methods=['GET', 'POST'])
+@cross_origin(origin='*',headers=['Content-Type'])
+def map():
+    '''
+    Used by the UI to map the bioschemas/OEB file to the UI model 
+    for metadata edition.
+    '''
+    data = request.get_json()
+    if data:
+        try:
+            # 1. Map metadata
+            mapped = build_frontend_metadata(data)
+        except Exception as err:
+            data = {'message': f'Something went wrong while mapping metadata: {err}', 'code': 'ERROR'}
+            resp = make_response(data, 400)
+        else:
+            try:
+            # 2. Prepare metadata for UI (adding indices in all lists)
+                tool = prepareListsIds(mapped)
+                resp = make_response(jsonify(tool), 200)
+            except Exception as err:
+                data = {'message': f'Something went wrong while preparing metadata for evaluation: {err}', 'code': 'ERROR'}
+                resp = make_response(data, 400)
+        finally: 
+            return(resp)
+    else:
+        data = {'message': 'No metadata provided', 'code': 'ERROR'}
+        resp = make_response(data, 400)
+        return(resp)
+    
+
 
 ##--------------------------------------------------------------##
 ## Requests regarding docs in `tools_collection` collection
@@ -477,35 +514,9 @@ def description():
     finally:
         return resp
     
-##--------------------------------------------------------------##
-## Request to download file.
-##--------------------------------------------------------------##
-@app.route('/download', methods=['GET', 'POST'])
-@cross_origin(origin='*',headers=['Content-Type'])
-def download():
-    '''
-    Downloads the file in argument 'url'. Needed to download GitHub raw files.
-    '''
-    try: 
-        data = request.get_json()
-        url = data.get('data')
-        if url:
-            r = requests.get(url, allow_redirects=True)
-            data = r.content
-            my_json = data.decode('utf8').replace("'", '"')
-            data = json.loads(my_json)
-            data = json.dumps(data, indent=4, sort_keys=True)
-        else:
-            data = {'message': 'No url provided', 'code': 'ERROR'}
-            resp = make_response(data, 400)
-            return(resp)
-    except Exception as err:
-        resp = make_response(err, 400)
-        print(err)
-    else:
-        resp = make_response(data, 201)
-    finally:
-        return resp
+    
+
+    
 
 
 ## ------------------------------------------##

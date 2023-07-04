@@ -38,12 +38,13 @@ Most endpoints use the `observatory2.tools` collection. The endpoint `GET "/tool
 | `schema:author` | `authors` |
 | `schema:maintainer` | `authors` |
 | `schema:softwareVersion` | `version` |
-| `schema:codeRepository` | `repository` |
+| `schema:codeRepository` | `repository` 
 | `schema:featureList` | `operations` |
 | `schema:input` | `input` |
 | `schema:output` | `output` |
 | `schema:downloadURL` | `download` |
 | `schema:softwareHelp` | `documentation` | 
+
 | `schema:citation` | `publication` |
 | `schema:requirements` | `dependencies` |
 | `schema:isAccessibleForFree` | `registration_not_manadatory` |
