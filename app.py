@@ -98,7 +98,7 @@ def make_query(variable_name, parameters):
         record = list(stats.find({
             "variable":variable_name,
             "collection":collection,
-            }).sort("version",-1).limit(1))
+            }).sort("_id",-1).limit(1))
     else:
         record = list(stats.find({
             "variable":variable_name,
