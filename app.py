@@ -430,43 +430,6 @@ def evaluateId():
      
         return(resp)
 
-##--------------------------------------------------------------##
-## Request to map bioschemas/OEB file to UI model for metadata
-## edition and FAIR evaluation
-## (context: https://openebench.bsc.es/bioschemas/oebtools.jsonld)
-##--------------------------------------------------------------##
-
-@app.route('/map', methods=['GET', 'POST'])
-@cross_origin(origin='*',headers=['Content-Type'])
-def map():
-    '''
-    Used by the UI to map the bioschemas/OEB file to the UI model 
-    for metadata edition.
-    '''
-    data = request.get_json()
-    print(data)
-    if data:
-        try:
-            # 1. Map metadata
-            mapped = build_frontend_metadata(data)
-        except Exception as err:
-            data = {'message': f'Something went wrong while mapping metadata: {err}', 'code': 'ERROR'}
-            resp = make_response(data, 400)
-        else:
-            try:
-            # 2. Prepare metadata for UI (adding indices in all lists)
-                tool = prepareListsIds(mapped)
-                resp = make_response(jsonify(tool), 200)
-            except Exception as err:
-                data = {'message': f'Something went wrong while preparing metadata for evaluation: {err}', 'code': 'ERROR'}
-                resp = make_response(data, 400)
-        finally: 
-            return(resp)
-    else:
-        data = {'message': 'No metadata provided', 'code': 'ERROR'}
-        resp = make_response(data, 400)
-        return(resp)
-    
 
 
 ##--------------------------------------------------------------##

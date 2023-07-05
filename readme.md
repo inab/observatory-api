@@ -44,7 +44,6 @@ Most endpoints use the `observatory2.tools` collection. The endpoint `GET "/tool
 | `schema:output` | `output` |
 | `schema:downloadURL` | `download` |
 | `schema:softwareHelp` | `documentation` | 
-
 | `schema:citation` | `publication` |
 | `schema:requirements` | `dependencies` |
 | `schema:isAccessibleForFree` | `registration_not_manadatory` |
