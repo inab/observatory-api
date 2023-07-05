@@ -338,9 +338,9 @@ def build_fe_authors(authors):
 def build_fe_version(version):
     print('building version')
     if version:
-        return [version]
+        return version
     else:
-        return []
+        return ""
     
 
 def build_fe_input_output(input_output):
