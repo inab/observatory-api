@@ -8,7 +8,7 @@ from flask_cors import CORS,cross_origin
 from utils import prepareToolMetadata, prepareMetadataForEvaluation, prepareListsIds, keep_first_label, connect_DB
 from prepareVocabularies import prepareEDAM
 from FAIR_indicators_eval import computeScores_from_list
-from makejson import build_json_ld, build_frontend_metadata
+from makejson import build_json_ld
 
         
 ## Init app
