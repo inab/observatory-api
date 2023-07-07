@@ -447,6 +447,19 @@ def badge():
     resp = make_response(jsonify(badge), 201)
     return resp
 
+@app.route('/tool/badge/test', methods=['POST', 'GET'])
+@cross_origin(origin='*',headers=['Content-Type'])
+def badge_test():
+    badge = {
+        "schemaVersion": 1,
+        "label": "tool metadata",
+        "message": "present",
+        "color": "green",
+    }
+    resp = make_response(jsonify(badge), 201)
+    return resp
+
+
 ##--------------------------------------------------------------##
 ## Requests regarding docs in `tools_collection` collection
 ##--------------------------------------------------------------##
