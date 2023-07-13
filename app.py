@@ -1,6 +1,7 @@
 
 import json
 import requests 
+import re
 
 from flask import Flask, request, jsonify, make_response
 from flask_cors import CORS,cross_origin
@@ -459,6 +460,33 @@ def badge_test():
     resp = make_response(jsonify(badge), 200)
     return resp
 
+## --------------------------------------------------------------##
+## Search for tools
+## --------------------------------------------------------------##
+@app.route('/search', methods=['GET'])
+@cross_origin(origin='*',headers=['Content-Type'])
+def search():
+    try:
+        query = request.args.get('query')
+        tools = []
+        # Use regex in name by now. 
+        # Later on, we can extend this to other fields and build indexes and a more complex query
+        pat = re.compile(rf'{query}', re.I)
+        [tools.append(prepareToolMetadata(entry)) for entry in tools_collection.find({'name': {'$regex': pat}})]
+
+        data = {
+            'tools' : tools
+        }
+
+    except Exception as err:
+        data = {'message': f'Something went wrong while fetching tool entries: {err}', 'code': 'ERROR'}
+        resp = make_response(data, 400)
+        print(err)
+    else:
+        data = {'message': data, 'code': 'SUCCESS'}
+        resp = make_response(jsonify(data), 201)
+    finally:
+        return resp
 
 ##--------------------------------------------------------------##
 ## Requests regarding docs in `tools_collection` collection

@@ -57,13 +57,13 @@ Most endpoints use the `observatory.tools` collection. The endpoint `GET "/tools
 #### GET "/tool/badge"  
 
 
-![badge](https://img.shields.io/endpoint?url=https://observatory-dev.openebench.bsc.es/api/tool/badge/testSvg&style=for-the-badge)
+![badge](https://img.shields.io/endpoint?url=https://observatory-dev.openebench.bsc.es/api/tool/badge&style=for-the-badge)
 
-![badge](https://img.shields.io/endpoint?url=https://observatory-dev.openebench.bsc.es/api/tool/badge/testSvg&style=flat-square)
+![badge](https://img.shields.io/endpoint?url=https://observatory-dev.openebench.bsc.es/api/tool/badge&style=flat-square)
 
-![badge](https://img.shields.io/endpoint?url=https://observatory-dev.openebench.bsc.es/api/tool/badge/testSvg&color=blue)
+![badge](https://img.shields.io/endpoint?url=https://observatory-dev.openebench.bsc.es/api/tool/badge&color=blue)
 
-![badge](https://img.shields.io/endpoint?url=https://observatory-dev.openebench.bsc.es/api/tool/badge/testSvg)    
+![badge](https://img.shields.io/endpoint?url=https://observatory-dev.openebench.bsc.es/api/tool/badge)    
 
 Ideas for OEB Evaluator badges:  
 
