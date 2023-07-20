@@ -39,9 +39,7 @@ def prepareToolMetadata(tool):
     tool = prepareDataFormats(tool, 'output')
     # Extract webpages from links
     tool = getWebPage(tool)
-    # Add ids to lists for v-for loops to work in the UI
-    tool = prepareListsIds(tool)
-
+    
     return tool
 
 

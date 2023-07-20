@@ -267,6 +267,7 @@ def tool_metadata():
     tool = tool[0]
     
     tool = prepareToolMetadata(tool)
+    tool = prepareListsIds(tool)
 
     resp = make_response(jsonify(tool), 200)
 
@@ -483,9 +484,12 @@ def search():
         ## Use regex in name by now. 
         pat = re.compile(rf'{q}', re.I)
         for tool in tools_collection.find({'name': {'$regex': pat}}):
-            entry = prepareToolMetadata(tool)
-            entry['name'] = True
-            tools.append(entry)
+            if tool['source'] == ['galaxy_metadata']:
+                continue
+            else:
+                entry = prepareToolMetadata(tool)
+                entry['name'] = True
+                tools.append(entry)
 
         counts['name'] = len(tools)
 
