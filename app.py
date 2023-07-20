@@ -467,23 +467,46 @@ def badge_test():
 @cross_origin(origin='*',headers=['Content-Type'])
 def search():
     try:
-        query = request.args.get('query')
+        q = request.args.get('q')
         tools = []
-        # Use regex in name by now. 
-        # Later on, we can extend this to other fields and build indexes and a more complex query
-        pat = re.compile(rf'{query}', re.I)
-        [tools.append(prepareToolMetadata(entry)) for entry in tools_collection.find({'name': {'$regex': pat}})]
+        counts = {
+            'name' : 0,
+            'description' : 0,
+            'topics': 0,
+            'operations': 0,
+            'publication_title': 0,
+            'publication_abstract': 0,
+        }
+
+        # 🚧 Searches in Database
+        ##-- Name
+        ## Use regex in name by now. 
+        pat = re.compile(rf'{q}', re.I)
+        for tool in tools_collection.find({'name': {'$regex': pat}}):
+            entry = prepareToolMetadata(tool)
+            entry['name'] = True
+            tools.append(entry)
+
+        counts['name'] = len(tools)
 
         data = {
-            'tools' : tools
+            'query' : q,
+            'tools' : {
+                'name' : tools,
+                'description' : [],
+                'topics': [],
+                'operations': [],
+                'publication_title': [],
+                'publication_abstract': []
+            },
+            'counts' : counts
         }
 
     except Exception as err:
-        data = {'message': f'Something went wrong while fetching tool entries: {err}', 'code': 'ERROR'}
+        data = f'Something went wrong while fetching tool entries: {err}'
         resp = make_response(data, 400)
         print(err)
     else:
-        data = {'message': data, 'code': 'SUCCESS'}
         resp = make_response(jsonify(data), 201)
     finally:
         return resp

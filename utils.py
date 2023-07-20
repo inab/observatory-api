@@ -229,9 +229,9 @@ def prepareListsIds(metadata):
         'publication'
     ]
 
-    print(metadata)
+    #print(metadata)
     for field in fields:
-        print(f'Adding ids to field: {field}')
+        #print(f'Adding ids to field: {field}')
         new_list = [] 
         i=0
         if metadata.get(field):
