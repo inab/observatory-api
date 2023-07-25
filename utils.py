@@ -39,7 +39,7 @@ def prepareToolMetadata(tool):
     tool = prepareDataFormats(tool, 'output')
     # Extract webpages from links
     tool = getWebPage(tool)
-    
+
     return tool
 
 
@@ -147,7 +147,7 @@ def prepareDataFormats(metadata, field):
     items = metadata[field]
     new_items = []
     # look up for each item in the list the corresponding label
-    print(items)
+    #print(items)
     for item in items:
         if 'datatype' in item:
             datatype = {
@@ -491,7 +491,7 @@ def prepareDescription(tool):
     
     description = set(tool['description'])
     tool['description'] = list(description)
-    print(tool['description'])
+    #print(tool['description'])
     return tool
 
 def preparePublications(tool):
@@ -506,12 +506,12 @@ def preparePublications(tool):
     def merge_by_id(publications, id_):
         seen_ids = []
         ids = [pub.get(id_) for pub in publications]
+        ids = [id_.rstrip('.') for id_ in ids if id_ != None]
         new_publications = []
         
         # get indexes of repeated pmcids
         for id in ids:
             if id != None:
-                id = id.rstrip('.')
                 if id in seen_ids:
                     continue
                 else:
@@ -543,8 +543,8 @@ def preparePublications(tool):
             publications = merge_by_id(publications, id_)
             tool['publication'] = publications
     except Exception as e:
+        print('Error merging publications')
         print(e)
-        pass
     else:
         pass
     
@@ -613,7 +613,7 @@ def prepareMetadataForEvaluation(metadata):
     ]
 
     for field in fields:
-        print('preparing field: ', field)
+        #print('preparing field: ', field)
         new_list = [] 
         for item in metadata[field]:
             new_item = item['term']

@@ -3,7 +3,7 @@ import json
 import requests 
 import re
 
-from flask import Flask, request, jsonify, make_response
+from flask import Flask, request, jsonify, make_response, Response
 from flask_cors import CORS,cross_origin
 
 from utils import prepareToolMetadata, prepareMetadataForEvaluation, prepareListsIds, keep_first_label, connect_DB
@@ -304,9 +304,10 @@ def EDAMTerms():
     except:
         data = {'Something went wrong when retrieving the EDAM vocabulary :('}
         resp = make_response(data, 400)
+        return resp
 
     else:
-        resp = make_response(jsonify(EDAMVocabularyItems), 200)
+       resp = make_response(jsonify(EDAMVocabularyItems), 200)
 
     return resp
 
@@ -464,12 +465,30 @@ def badge_test():
 ## --------------------------------------------------------------##
 ## Search for tools
 ## --------------------------------------------------------------##
+
+def search_input(tools, counts, search, label):
+    for tool in tools_collection.find(search):
+        if tool['source'] == ['galaxy_metadata']:
+            continue
+        else:
+            entry = prepareToolMetadata(tool)
+            if entry['@id'] in tools.keys():
+                tools[entry['@id']]['foundIn'].append(label)
+            else:
+                entry['foundIn'] = [label]
+                tools[entry['@id']] = entry
+
+            counts[label] += 1
+
+    return tools, counts
+
+
 @app.route('/search', methods=['GET'])
 @cross_origin(origin='*',headers=['Content-Type'])
 def search():
     try:
         q = request.args.get('q')
-        tools = []
+        tools = {}
         counts = {
             'name' : 0,
             'description' : 0,
@@ -479,41 +498,84 @@ def search():
             'publication_abstract': 0,
         }
 
+        search = {}
+        source = request.args.get('source')
+        if source != None:
+            items = source.split(',')
+            search['source'] = {'$in': items}
+        
+        type = request.args.get('type')
+        if type != None:
+            search['type'] = type
+
+        topics = request.args.get('topics')
+        if topics != None:
+            items = topics.split(',')
+            search['topics.term'] = {'$in': items}
+        
+        operations = request.args.get('operations')
+        if operations != None:
+            items = operations.split(',')
+            search['operations.term'] = {'$in': items}
+        
+        license = request.args.get('license')
+        if license != None:
+            items = license.split(',')
+            search['license'] = {'$in': items}
+
+        # 🚧 Add input, output, and collection search
+
         # 🚧 Searches in Database
+        pat = re.compile(rf'{q}', re.I)
         ##-- Name
         ## Use regex in name by now. 
-        pat = re.compile(rf'{q}', re.I)
-        for tool in tools_collection.find({'name': {'$regex': pat}}):
-            if tool['source'] == ['galaxy_metadata']:
-                continue
-            else:
-                entry = prepareToolMetadata(tool)
-                entry['name'] = True
-                tools.append(entry)
+        name_search = search.copy()
+        name_search['name'] = {'$regex': pat}
+        print(name_search)
+        tools, counts =  search_input(tools, counts, name_search, 'name')
 
-        counts['name'] = len(tools)
+        ##-- Description
+        ## Use regex in description by now.
+        description_search = search.copy()
+        description_search['description'] = {'$regex': pat}
+        tools, counts = search_input(tools, counts, description_search, 'description')
 
+        ##-- Topics
+        ## Use regex in topics by now.
+        topics_search = search.copy()
+        topics_search['topics.term'] = {'$regex': pat}
+        tools, counts = search_input(tools, counts, topics_search, 'topics')
+
+
+        tools = list(tools.values())
+
+        # 🚧 TODO: Sort tools by relevance
+        
+        page = request.args.get('page')
+        if page == None:
+            page = 0
+        else:
+            page = int(page)
+        
+        a = page*10
+        b = page*10+10
         data = {
             'query' : q,
-            'tools' : {
-                'name' : tools,
-                'description' : [],
-                'topics': [],
-                'operations': [],
-                'publication_title': [],
-                'publication_abstract': []
-            },
+            'tools' : tools[a:b],
             'counts' : counts
         }
 
     except Exception as err:
-        data = f'Something went wrong while fetching tool entries: {err}'
+        data = f'Something went wrong while fetching: {err}'
         resp = make_response(data, 400)
         print(err)
+        #raise err
     else:
         resp = make_response(jsonify(data), 201)
     finally:
         return resp
+    
+    
 
 ##--------------------------------------------------------------##
 ## Requests regarding docs in `tools_collection` collection
