@@ -62,13 +62,14 @@ def prepareTopicsOperations(metadata, field, new_field):
     new_items = []
     # look up for each item in the list the corresponding label
     for item in items:
-        term = EDAMDict[item]
-        item = {
-            'vocabulary': 'EDAM',
-            'term': term,
-            'uri': item
-        }
-        new_items.append(item)
+        term = EDAMDict.get(item)
+        if item:
+            item = {
+                'vocabulary': 'EDAM',
+                'term': term,
+                'uri': item
+            }
+            new_items.append(item)
     
     metadata[new_field] = new_items
     return metadata

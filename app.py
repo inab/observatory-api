@@ -10,6 +10,7 @@ from utils import prepareToolMetadata, prepareMetadataForEvaluation, prepareList
 from prepareVocabularies import prepareEDAM
 from FAIR_indicators_eval import computeScores_from_list
 from makejson import build_json_ld
+from EDAM_forFE import EDAMDict
 
         
 ## Init app
@@ -483,11 +484,17 @@ def search_input(tools, counts, search, label):
     return tools, counts
 
 
+def make_search(label, query_field, query_expression, search, tools, counts):
+    name_search = search.copy()
+    name_search[query_field] = query_expression
+    tools, counts = search_input(tools, counts, name_search, label)
+    return tools, counts
+
 @app.route('/search', methods=['GET'])
 @cross_origin(origin='*',headers=['Content-Type'])
 def search():
     try:
-        q = request.args.get('q')
+       
         tools = {}
         counts = {
             'name' : 0,
@@ -511,12 +518,14 @@ def search():
         topics = request.args.get('topics')
         if topics != None:
             items = topics.split(',')
-            search['topics.term'] = {'$in': items}
-        
+            # Match regex in EDAMDict keys.
+            pat = re.compile(rf'{items}', re.I)
+            # TODO
+
         operations = request.args.get('operations')
         if operations != None:
             items = operations.split(',')
-            search['operations.term'] = {'$in': items}
+            # TODO
         
         license = request.args.get('license')
         if license != None:
@@ -526,26 +535,34 @@ def search():
         # 🚧 Add input, output, and collection search
 
         # 🚧 Searches in Database
+        q = request.args.get('q')
         pat = re.compile(rf'{q}', re.I)
-        ##-- Name
-        ## Use regex in name by now. 
-        name_search = search.copy()
-        name_search['name'] = {'$regex': pat}
-        print(name_search)
-        tools, counts =  search_input(tools, counts, name_search, 'name')
-
-        ##-- Description
-        ## Use regex in description by now.
-        description_search = search.copy()
-        description_search['description'] = {'$regex': pat}
-        tools, counts = search_input(tools, counts, description_search, 'description')
-
-        ##-- Topics
-        ## Use regex in topics by now.
-        topics_search = search.copy()
-        topics_search['topics.term'] = {'$regex': pat}
-        tools, counts = search_input(tools, counts, topics_search, 'topics')
-
+        if request.args.get('searchIn'):
+            searchIn = request.args.get('searchIn').split(',')
+            print(searchIn)
+            ##-- Name
+            ## Use regex in name by now. 
+            if 'name' in searchIn:
+                tools, counts = make_search('name', 'name', {'$regex': pat}, search, tools, counts)
+                print('here')
+            ##-- Description
+            ## Use regex in description by now.
+            if 'description' in searchIn:
+                tools, counts = make_search('description', 'description', {'$regex': pat}, search, tools, counts)
+            
+            ##-- Topics
+            if 'topics' in searchIn:
+                tools, counts = make_search('topics', 'edam_topics', {'$regex': pat} , search, tools, counts)
+ 
+        else: 
+            ##-- Do all
+            tools, counts = make_search('name', 'name', {'$regex': pat}, search, tools, counts)
+            tools, counts = make_search('description', 'description', {'$regex': pat}, search, tools, counts)
+            
+            edam_ids = [key for key,value in EDAMDict.items() if re.search(pat, value)]
+            
+            tools, counts = make_search('topics', 'edam_topics', {'$in': edam_ids}, search, tools, counts)
+            tools, counts = make_search('operations', 'edam_operations', {'$in': edam_ids}, search, tools, counts)
 
         tools = list(tools.values())
 
