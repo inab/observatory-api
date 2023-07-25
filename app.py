@@ -552,7 +552,14 @@ def search():
             
             ##-- Topics
             if 'topics' in searchIn:
-                tools, counts = make_search('topics', 'edam_topics', {'$regex': pat} , search, tools, counts)
+                edam_ids = [key for key,value in EDAMDict.items() if re.search(pat, value)]
+                tools, counts = make_search('topics', 'edam_topics', {'$in': edam_ids} , search, tools, counts)
+
+            ##-- Operations
+            if 'operations' in searchIn:
+                edam_ids = [key for key,value in EDAMDict.items() if re.search(pat, value)]
+                tools, counts = make_search('operations', 'edam_operations', {'$in': edam_ids} , search, tools, counts)
+
  
         else: 
             ##-- Do all
@@ -560,7 +567,7 @@ def search():
             tools, counts = make_search('description', 'description', {'$regex': pat}, search, tools, counts)
             
             edam_ids = [key for key,value in EDAMDict.items() if re.search(pat, value)]
-            
+
             tools, counts = make_search('topics', 'edam_topics', {'$in': edam_ids}, search, tools, counts)
             tools, counts = make_search('operations', 'edam_operations', {'$in': edam_ids}, search, tools, counts)
 
