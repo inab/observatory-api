@@ -768,12 +768,15 @@ def prepare_sources_labels(tool):
             # other
             substrings = ['github', 'bitbucket', 'sourceforge', 'biocondutor', 'galaxy', 'toolshed', 'bio.tools', 'conda']
             if True not in [substring in link for substring in substrings]:
-                sources_labels['other'] = link
-                foundLink = True
+                # If it is a zip, tar, gz, keep only domain
+                x = re.search("^(.*)(\.)(rar|bz2|tar|gz|zip|bz|json|txt|js|py|md)$", link)
+                if not x:
+                    sources_labels['other'] = link
+                    foundLink = True
 
             foundLink = True
             
-    print(sources_labels)
+    tool['sources_labels'] = sources_labels
     return(tool)
 
 
