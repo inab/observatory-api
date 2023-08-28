@@ -6,7 +6,7 @@ import re
 from flask import Flask, request, jsonify, make_response, Response
 from flask_cors import CORS,cross_origin
 
-from utils import prepareToolMetadata, prepareMetadataForEvaluation, prepareListsIds, keep_first_label, connect_DB
+from utils import prepareToolMetadata, prepareMetadataForEvaluation, prepareListsIds, keep_first_label, prepare_sources_labels, connect_DB
 from prepareVocabularies import prepareEDAM
 from FAIR_indicators_eval import computeScores_from_list
 from makejson import build_json_ld
@@ -572,6 +572,7 @@ def search():
             tools, counts = make_search('operations', 'edam_operations', {'$in': edam_ids}, search, tools, counts)
 
         tools = list(tools.values())
+        tools = [prepare_sources_labels(tool) for tool in tools]
 
         # 🚧 TODO: Sort tools by relevance
         
@@ -657,7 +658,7 @@ def description():
 ## ------------------------------------------##
 
 if __name__ == '__main__':
-    app.run(debug=True, port=3000)
+    app.run(debug=True, port=3500)
 
 
 

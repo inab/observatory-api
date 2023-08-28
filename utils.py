@@ -637,6 +637,147 @@ def keep_first_label(tool):
     
     return tool
 
+
+##############
+# sources_labels
+##############
+
+def find_github_repo(link):
+    regex = re.compile(r'(http(s)?:\/\/)?(www\.)?github\.com\/[A-Za-z0-9_-]+\/[A-Za-z0-9_-]+')
+    x = re.search(regex, link)
+    if x:
+        return x.group(0)
+    else:
+        return None
+
+def find_sourceforge_repo(link):
+    regex = re.compile(r'(http(s)?:\/\/)?(www\.)?sourceforge\.net\/projects\/[A-Za-z0-9_-]+\/')
+    x = re.search(regex, link)
+    if x:
+        return x.group(0)
+    else:
+        return None
+
+def find_bioconductor_link(link):
+    regex = re.compile(r'(http(s)?:\/\/)?(www\.)?bioconductor\.org\/packages\/release\/bioc\/html\/[A-Za-z0-9_-]+')
+    x = re.search(regex, link)
+    if x:
+        return x.group(0) + '.html'
+    else:
+        return None
+
+def find_bitbucket_repo(link):
+    '''
+    Find Bitbuket repository in URL string
+    '''
+    regex = re.compile(r'(http(s)?:\/\/)?(www\.)?bitbucket\.org\/[A-Za-z0-9_-]+\/[A-Za-z0-9_-]+')
+    x = re.search(regex, link)
+    if x:
+        return x.group(0)
+    else:
+        return None
+
+def find_galaxy_instance(link):
+    '''
+    Find Galaxy instance in URL string
+    '''
+    regex = re.compile(r'(http(s)?:\/\/)?(www\.)?usegalaxy\.eu')
+    x = re.search(regex, link)
+    if x:
+        return x.group(0)
+    else:
+        return None
+
+def find_galaxytoolshed_link(link):
+    '''
+    Find Galaxy toolshed in URL string
+    '''
+    regex = re.compile(r'(http(s)?:\/\/)?(www\.)?toolshed\.galaxyproject\.org')
+    x = re.search(regex, link)
+    if x:
+        return x.group(0)
+    else:
+        return None
+
+
+
+def prepare_sources_labels(tool):
+    '''
+    {
+        "biotools" : URL,
+        "bioconda" : URL,
+        "biocontainers" : URL,
+        "galaxy" : URL,
+        "toolshed" : URL,
+        "bioconductor" : URL,
+        "sourceforge" : URL,
+        "github" : URL,
+        "bitbucket" : URL,
+    }
+    '''
+    sources_labels = {}
+    if 'biotools' in tool['source']:
+        sources_labels['biotools'] = f'https://bio.tools/{tool["name"]}'
+
+    if 'bioconda' in tool['source'] or 'bioconda_recipes' in tool['source']:
+        sources_labels['bioconda'] = f'https://anaconda.org/bioconda/{tool["name"]}'
+    
+    if 'bioconductor' in tool['source']:
+        sources_labels['bioconductor'] = f'https://bioconductor.org/packages/release/bioc/html/{tool["name"]}.html'
+
+
+    for link in tool['links']:
+        foundLink = False
+        while not foundLink:
+            # github
+            github_repo = find_github_repo(link)
+            if github_repo:
+                sources_labels['github'] = github_repo
+                foundLink = True
+
+            # sourceforge
+            sourceforge_repo = find_sourceforge_repo(link)
+            if sourceforge_repo:
+                sources_labels['sourceforge'] = sourceforge_repo
+                foundLink = True
+            
+            # bioconductor
+            bioconductor_link = find_bioconductor_link(link)
+            if bioconductor_link:
+                sources_labels['bioconductor'] = bioconductor_link
+                foundLink = True
+            
+            # bitbucket 
+            bitbucket_repo = find_bitbucket_repo(link)
+            if bitbucket_repo:
+                sources_labels['bitbucket'] = bitbucket_repo
+                foundLink = True
+
+            # galaxy
+            galaxy_instance = find_galaxy_instance(link)
+            if galaxy_instance:
+                sources_labels['galaxy'] = galaxy_instance
+                foundLink = True
+
+            # toolshed
+            galaxytoolshed_link = find_galaxytoolshed_link(link)
+            if galaxytoolshed_link:
+                sources_labels['toolshed'] = galaxytoolshed_link
+                foundLink = True
+
+            # other
+            substrings = ['github', 'bitbucket', 'sourceforge', 'biocondutor', 'galaxy', 'toolshed', 'bio.tools', 'conda']
+            if True not in [substring in link for substring in substrings]:
+                sources_labels['other'] = link
+                foundLink = True
+
+            foundLink = True
+            
+    print(sources_labels)
+    return(tool)
+
+
+
 ################
 # Database connection
 ################
