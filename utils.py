@@ -29,6 +29,7 @@ def prepareToolMetadata(tool):
     ## Prepare license
     tool = prepareLicense(tool)
     ## Prepare publications
+    # 🚧 FIX publications duplications
     tool = preparePublications(tool)
     ## Prepare src
     tool = prepareSrc(tool)
@@ -499,7 +500,7 @@ def preparePublications(tool):
     '''
     Merge publications that share ids or title
     '''
-    identifiers = ['pmcid', 'pmid', 'doi', 'title']
+    identifiers = ['title', 'pmcid', 'pmid', 'doi']
 
     def indices(lst, item):
        return [i for i, x in enumerate(lst) if x == item]
@@ -510,7 +511,7 @@ def preparePublications(tool):
         ids = [id_.rstrip('.') for id_ in ids if id_ != None]
         new_publications = []
         
-        # get indexes of repeated pmcids
+        # get indexes of repeated ids
         for id in ids:
             if id != None:
                 if id in seen_ids:
@@ -523,7 +524,7 @@ def preparePublications(tool):
                     if len(indexes) > 1:
                         # merge needed
                         for i in indexes:
-                            new_publication = new_publication | publications[i]
+                            new_publication = {**new_publication, **publications[i]}  
                         
                         # merged publications
                         new_publications.append(new_publication)
@@ -531,18 +532,27 @@ def preparePublications(tool):
                         # no possible merge. Append publication as it is
                         index = indexes[0]
                         new_publications.append(publications[index])
+                    
+                    for i in indexes:
+                        # remove item in publications
+                        del publications[i]
             else:
                 # append publication of that id
                 index = ids.index(id)
                 new_publications.append(publications[index])
 
-        return new_publications
+        print(new_publications + publications)
+        
+        return new_publications + publications
     
     publications = tool['publication']
     try:
         for id_ in identifiers:
-            publications = merge_by_id(publications, id_)
-            tool['publication'] = publications
+            publications  = merge_by_id(publications, id_)
+            print(publications)
+        
+        tool['publication'] = publications
+
     except Exception as e:
         print('Error merging publications')
         print(e)
