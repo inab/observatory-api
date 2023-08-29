@@ -496,6 +496,16 @@ def prepareDescription(tool):
     #print(tool['description'])
     return tool
 
+def cleanEmptyPublications(publications):
+    new_pubs = []
+    for pub in publications:
+        new_pub = {k: v for k, v in pub.items() if v}
+        if new_pub:
+            new_pubs.append(new_pub)
+    
+    print(new_pubs)
+    return new_pubs
+
 def preparePublications(tool):
     '''
     Merge publications that share ids or title
@@ -505,14 +515,26 @@ def preparePublications(tool):
     def indices(lst, item):
        return [i for i, x in enumerate(lst) if x == item]
 
+    def stripPoints(ids):
+        new_ids = []
+        for id_ in ids:
+            if id_!= None:
+                new_ids.append(id_.rstrip('.'))
+            else:
+                new_ids.append(id_)
+
+        return new_ids
+
     def merge_by_id(publications, id_):
         seen_ids = []
         ids = [pub.get(id_) for pub in publications]
-        ids = [id_.rstrip('.') for id_ in ids if id_ != None]
+        ids = stripPoints(ids)
+
         new_publications = []
-        
+
         # get indexes of repeated ids
-        for id in ids:
+        for a in range(len(ids)):
+            id =  ids[a]
             if id != None:
                 if id in seen_ids:
                     continue
@@ -521,41 +543,34 @@ def preparePublications(tool):
                     indexes = indices(ids, id)
                     new_publication = {}
                     # merge repeated publications by pairs
+
                     if len(indexes) > 1:
                         # merge needed
                         for i in indexes:
-                            new_publication = {**new_publication, **publications[i]}  
-                        
+                            new_publication = {**new_publication, **publications[i]}
+                                                
                         # merged publications
                         new_publications.append(new_publication)
                     else:
                         # no possible merge. Append publication as it is
                         index = indexes[0]
                         new_publications.append(publications[index])
-                    
-                    for i in indexes:
-                        # remove item in publications
-                        del publications[i]
-            else:
-                # append publication of that id
-                index = ids.index(id)
-                new_publications.append(publications[index])
 
-        print(new_publications + publications)
-        
-        return new_publications + publications
+            else:
+                new_publications.append(publications[a])
+
+        return new_publications
     
-    publications = tool['publication']
+    publications = cleanEmptyPublications(tool['publication'])
     try:
         for id_ in identifiers:
             publications  = merge_by_id(publications, id_)
-            print(publications)
         
         tool['publication'] = publications
 
     except Exception as e:
         print('Error merging publications')
-        print(e)
+        raise e
     else:
         pass
     
