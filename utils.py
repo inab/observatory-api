@@ -758,6 +758,14 @@ def prepare_sources_labels(tool):
     '''
     sources_labels = {}
     remain_sources = tool['source']
+
+    if 'opeb_metrics' in remain_sources:
+        remain_sources.remove('opeb_metrics')
+    if 'galaxy_metadata' in remain_sources:
+        remain_sources.append('galaxy')
+        remain_sources.remove('galaxy_metadata')
+
+
     if 'biotools' in tool['source']:
         sources_labels['biotools'] = f'https://bio.tools/{tool["name"]}'
         remain_sources.remove('biotools')
@@ -832,8 +840,7 @@ def prepare_sources_labels(tool):
 
             foundLink = True
 
-    if 'opeb_metrics' in remain_sources:
-        remain_sources.remove('opeb_metrics')
+    
 
     for source in remain_sources:
         sources_labels[source] = ''
