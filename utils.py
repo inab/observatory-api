@@ -29,7 +29,6 @@ def prepareToolMetadata(tool):
     ## Prepare license
     tool = prepareLicense(tool)
     ## Prepare publications
-    # 🚧 FIX publications duplications
     tool = preparePublications(tool)
     ## Prepare src
     tool = prepareSrc(tool)
@@ -493,7 +492,15 @@ def prepareDescription(tool):
     
     description = set(tool['description'])
     tool['description'] = list(description)
-    #print(tool['description'])
+    # return longest description
+    longest_description = ''
+    for desc in tool['description']:
+        if len(desc) > len(longest_description):
+            longest_description = desc
+    
+    # as a list for backwards compatibility
+    tool['description'] = [longest_description]
+    
     return tool
 
 def cleanEmptyPublications(publications):
