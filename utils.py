@@ -675,14 +675,6 @@ def find_github_repo(link):
     else:
         return None
 
-def find_sourceforge_repo(link):
-    regex = re.compile(r'(http(s)?:\/\/)?(www\.)?sourceforge\.net\/projects\/[A-Za-z0-9_-]+\/')
-    x = re.search(regex, link)
-    if x:
-        return x.group(0)
-    else:
-        return None
-
 def find_bioconductor_link(link):
     regex = re.compile(r'(http(s)?:\/\/)?(www\.)?bioconductor\.org\/packages\/release\/bioc\/html\/[A-Za-z0-9_-]+')
     x = re.search(regex, link)
@@ -741,14 +733,25 @@ def prepare_sources_labels(tool):
     }
     '''
     sources_labels = {}
+    remain_sources = tool['source']
     if 'biotools' in tool['source']:
         sources_labels['biotools'] = f'https://bio.tools/{tool["name"]}'
+        remain_sources.remove('biotools')
 
     if 'bioconda' in tool['source'] or 'bioconda_recipes' in tool['source']:
         sources_labels['bioconda'] = f'https://anaconda.org/bioconda/{tool["name"]}'
-    
+        if 'bioconda_recipes' in tool['source']:
+            remain_sources.remove('bioconda_recipes')
+        if 'bioconda_recipes' in tool['source']:
+            remain_sources.remove('bioconda')
+
     if 'bioconductor' in tool['source']:
         sources_labels['bioconductor'] = f'https://bioconductor.org/packages/release/bioc/html/{tool["name"]}.html'
+        remain_sources.remove('bioconductor')
+    
+    if 'sourceforge' in tool['source']:
+        sources_labels['sourceforge'] = f'https://sourceforge.net/projects/{tool["name"]}'
+        remain_sources.remove('sourceforge')
 
 
     for link in tool['links']:
@@ -759,36 +762,40 @@ def prepare_sources_labels(tool):
             if github_repo:
                 sources_labels['github'] = github_repo
                 foundLink = True
-
-            # sourceforge
-            sourceforge_repo = find_sourceforge_repo(link)
-            if sourceforge_repo:
-                sources_labels['sourceforge'] = sourceforge_repo
-                foundLink = True
+                if 'github' in remain_sources:
+                    remain_sources.remove('github')
             
             # bioconductor
             bioconductor_link = find_bioconductor_link(link)
             if bioconductor_link:
                 sources_labels['bioconductor'] = bioconductor_link
                 foundLink = True
+                if 'bioconductor' in remain_sources:
+                    remain_sources.remove('bioconductor')
             
             # bitbucket 
             bitbucket_repo = find_bitbucket_repo(link)
             if bitbucket_repo:
                 sources_labels['bitbucket'] = bitbucket_repo
                 foundLink = True
+                if 'bitbucket' in remain_sources:
+                    remain_sources.remove('bitbucket')
 
             # galaxy
             galaxy_instance = find_galaxy_instance(link)
             if galaxy_instance:
                 sources_labels['galaxy'] = galaxy_instance
                 foundLink = True
+                if 'galaxy' in remain_sources:
+                    remain_sources.remove('galaxy')
 
             # toolshed
             galaxytoolshed_link = find_galaxytoolshed_link(link)
             if galaxytoolshed_link:
                 sources_labels['toolshed'] = galaxytoolshed_link
                 foundLink = True
+                if 'toolshed' in remain_sources:
+                    remain_sources.remove('toolshed')
 
             # other
             substrings = ['github', 'bitbucket', 'sourceforge', 'biocondutor', 'galaxy', 'toolshed', 'bio.tools', 'conda']
@@ -800,7 +807,14 @@ def prepare_sources_labels(tool):
                     foundLink = True
 
             foundLink = True
-            
+
+    if 'opeb_metrics' in remain_sources:
+        remain_sources.remove('opeb_metrics')
+
+    for source in remain_sources:
+        sources_labels[source] = ''
+
+    print(sources_labels)
     tool['sources_labels'] = sources_labels
     return(tool)
 
