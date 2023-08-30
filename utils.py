@@ -516,6 +516,9 @@ def preparePublications(tool):
        return [i for i, x in enumerate(lst) if x == item]
 
     def stripPoints(ids):
+        '''
+        remove final points from ids (necessary specially in titles)
+        '''
         new_ids = []
         for id_ in ids:
             if id_!= None:
@@ -524,11 +527,25 @@ def preparePublications(tool):
                 new_ids.append(id_)
 
         return new_ids
+    
+    def capitalizeDOIs(ids):
+        '''
+        capitalize ids
+        '''
+        new_ids = []
+        for id_ in ids:
+            if id_!= None:
+                new_ids.append(id_.upper())
+            else:
+                new_ids.append(id_)
+        return new_ids
 
     def merge_by_id(publications, id_):
         seen_ids = []
         ids = [pub.get(id_) for pub in publications]
         ids = stripPoints(ids)
+        if id_ == 'doi':
+            ids = capitalizeDOIs(ids)
 
         new_publications = []
 
