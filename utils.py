@@ -17,6 +17,9 @@ def prepareToolMetadata(tool):
     '''
     tool.pop('_id')
     # Several fields need processing to be displayed in the UI:
+    ## Prepare Labels 
+    tool = prepareLabel(tool)
+
     ## Prepare description
     tool = prepareDescription(tool)
     ## Prepare topics and operations
@@ -42,6 +45,28 @@ def prepareToolMetadata(tool):
 
     return tool
 
+def prepareLabel(tool):
+    '''
+    Keep only the label with uppercase letter if it exists
+    '''
+    def hasUpper(string):
+        for letter in string:
+        
+            # checking for uppercase character and flagging
+            if letter.isupper():
+                res = True
+                return True
+        
+        return False
+
+    for label in tool['label']:
+        if hasUpper(label):
+            # put first in labels. LAbels is list to keep backwards compatibility
+            tool['label'] = [label]
+            break
+    
+    return tool
+    
 
 def prepareTopicsOperations(metadata, field, new_field):
     '''
@@ -498,6 +523,14 @@ def prepareDescription(tool):
         if len(desc) > len(longest_description):
             longest_description = desc
     
+    # First letter must be uppercase
+    longest_description = longest_description.capitalize()
+
+    # Period at the end
+    if longest_description:
+        if longest_description[-1] != '.':
+            longest_description += '.'
+
     # as a list for backwards compatibility
     tool['description'] = [longest_description]
     
@@ -510,7 +543,6 @@ def cleanEmptyPublications(publications):
         if new_pub:
             new_pubs.append(new_pub)
     
-    print(new_pubs)
     return new_pubs
 
 def preparePublications(tool):
@@ -547,12 +579,28 @@ def preparePublications(tool):
                 new_ids.append(id_)
         return new_ids
 
+    def removeTags(titles):
+        '''
+        remove tags from titles
+        '''
+        new_titles = []
+        for title in titles:
+            if title != None:
+                pattern = re.compile(r'(<.*?>)')
+                new_title = re.sub(pattern, '', title)
+                new_titles.append(new_title)
+            else:
+                new_titles.append(title)
+        return new_titles
+
     def merge_by_id(publications, id_):
         seen_ids = []
         ids = [pub.get(id_) for pub in publications]
         ids = stripPoints(ids)
         if id_ == 'doi':
             ids = capitalizeDOIs(ids)
+        if id_ == 'title':
+            ids = removeTags(ids)
 
         new_publications = []
 
@@ -590,11 +638,18 @@ def preparePublications(tool):
         for id_ in identifiers:
             publications  = merge_by_id(publications, id_)
         
+        for pub in publications:
+            if pub.get('title'):
+                pub['title'] = pub['title'].rstrip('.')
+                pattern = re.compile(r'(<.*?>)')
+                pub['title'] = re.sub(pattern, '', pub['title'])
+
+        
         tool['publication'] = publications
 
     except Exception as e:
         print('Error merging publications')
-        raise e
+        print(e)
     else:
         pass
     
@@ -700,7 +755,7 @@ def find_github_repo(link):
         return None
 
 def find_bioconductor_link(link):
-    regex = re.compile(r'(http(s)?:\/\/)?(www\.)?bioconductor\.org\/packages\/release\/bioc\/html\/[A-Za-z0-9_-]+')
+    regex = re.compile(r'(http(s)?:\/\/)?(www\.)?bioconductor\.org\/packages\/[A-Za-z0-9_-]+\/bioc\/html\/[A-Za-z0-9_-]+')
     x = re.search(regex, link)
     if x:
         return x.group(0) + '.html'
@@ -761,10 +816,6 @@ def prepare_sources_labels(tool):
 
     if 'opeb_metrics' in remain_sources:
         remain_sources.remove('opeb_metrics')
-    if 'galaxy_metadata' in remain_sources:
-        remain_sources.append('galaxy')
-        remain_sources.remove('galaxy_metadata')
-
 
     if 'biotools' in tool['source']:
         sources_labels['biotools'] = f'https://bio.tools/{tool["name"]}'
@@ -774,7 +825,7 @@ def prepare_sources_labels(tool):
         sources_labels['bioconda'] = f'https://anaconda.org/bioconda/{tool["name"]}'
         if 'bioconda_recipes' in tool['source']:
             remain_sources.remove('bioconda_recipes')
-        if 'bioconda_recipes' in tool['source']:
+        if 'bioconda' in tool['source']:
             remain_sources.remove('bioconda')
 
     if 'bioconductor' in tool['source']:
@@ -784,11 +835,29 @@ def prepare_sources_labels(tool):
     if 'sourceforge' in tool['source']:
         sources_labels['sourceforge'] = f'https://sourceforge.net/projects/{tool["name"]}'
         remain_sources.remove('sourceforge')
+    
+    if 'toolshed' in tool['source']:
+        sources_labels['toolshed'] = f'https://toolshed.g2.bx.psu.edu/repository'
+        remain_sources.remove('toolshed')
+
+    if 'galaxy_metadata' in remain_sources:
+        sources_labels['toolshed'] = f'https://toolshed.g2.bx.psu.edu/repository'
+        remain_sources.append('galaxy')
+        remain_sources.remove('galaxy_metadata')
+    
+    if 'galaxy' in tool['source']:
+        sources_labels['galaxy'] = 'https://usegalaxy.eu/'
+        remain_sources.remove('galaxy')
 
 
     for link in tool['links']:
         foundLink = False
         while not foundLink:
+            # bioconda
+            # some tools have bioconductor in name in some sources like bioconda
+            if f'bioconductor-{tool["name"]}' in link:
+                sources_labels['bioconda'] = f'https://anaconda.org/bioconda/bioconductor-{tool["name"]}'
+
             # github
             github_repo = find_github_repo(link)
             if github_repo:
@@ -829,23 +898,11 @@ def prepare_sources_labels(tool):
                 if 'toolshed' in remain_sources:
                     remain_sources.remove('toolshed')
 
-            # other
-            substrings = ['github', 'bitbucket', 'sourceforge', 'biocondutor', 'galaxy', 'toolshed', 'bio.tools', 'conda']
-            if True not in [substring in link for substring in substrings]:
-                # If it is a zip, tar, gz, keep only domain
-                x = re.search("^(.*)(\.)(rar|bz2|tar|gz|zip|bz|json|txt|js|py|md)$", link)
-                if not x:
-                    sources_labels['other'] = link
-                    foundLink = True
-
             foundLink = True
-
-    
 
     for source in remain_sources:
         sources_labels[source] = ''
 
-    print(sources_labels)
     tool['sources_labels'] = sources_labels
     return(tool)
 

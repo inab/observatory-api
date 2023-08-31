@@ -56,14 +56,21 @@ Most endpoints use the `observatory.tools` collection. The endpoint `GET "/tools
 
 #### GET "/tool/badge"  
 
+- Basic
 
-![badge](https://img.shields.io/endpoint?url=https://observatory-dev.openebench.bsc.es/api/tool/badge&style=for-the-badge)
+    ![badge](https://img.shields.io/endpoint?url=https://observatory-dev.openebench.bsc.es/api/tool/badge)    
+    ```
+    ![badge](https://img.shields.io/endpoint?url=https://observatory-dev.openebench.bsc.es/api/tool/badge)    
+    ```
 
-![badge](https://img.shields.io/endpoint?url=https://observatory-dev.openebench.bsc.es/api/tool/badge&style=flat-square)
+- Other styles 
 
-![badge](https://img.shields.io/endpoint?url=https://observatory-dev.openebench.bsc.es/api/tool/badge&color=blue)
+    ![badge](https://img.shields.io/endpoint?url=https://observatory-dev.openebench.bsc.es/api/tool/badge&style=for-the-badge)
 
-![badge](https://img.shields.io/endpoint?url=https://observatory-dev.openebench.bsc.es/api/tool/badge)    
+    ![badge](https://img.shields.io/endpoint?url=https://observatory-dev.openebench.bsc.es/api/tool/badge&style=flat-square)
+
+    ![badge](https://img.shields.io/endpoint?url=https://observatory-dev.openebench.bsc.es/api/tool/badge&color=blue)
+
 
 Ideas for OEB Evaluator badges:  
 
