@@ -812,7 +812,7 @@ def prepare_sources_labels(tool):
     }
     '''
     sources_labels = {}
-    remain_sources = tool['source']
+    remain_sources = tool['source'].copy()
 
     if 'opeb_metrics' in remain_sources:
         remain_sources.remove('opeb_metrics')

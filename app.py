@@ -10,6 +10,7 @@ from utils import prepareToolMetadata, prepareMetadataForEvaluation, prepareList
 from prepareVocabularies import prepareEDAM
 from FAIR_indicators_eval import computeScores_from_list
 from makejson import build_json_ld
+from search import make_search, calculate_stats
 from EDAM_forFE import EDAMDict
 
         
@@ -467,28 +468,7 @@ def badge_test():
 ## Search for tools
 ## --------------------------------------------------------------##
 
-def search_input(tools, counts, search, label):
-    for tool in tools_collection.find(search):
-        if tool['source'] == ['galaxy_metadata']:
-            continue
-        else:
-            entry = prepareToolMetadata(tool)
-            if entry['@id'] in tools.keys():
-                tools[entry['@id']]['foundIn'].append(label)
-            else:
-                entry['foundIn'] = [label]
-                tools[entry['@id']] = entry
 
-            counts[label] += 1
-
-    return tools, counts
-
-
-def make_search(label, query_field, query_expression, search, tools, counts):
-    name_search = search.copy()
-    name_search[query_field] = query_expression
-    tools, counts = search_input(tools, counts, name_search, label)
-    return tools, counts
 
 @app.route('/search', methods=['GET'])
 @cross_origin(origin='*',headers=['Content-Type'])
@@ -513,7 +493,8 @@ def search():
         
         type = request.args.get('type')
         if type != None:
-            search['type'] = type
+            items = type.split(',')
+            search['type'] = {'$in': items}
 
         topics = request.args.get('topics')
         if topics != None:
@@ -544,7 +525,7 @@ def search():
             ## Use regex in name by now. 
             if 'name' in searchIn:
                 tools, counts = make_search('name', 'name', {'$regex': pat}, search, tools, counts)
-                print('here')
+
             ##-- Description
             ## Use regex in description by now.
             if 'description' in searchIn:
@@ -574,6 +555,11 @@ def search():
         tools = list(tools.values())
         tools = [prepare_sources_labels(tool) for tool in tools]
 
+        stats = calculate_stats(tools)
+
+        # count type, sources and licenses
+
+
         # 🚧 TODO: Sort tools by relevance
         
         page = request.args.get('page')
@@ -587,7 +573,9 @@ def search():
         data = {
             'query' : q,
             'tools' : tools[a:b],
-            'counts' : counts
+            'total_tools' : len(tools),
+            'counts' : counts,
+            'stats' : stats,
         }
 
     except Exception as err:
