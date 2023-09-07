@@ -499,19 +499,32 @@ def search():
         topics = request.args.get('topics')
         if topics != None:
             items = topics.split(',')
-            # Match regex in EDAMDict keys.
-            pat = re.compile(rf'{items}', re.I)
-            # TODO
+            search['topics.uri'] = {'$in': items}
 
         operations = request.args.get('operations')
         if operations != None:
             items = operations.split(',')
-            # TODO
-        
+            search['operations.uri'] = {'$in': items}
+            
         license = request.args.get('license')
         if license != None:
             items = license.split(',')
-            search['license'] = {'$in': items}
+            search['license.name'] = {'$in': items}
+        
+        collections = request.args.get('tags')
+        if collections != None:
+            items = collections.split(',')
+            search['tags'] = {'$in': items}
+        
+        input = request.args.get('input_format')
+        if input != None:
+            items = input.split(',')
+            search['input.term'] = {'$in': items}
+        
+        output = request.args.get('output_format')
+        if output != None:
+            items = output.split(',')
+            search['output.term'] = {'$in': items}
 
         # 🚧 Add input, output, and collection search
 
@@ -555,9 +568,9 @@ def search():
         tools = list(tools.values())
         tools = [prepare_sources_labels(tool) for tool in tools]
 
+        # count all filters in tools
         stats = calculate_stats(tools)
 
-        # count type, sources and licenses
 
 
         # 🚧 TODO: Sort tools by relevance

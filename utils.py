@@ -22,24 +22,24 @@ def prepareToolMetadata(tool):
 
     ## Prepare description
     tool = prepareDescription(tool)
-    ## Prepare topics and operations
-    tool = prepareTopicsOperations(tool, 'edam_topics', 'topics')
-    tool = prepareTopicsOperations(tool, 'edam_operations', 'operations')
+    ## Prepare topics and operations - not needed anymore
+    #tool = prepareTopicsOperations(tool, 'edam_topics', 'topics')
+    #tool = prepareTopicsOperations(tool, 'edam_operations', 'operations')
     ## Prepare documentation
     tool = prepareDocumentation(tool)
     ## Prepare authors 
     tool = prepareAuthors(tool)
     ## Prepare license
-    tool = prepareLicense(tool)
-    ## Prepare publications
-    tool = preparePublications(tool)
+    #tool = prepareLicense(tool)
+    ## Prepare publications - not needed anymore
+    #tool = preparePublications(tool)
     ## Prepare src
     tool = prepareSrc(tool)
     ## Prepare os
     tool = prepareOS(tool)
-    ## Prepare input and output data formats
-    tool = prepareDataFormats(tool, 'input')
-    tool = prepareDataFormats(tool, 'output')
+    ## Prepare input and output data formats - not needed anymore
+    #tool = prepareDataFormats(tool, 'input')
+    #tool = prepareDataFormats(tool, 'output')
     # Extract webpages from links
     tool = getWebPage(tool)
 
@@ -159,11 +159,11 @@ def prepareDataFormats(metadata, field):
     [
         {   "vocabulary": "EDAM",
             "term": "Sequence format",
-            "url": "http://edamontology.org/format_1929",
+            "uri": "http://edamontology.org/format_1929",
             datatype: {
                 "vocabulary": "EDAM",
                 "term": "Sequence",
-                "url": "http://edamontology.org/data_0006"
+                "uri": "http://edamontology.org/data_0006"
             }
         },
         ...
