@@ -23,6 +23,8 @@ def search_input(tools, counts, search, label):
 def make_search(label, query_field, query_expression, search, tools, counts):
     search = search.copy()
     search[query_field] = query_expression
+
+    search = {'$and': [{key:value} for key, value in search.items()  ] }
     tools, counts = search_input(tools, counts, search, label)
     return tools, counts
 
