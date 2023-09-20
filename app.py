@@ -260,9 +260,11 @@ def names_type_labels():
         
 # returns a tool given its id
 # Used by the FAIR evaluator to retrieve metadata of a tool
+# Used by the OEB Tool entry page to retrieve metadata of a tool
 @app.route('/tools')
 @cross_origin(origin='*',headers=['Content-Type'])
 def tool_metadata():
+    print(request.args)
     name = request.args.get('name')
     type_ = request.args.get('type')
     tool = tools_collection.find({'name': name, 'type': type_})
