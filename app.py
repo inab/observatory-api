@@ -261,19 +261,27 @@ def names_type_labels():
 # returns a tool given its id
 # Used by the FAIR evaluator to retrieve metadata of a tool
 # Used by the OEB Tool entry page to retrieve metadata of a tool
-@app.route('/tools')
+@app.route('/tools', methods=['GET'])
 @cross_origin(origin='*',headers=['Content-Type'])
 def tool_metadata():
-    print(request.args)
-    name = request.args.get('name')
-    type_ = request.args.get('type')
-    tool = tools_collection.find({'name': name, 'type': type_})
-    tool = tool[0]
-    
-    tool = prepareToolMetadata(tool)
-    tool = prepareListsIds(tool)
+    if not request.args.get('name') and not request.args.get('type'):
+        data = {'message': 'No tool name or type provided', 'code': 'ERROR'}
+        resp = make_response(data, 400)
+        return(resp)
+    try:
+        name = request.args.get('name')
+        type_ = request.args.get('type')
+        tool = tools_collection.find({'name': name, 'type': type_})
+        tool = tool[0]
+        
+        tool = prepareToolMetadata(tool)
+        tool = prepareListsIds(tool)
 
-    resp = make_response(jsonify(tool), 200)
+    except:
+        data = {'Something went wrong :('}
+        resp = make_response(data, 400)
+    else:
+        resp = make_response(jsonify(tool), 200)
 
     return(resp)
 
@@ -528,6 +536,7 @@ def search():
             items = output.split(',')
             search['output.term'] = {'$in': items}
 
+
         # 🚧 Add input, output, and collection search
 
         # 🚧 Searches in Database
@@ -661,7 +670,7 @@ def description():
 ## ------------------------------------------##
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5300)
+    app.run(debug=True, port=3500)
 
 
 
