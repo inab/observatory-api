@@ -23,23 +23,23 @@ def prepareToolMetadata(tool):
     ## Prepare description
     tool = prepareDescription(tool)
     ## Prepare topics and operations - not needed anymore
-    #tool = prepareTopicsOperations(tool, 'edam_topics', 'topics')
-    #tool = prepareTopicsOperations(tool, 'edam_operations', 'operations')
+    tool = prepareTopicsOperations(tool, 'edam_topics', 'topics')
+    tool = prepareTopicsOperations(tool, 'edam_operations', 'operations')
     ## Prepare documentation
     tool = prepareDocumentation(tool)
     ## Prepare authors 
     tool = prepareAuthors(tool)
     ## Prepare license
-    #tool = prepareLicense(tool)
+    tool = prepareLicense(tool)
     ## Prepare publications - not needed anymore
-    #tool = preparePublications(tool)
+    tool = preparePublications(tool)
     ## Prepare src
     tool = prepareSrc(tool)
     ## Prepare os
     tool = prepareOS(tool)
     ## Prepare input and output data formats - not needed anymore
-    #tool = prepareDataFormats(tool, 'input')
-    #tool = prepareDataFormats(tool, 'output')
+    tool = prepareDataFormats(tool, 'input')
+    tool = prepareDataFormats(tool, 'output')
     # Extract webpages from links
     tool = getWebPage(tool)
 
@@ -914,17 +914,27 @@ def prepare_sources_labels(tool):
 def connect_DB():
     # connecting to db
     config = configparser.ConfigParser()
-    config.read('./api-variables/config_db.ini')
+    config.read('/api-variables/config_db.ini')
     #config.read('config_db.ini')
-    DBHOST = config['MONGO_DETAILS']['DBHOST']
-    DBPORT = config['MONGO_DETAILS']['DBPORT']
-    DATABASE = config['MONGO_DETAILS']['DATABASE']
-    STATS = config['MONGO_DETAILS']['STATS']
-    TOOLS = config['MONGO_DETAILS']['TOOLS']
+    mongo_host = config['MONGO_DETAILS']['DBHOST']
+    mongo_port = config['MONGO_DETAILS']['DBPORT']
+    mongo_user = config['MONGO_DETAILS']['DBUSER']
+    mongo_pass = config['MONGO_DETAILS']['DBPASS']
+    mongo_auth_src = config['MONGO_DETAILS']['DBAUTHSRC']
+    mongo_db = config['MONGO_DETAILS']['DATABASE']
+    stats_collection_name = config['MONGO_DETAILS']['STATS']
+    tools_collection_name = config['MONGO_DETAILS']['TOOLS']
 
-    # hardcaded to test the new db configuration
-    connection = MongoClient(DBHOST, int(DBPORT))
-    tools_collection = connection[DATABASE][TOOLS]
-    stats = connection[DATABASE][STATS]
+    client = MongoClient(
+                host=[f'{mongo_host}:{mongo_port}'],
+                username=mongo_user,
+                password=mongo_pass,
+                authSource=mongo_auth_src,
+                authMechanism='SCRAM-SHA-256'
+            )
+    
+    tools_collection = client[mongo_db][tools_collection_name]
+    stats = client[mongo_db][stats_collection_name]
 
     return tools_collection, stats
+
