@@ -180,7 +180,7 @@ def counts_per_source():
 @cross_origin(origin='*',headers=['Content-Type'])
 def count_total():
     resp = make_query('tools_count', request.args)
-    return(resp)
+    return([resp])
 
 # features 
 @app.route('/stats/tools/features')
