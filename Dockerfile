@@ -10,8 +10,8 @@ RUN apt-get update && \
     apt-get install -y git python3-pip
 
 # Install the dependencies
-RUN pip3 install --user FAIRsoft
-RUN pip3 install --user -r requirements.txt 
+RUN pip3 install FAIRsoft --break-system-packages
+RUN pip3 install -r requirements.txt --break-system-packages
 
 # Copy the files
 COPY . .
