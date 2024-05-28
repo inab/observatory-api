@@ -29,7 +29,14 @@ def getFormats(instances):
 
 
 def convert_dict2instance(tool):
-    NewInst = instance(tool['name'], tool['type'], tool['version'])
+    print(tool.keys())
+    if 'version' not in tool.keys():
+        tool['version'] = None
+    if 'type' not in tool.keys():
+        tool['type'] = None
+    if 'name' not in tool.keys():
+        tool['name'] = None
+    NewInst = instance(tool.get('name'), tool.get('type'), tool.get('version'))
     NewInst.__dict__ = munchify(tool)
     NewInst.set_super_type()
 

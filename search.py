@@ -4,7 +4,10 @@ from utils import connect_DB
 tools_collection, stats = connect_DB()
 
 def search_input(tools, counts, search, label):
-    for tool in tools_collection.find(search):
+    results = tools_collection.find(search) 
+    results = list(results)
+    results.reverse()
+    for tool in results:
         # skip tools that are only in galaxy_metadata
         if tool['source'] == ['galaxy_metadata']:
             continue
@@ -24,7 +27,7 @@ def make_search(label, query_field, query_expression, search, tools, counts):
     search = search.copy()
     search[query_field] = query_expression
 
-    search = {'$and': [{key:value} for key, value in search.items()  ] }
+    search = {'$and': [{key:value} for key, value in search.items() ]}
     tools, counts = search_input(tools, counts, search, label)
     return tools, counts
 

@@ -1,3 +1,26 @@
+'''
+TODO: Fix the following: 
+
+1. DONE Fixed the typo in bioschemas:encodingFormat.
+2. DONE Changed the incorrect property types and URLs to correct ones (schema:Person, schema:CreativeWork).
+3. DONE Fixed the schema:dateModified format to the correct ISO 8601 format.
+
+
+TODO: Add the following:
+- codemeta:buildInstructions
+- codemeta:readme
+- codemeta:referencePublication
+- maSMP:changelog
+- maSMP:deployInstructions
+- maSMP:developerInstructions
+- maSMP:userDocumentation
+- maSMP:versionControlSystem
+
+TODO: Remove shema:citation
+'''
+
+
+
 from datetime import datetime
 from EDAM_forFE import EDAMDict 
 
@@ -16,13 +39,13 @@ def remove_empty_values(d):
 def get_single_author(author):
     if author.get('type').lower() == 'person':
         new_author = {
-        "@type": "https://schema.org/Person",
+        "@type": "schema:Person",
         "schema:name": author.get('name'),
         "schema:email": author.get('email')
     }
     else:  
         new_author = {
-            "@type": "https://schema.org/Organization",
+            "@type": "schema:Organization",
             "schema:name": author.get('first_name'),
             "schema:email": author.get('email')
         }
@@ -50,7 +73,7 @@ def get_license(licenses):
     if licenses:
         for license in licenses:
             new_license = {
-                "@type": "https://schema.org/CreativeWork",
+                "@type": "schema:CreativeWork",
                 "schema:name": license.get('name'),
                 "schema:url": license.get('url')
             }
@@ -86,7 +109,7 @@ def get_keywords(topics):
 
 def get_citation(citations):
     '''
-    Add journal information to the citation. Not in Forntend
+    Add journal information to the citation. Not in Fronttend
     '''
     new_citations = []
     if citations:
@@ -103,7 +126,7 @@ def get_citation(citations):
 
             if citation.get('title'):
                 new_citation.append({
-                    "@type": "https://schema.org/CreativeWork",
+                    "@type": "schema:CreativeWork",
                     "@id": f"doi:{citation.get('doi')}",
                     "schema:name": citation.get('title'),
                     #"schema:isPartOf": citation.get('journal')
@@ -115,7 +138,55 @@ def get_citation(citations):
     
     else:
         return ""
-    
+
+
+def get_reference_publication(citations):
+    """
+    Build a list of reference publications
+    """
+    refPubs = []    
+    for citation in citations:
+        print(citation)
+        name = citation.get('title')
+        if citation.get('doi'):
+            url = f"https://doi.org/{citation.get('doi')}"
+        else:
+            url = ""
+        
+        if name or url:
+            publication = {
+                "@type": "schema:CreativeWork",
+                "@id": url,
+                "schema:name": name,
+                "schema:url": url
+            }
+            refPubs.append(remove_empty_values(publication))
+
+    return refPubs
+
+def get_userDocumentation(documentations):
+    """
+    Build a list of user documentation
+    """
+    userDocs = []
+    for documentation in documentations:
+        if documentation.get('type') == 'user' or documentation.get('type') == 'general':
+            name = documentation.get('title')
+            url = documentation.get('url')
+            if name or url:
+                doc = {
+                    "@type": "schema:CreativeWork",
+                    "@id": url,
+                    "schema:name": name,
+                    "schema:url": url
+                }
+                userDocs.append(remove_empty_values(doc))
+
+    return userDocs
+
+
+
+
     
 def get_input(inputs):
     if inputs:
@@ -124,7 +195,7 @@ def get_input(inputs):
             if input.get('uri'):
                 new_input = {
                     "@type": "https://bioschemas.org/FormatParameter",
-                    "biochemas:encodingFormat": f"edam:{input.get('uri').split('/')[-1]}"
+                    "bioschemas:encodingFormat": f"edam:{input.get('uri').split('/')[-1]}"
                 }
             else:
                 new_input = {
@@ -172,13 +243,13 @@ def get_maintainer(authors):
             if author.get('maintainer') == True:
                 if author.get('type').lower() == 'person':
                     new_maintainer = {
-                    "@type": "https://schema.org/Person",
+                    "@type": "schema:Person",
                     "schema:name": author.get('name'),
                     "schema:email": author.get('email')
                 }
                 else:  
                     new_maintainer = {
-                        "@type": "https://schema.org/Organization",
+                        "@type": "schema:Organization",
                         "schema:name": author.get('name'),
                         "schema:email": author.get('email')
                     }
@@ -209,7 +280,7 @@ def build_date():
     t = now.strftime("%H:%M:%S")
     print("Time:", t)
 
-    s1 = now.strftime("%m/%d/%YT%H:%M:%SZ")
+    s1 = now.strftime("%Y-%m-%dT%H:%M:%SZ")
 
     return s1
 
@@ -217,12 +288,18 @@ def build_json_ld(meta):
     """
     Build JSON-LD from tool metadata
     """
+    print(meta)
     context =  {
-        "@import" : "https://openebench.bsc.es/bioschemas/oebtools.jsonld"
-    }
+        "schema": "http://schema.org/",
+        "bs": "https://bioschemas.org/terms/",
+        "codemeta": "https://w3id.org/codemeta/",
+        "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+        "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+        "maSMP": "https://discovery.biothings.io/view/maSMP/"
+        }
     metadata = {
         "@context": context,
-        "@type": get_type(meta.get('type')),
+        "@type": "schema:SoftwareApplication",
         "schema:applicationSubcategory": get_keywords(meta.get('topics')),
         "schema:additionalType": meta.get('type'),
         "schema:name": meta.get('name'),
@@ -241,10 +318,12 @@ def build_json_ld(meta):
         "bioschemas:output": get_input(meta.get('output')),
         "schema:downloadURL": meta.get('download'),
         "schema:softwareHelp": get_help(meta.get('documentation')),
-        "schema:citation": get_citation(meta.get('publication')),
         "schema:requirements": meta.get('dependencies'),
         "schema:isAccessibleForFree": meta.get('registration_not_manadatory'),
         "schema:dateModified": build_date(),
+        "codemeta:referencePublication": get_reference_publication(meta.get('publication')),
+        "codemeta:readme": get_readme(meta.get('documentation')),
+        "maSMP:userDocumentation": get_userDocumentation(meta.get('documentation')),
         
     }
 
