@@ -290,11 +290,11 @@ def build_json_ld(meta):
     """
     print(meta)
     context =  {
-        "schema": "http://schema.org/",
+        "schema": "https://schema.org/",
         "bs": "https://bioschemas.org/terms/",
         "codemeta": "https://w3id.org/codemeta/",
-        "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
-        "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+        "rdf": "https://www.w3.org/1999/02/22-rdf-syntax-ns#",
+        "rdfs": "https://www.w3.org/2000/01/rdf-schema#",
         "maSMP": "https://discovery.biothings.io/view/maSMP/"
         }
     metadata = {

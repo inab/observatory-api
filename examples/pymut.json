@@ -1,0 +1,71 @@
+{
+    "@context": {
+        "schema": "http://schema.org/",
+        "bioschemas": "https://bioschemas.org/terms/"
+    },
+    "@id": "https://openebench.bsc.es/bioschemas/tools/observatory:pymut:2017/cmd",
+    "@type": "htpps://openebench.bsc.es/bioschemas/oebtools#cmd",
+    "bioschemas:input": [
+        {
+            "@type": "https://bioschemas.org/FormatParameter",
+            "biochemas:encodingFormat": "edam:format_2200"
+        }
+    ],
+    "bioschemas:output": [
+        {
+            "@type": "https://bioschemas.org/FormatParameter",
+            "biochemas:encodingFormat": "edam:format_2330"
+        }
+    ],
+    "schema:additionalType": "cmd",
+    "schema:applicationCategory": "cmd",
+    "schema:applicationSubcategory": [
+        "edam:topic_0080"
+    ],
+    "schema:author": [
+        {
+            "@type": "https://schema.org/Person",
+            "schema:name": "Victor Lopez-Ferrando"
+        }
+    ],
+    "schema:citation": [
+        [
+            "pmcid:PMC5793831",
+            "pmid:28453649",
+            {
+                "@id": "doi:10.1093/nar/gkx313"
+            },
+            {
+                "@id": "doi:10.1093/nar/gkx313",
+                "@type": "https://schema.org/CreativeWork",
+                "schema:name": "PMut: a web-based tool for the annotation of pathological variants on proteins, 2017 update"
+            }
+        ]
+    ],
+    "schema:codeRepository": [
+        "https://github.com/inab/pymut"
+    ],
+    "schema:dateModified": "05/23/2024T09:10:08Z",
+    "schema:description": "Pymut is a python3 module that fills the gap between machine learning and bioinformatics, providing methods that help in the prediction of pathology in protein mutations.",
+    "schema:featureList": [
+        "edam:operation_3661",
+        "edam:operation_3092",
+        "edam:operation_3225"
+    ],
+    "schema:license": [
+        {
+            "@type": "https://schema.org/CreativeWork",
+            "schema:name": "GPL-3.0"
+        }
+    ],
+    "schema:name": "pymut",
+    "schema:operatingSystem": [
+        "Linux"
+    ],
+    "schema:softwareHelp": [
+        {
+            "@id": "http://mmb.irbbarcelona.org/pmut2017/help"
+        }
+    ],
+    "schema:softwareVersion": "2017"
+}
