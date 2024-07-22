@@ -10,6 +10,7 @@ from utils import prepareToolMetadata, prepareMetadataForEvaluation, prepareList
 from prepareVocabularies import prepareEDAM
 from FAIR_indicators_eval import computeScores_from_list
 from makejson import build_json_ld
+from makecff import create_cff
 from search import make_search, calculate_stats
 from EDAM_forFE import EDAMDict
 
@@ -299,6 +300,24 @@ def tool_jsonld():
         resp = make_response(data, 400)
     else:
         resp = make_response(jsonify(tool), 200)
+
+    return(resp)
+
+#  returns CFF of a tool given its metadata from the FAIR Evaluator 
+@app.route('/tools/cff', methods=['POST'])
+@cross_origin(origin='*',headers=['Content-Type'])
+def tool_cff():
+    try:
+        tool = request.get_json()
+        tool = tool['data']
+        tool = prepareMetadataForEvaluation(tool)
+        print(tool)
+        cff = create_cff(tool)
+    except:
+        data = {'Something went wrong when building the CFF :('}
+        resp = make_response(data, 400)
+    else:
+        resp = make_response(jsonify(cff), 200)
 
     return(resp)
 

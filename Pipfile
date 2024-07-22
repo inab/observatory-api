@@ -16,6 +16,7 @@ werkzeug = "==2.2.2"
 requests = "*"
 munch = "*"
 python-dotenv = "*"
+pyyaml = "*"
 
 [dev-packages]
 
