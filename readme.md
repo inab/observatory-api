@@ -1,6 +1,6 @@
 # Software Observatory API 
 
-This repository contains the source code of the Software Observatory API. This API is a Flask application that uses a local mongodb database. 
+This repository contains the source code of the Software Observatory API. This API is a [FastAPI](https://fastapi.tiangolo.com/) application that uses a remote mongodb database. 
 
 ## Development 
 

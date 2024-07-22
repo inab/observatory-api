@@ -1,10 +1,6 @@
-import sys
-import configparser
-import os
 from munch import munchify
-from dotenv import load_dotenv
 
-from FAIR_indicators import instance
+from app.helpers.FAIR_indicators import instance
 
 
 def prepFAIRcomp(instances):

@@ -1,5 +1,5 @@
-from utils import prepareToolMetadata
-from utils import connect_DB
+from app.helpers.utils import prepareToolMetadata
+from app.helpers.database import connect_DB
 
 tools_collection, stats = connect_DB()
 

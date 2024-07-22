@@ -5,18 +5,15 @@ name = "pypi"
 
 [packages]
 click = "==8.1.3"
-flask = "*"
-flask-cors = "==3.0.10"
-itsdangerous = "==2.1.2"
-jinja2 = "==3.1.2"
 markupsafe = "==2.1.1"
 pymongo = "==4.2.0"
 six = "==1.16.0"
-werkzeug = "==2.2.2"
 requests = "*"
 munch = "*"
 python-dotenv = "*"
 pyyaml = "*"
+fastapi = "*"
+uvicorn = "*"
 
 [dev-packages]
 

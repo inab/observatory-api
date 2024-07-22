@@ -1,4 +1,4 @@
-from EDAM_forFE import EDAMDict 
+from app.helpers.EDAM_forFE import EDAMDict 
 
 def prepareEDAM():
     EDAMVocabularyItems = {

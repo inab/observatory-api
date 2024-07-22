@@ -22,7 +22,6 @@ TODO: Remove shema:citation
 
 
 from datetime import datetime
-from EDAM_forFE import EDAMDict 
 
 def get_description(descriptions):
     if descriptions:
@@ -51,8 +50,6 @@ def get_single_author(author):
         }
 
     return remove_empty_values(new_author)
-
-
 
 
 def get_authors(authors):
