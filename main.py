@@ -1,9 +1,8 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from starlette.responses import HTMLResponse
 from fastapi.openapi.docs import get_swagger_ui_html
-from app.routes import stats, metadata, spdx_edam, fair_evaluation, search, tool
+from app.routes import edam, spdx, stats, metadata, fair_evaluation, search, tool
 
 tags_metadata = [
         {
@@ -15,7 +14,7 @@ tags_metadata = [
             "description": "Tools related endpoints",
         },
         {
-            "name": "spdx",
+            "name": "vocabularies",
             "description": "SPDX and EDAM related endpoints",
         },
         {
@@ -49,11 +48,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 # Include Routers
 app.include_router(stats.router, prefix="/stats")
 app.include_router(metadata.router, prefix="/tools")
-app.include_router(spdx_edam.router, prefix="/spdx")
+app.include_router(edam.router, prefix="/edam")
+app.include_router(spdx.router, prefix="/spdx")
+
 app.include_router(fair_evaluation.router, prefix="/fair")
 app.include_router(tool.router, prefix="/tool")
 app.include_router(search.router, prefix="")

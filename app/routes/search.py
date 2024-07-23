@@ -7,7 +7,7 @@ import re
 
 router = APIRouter()
 
-@router.get('/search')
+@router.get('/search', tags=["search"])
 async def search(request: Request):
     try:
         tools = {}

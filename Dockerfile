@@ -1,22 +1,24 @@
-FROM python:3.6-alpine
-FROM ubuntu
+# Use an official Python runtime as a parent image
+FROM python:3.10-slim
 
-# Copy the dependencies
-COPY requirements.txt ./
+# Set the working directory
+WORKDIR /app
 
-# need git to install dependencies from github
+# Copy the dependencies file to the working directory
+COPY requirements.txt .
+
+# Install git and other dependencies
 RUN apt-get update && \
     apt-get upgrade -y && \
-    apt-get install -y git python3-pip
+    apt-get install -y git && \
+    pip install --no-cache-dir FAIRsoft && \
+    pip install --no-cache-dir -r requirements.txt
 
-# Install the dependencies
-RUN pip3 install FAIRsoft --break-system-packages
-RUN pip3 install -r requirements.txt --break-system-packages
-
-# Copy the files
+# Copy the current directory contents into the container at /app
 COPY . .
 
-EXPOSE 3000
+# Make port 3500 available to the world outside this container
+EXPOSE 3500
 
-# Executable commands
-CMD [ "python3", "-m" , "flask", "run", "--host=0.0.0.0", "--port=3000"]
+# Run the application
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "3500", "--reload"]
