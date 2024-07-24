@@ -58,6 +58,12 @@ app.include_router(fair_evaluation.router, prefix="/fair")
 app.include_router(tool.router, prefix="/tool")
 app.include_router(search.router, prefix="")
 
+
+
+@app.get("/app")
+def read_main(request: Request):
+    return {"message": "Hello World", "root_path": request.scope.get("root_path")}
+
 @app.get("/docs", include_in_schema=False)
 async def swagger_ui_html(req: Request) -> HTMLResponse:
     root_path = req.scope.get("root_path", "").rstrip("/")

@@ -21,4 +21,6 @@ COPY . .
 EXPOSE 3500
 
 # Run the application
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "3500", "--reload"]
+CMD ["uvicorn", "main:app", "--root_path", "/api",  "--host", "0.0.0.0", "--port", "3500", "--reload"]
+
+
