@@ -25,10 +25,10 @@ async def names_type_labels():
     return JSONResponse(content=resp)
 
 @router.get('/', tags=["tools"])
-async def tool_metadata(name: str = None, type_: str = None):
-    if not name and not type_:
+async def tool_metadata(name: str = None, type: str = None):
+    if not name and not type:
         raise HTTPException(status_code=400, detail="No tool name or type provided")
-    tool = tools_collection.find_one({'name': name, 'type': type_})
+    tool = tools_collection.find_one({'name': name, 'type': type})
     if tool:
         tool = prepareToolMetadata(tool)
         tool = prepareListsIds(tool)
