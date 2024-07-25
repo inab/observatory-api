@@ -24,7 +24,7 @@ async def names_type_labels():
     resp = [keep_first_label(tool) for tool in tools]
     return JSONResponse(content=resp)
 
-@router.get('/', tags=["tools"])
+@router.get('', tags=["tools"])
 async def tool_metadata(name: str = None, type: str = None):
     if not name and not type:
         raise HTTPException(status_code=400, detail="No tool name or type provided")
