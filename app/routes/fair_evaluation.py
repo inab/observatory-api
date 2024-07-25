@@ -12,7 +12,7 @@ tools_collection, stats = connect_DB()
 async def evaluate(request: Request):
     data = await request.json()
     if data:
-        tool = prepareMetadataForEvaluation(data['fair'])
+        tool = prepareMetadataForEvaluation(data['tool_metadata'])
         scores = computeScores_from_list([tool])
         return JSONResponse(content=scores)
     else:
