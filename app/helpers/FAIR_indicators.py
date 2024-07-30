@@ -521,10 +521,9 @@ class instance(object):
         Existence of API/library version 
         Whether the software has API /library versions to be included in users' pipelines
         '''
-        interTypes = ['Library', 'Web API']
-        for t in self.type:
-            if t in interTypes:
-                return(True)
+        interTypes = ['lib', 'rest', 'soap', 'api']
+        if self.type in interTypes:
+            return(True)
         else:
             return(False)
 
