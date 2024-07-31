@@ -1,6 +1,32 @@
 import re
+from functools import wraps
+import warnings
+import time
 
 from app.helpers.EDAM_forFE import EDAMDict
+
+
+def attribute_check_and_set(instance, key, value, default_name='fairsoft_default_name', default_value=None):
+    '''Check if the attribute is set. If it is not, set default attribute to the instance and raise a warning.'''
+    if value == 'fairsoft_default':
+        warnings.warn(f'Instance {key} not specified. Setting instance.{key} = None')
+        setattr(instance, key, None)
+    elif value == default_name:
+        warnings.warn(f'Instance {key} not specified. Assigning default value "{default_name}"', Warning)
+        setattr(instance, key, default_name)
+    else:
+        setattr(instance, key, value)
+
+def timeit(func):
+    @wraps(func)
+    def timeit_wrapper(*args, **kwargs):
+        start_time = time.perf_counter()
+        result = func(*args, **kwargs)
+        end_time = time.perf_counter()
+        total_time = end_time - start_time
+        print(f'Function {func.__name__}{args} {kwargs} Took {total_time:.4f} seconds')
+        return result
+    return timeit_wrapper
 
 
 ########

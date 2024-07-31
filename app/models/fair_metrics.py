@@ -1,0 +1,61 @@
+from pydantic import BaseModel
+
+class FAIRscores(BaseModel):
+    F: float = 0.0
+    F1: float = 0.0
+    F2: float = 0.0
+    F3: float = 0.0
+    A: float = 0.0
+    A1: float = 0.0
+    A2: float = 0.0
+    A3: float = 0.0
+    I: float = 0.0
+    I1: float = 0.0
+    I2: float = 0.0
+    I3: float = 0.0
+    R: float = 0.0
+    R1: float = 0.0
+    R2: float = 0.0
+    R3: float = 0.0
+    R4: float = 0.0
+
+
+class FAIRmetrics(BaseModel):
+    F1_1: bool = False
+    F1_2: bool = False
+    F2_1: bool = False
+    F2_2: bool = False
+    F3_1: bool = False
+    F3_2: bool = False
+    F3_3: bool = False
+    A1_1: bool = False
+    A1_2: bool = False
+    A1_3: bool = False
+    A1_4: bool = False
+    A1_5: bool = False
+    A2_1: bool = False
+    A2_2: bool = False
+    A3_1: bool = False
+    A3_2: bool = False
+    A3_3: bool = False
+    A3_4: bool = False
+    A3_5: bool = False
+    I1_1: bool = False
+    I1_2: bool = False
+    I1_3: bool = False
+    I1_4: bool = False
+    I1_5: bool = False
+    I2_1: bool = False
+    I2_2: bool = False
+    I3_1: bool = False
+    I3_2: bool = False
+    I3_3: bool = False
+    R1_1: bool = False
+    R1_2: bool = False
+    R2_1: bool = False
+    R2_2: bool = False
+    R3_1: bool = False
+    R3_2: bool = False
+    R4_1: bool = False
+    R4_2: bool = False
+    R4_3: bool = False
