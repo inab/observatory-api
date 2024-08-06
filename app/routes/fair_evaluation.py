@@ -46,8 +46,14 @@ async def evaluate(request: Request):
         
         # Compute FAIR scores and get the result dictionary
         result = compute_fair_scores(instance)
+        logs = instance.logs.__dict__
+
+        data = {
+            'result': result,
+            'logs': logs
+        }
         
-        return JSONResponse(content=[result])
+        return JSONResponse(content=data)
     else:
         raise HTTPException(status_code=400, detail="No metadata provided")
 
@@ -58,8 +64,26 @@ async def evaluateId(request: Request):
     if id_:
         tool = tools_collection.find_one({'@id': id_})
         if tool:
-            scores = computeScores_from_list([tool])
-            return JSONResponse(content=scores)
+            # Create an instance object
+            instance = Instance(**tool)
+            
+            # Set super type based on web types
+            instance.set_super_type(WEB_TYPES)
+            
+            # Compute metrics
+            computation = IndicatorComputation(instance)
+            computation.compute_indicators()
+            
+            # Compute FAIR scores and get the result dictionary
+            result = compute_fair_scores(instance)
+            
+            logs = instance.logs.__dict__
+
+            data = {
+                'result': result,
+                'logs': logs
+            }
+            return JSONResponse(content=data)
         else:
             raise HTTPException(status_code=400, detail="No tool id or metadata provided")
     else:

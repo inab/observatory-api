@@ -1,3 +1,7 @@
+# --------------------------------------------
+#      DEPRECATED
+# --------------------------------------------
+
 from functools import wraps
 import warnings
 import time

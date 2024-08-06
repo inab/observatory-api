@@ -8,15 +8,18 @@ class MockInstance:
 
 def test_compA3_1_with_registration_not_mandatory_true():
     instance = MockInstance(registration_not_mandatory=True)
-    assert compA3_1(instance) == True
+    result, logs = compA3_1(instance)
+    assert result == True
 
 def test_compA3_1_with_registration_not_mandatory_false():
     instance = MockInstance(registration_not_mandatory=False)
-    assert compA3_1(instance) == False
+    result, logs = compA3_1(instance)
+    assert result ==  False
 
 def test_compA3_1_with_registration_not_mandatory_none():
     instance = MockInstance(registration_not_mandatory=None)
-    assert compA3_1(instance) == False
+    result, logs = compA3_1(instance)
+    assert result ==  False
 
 if __name__ == "__main__":
     pytest.main()

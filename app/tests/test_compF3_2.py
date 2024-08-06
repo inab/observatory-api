@@ -9,27 +9,33 @@ class MockInstance:
 
 def test_compF3_2_with_valid_repositories():
     instance = MockInstance(repository=["https://github.com/user/repo", "https://bitbucket.org/user/repo"])
-    assert compF3_2(instance) == True
+    result, logs = compF3_2(instance)
+    assert result == True
 
 def test_compF3_2_with_empty_repositories():
     instance = MockInstance(repository=[])
-    assert compF3_2(instance) == False
+    result, logs = compF3_2(instance)
+    assert result == False
 
 def test_compF3_2_with_none_repositories():
     instance = MockInstance(repository=None)
-    assert compF3_2(instance) == False
+    result, logs = compF3_2(instance)
+    assert result == False
 
 def test_compF3_2_with_single_valid_repository():
     instance = MockInstance(repository=["https://github.com/user/repo"])
-    assert compF3_2(instance) == True
+    result, logs = compF3_2(instance)
+    assert result == True
 
 def test_compF3_2_with_invalid_repositories():
     instance = MockInstance(repository=["", None])
-    assert compF3_2(instance) == False
+    result, logs = compF3_2(instance)
+    assert result == False
 
 def test_compF3_2_with_mixed_repositories():
     instance = MockInstance(repository=["https://github.com/user/repo", ""])
-    assert compF3_2(instance) == True
+    result, logs = compF3_2(instance)
+    assert result == True
 
 if __name__ == "__main__":
     pytest.main()

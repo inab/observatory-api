@@ -14,8 +14,12 @@ tags_metadata = [
             "description": "Tools related endpoints",
         },
         {
-            "name": "vocabularies",
-            "description": "SPDX and EDAM related endpoints",
+            "name": "edam",
+            "description": "EDAM related endpoints",
+        },
+        {
+            "name": "spdx",
+            "description": "SPDX related endpoints",
         },
         {
             "name": "fair",

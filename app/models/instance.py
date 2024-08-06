@@ -6,7 +6,7 @@ class License(BaseModel):
     name: str
     url: Optional[AnyUrl] = Field(None, description="URL of the license. Can be empty.")
 
-    @field_validator('url')
+    @field_validator('url', mode='before')
     def allow_empty_url(cls, v):
         if v == '':
             return None
@@ -38,7 +38,7 @@ class Person(BaseModel):
     email: Optional[EmailStr] = None
     maintainer: Optional[bool] = False
 
-    @field_validator('email')
+    @field_validator('email', mode='before')
     def allow_empty_email(cls, v):
         if v == '':
             return None
@@ -75,7 +75,7 @@ class Instance(BaseModel):
     ssl: Optional[bool] = False
     tags: Optional[List[str]] = []
     termsUse: Optional[bool] = False
-    test: Optional[bool] = False
+    test: Optional[List] = False
     topics: Optional[List[ControlledTerm]] = []
     operations: Optional[List[ControlledTerm]] = []
     webpage: Optional[List[AnyUrl]] = []
@@ -86,7 +86,8 @@ class Instance(BaseModel):
     version_control: Optional[bool] = False
     super_type: Optional[str] = None 
     metrics: Optional[FAIRmetrics] = None 
-    scores: Optional[FAIRscores] = None  
+    scores: Optional[FAIRscores] = None 
+    logs: Optional[List[str]] = []
 
 
     def set_super_type(self, web_types: List[str]):
@@ -94,3 +95,5 @@ class Instance(BaseModel):
             self.super_type = 'web'
         else:
             self.super_type = 'no_web'
+
+            

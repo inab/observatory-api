@@ -9,27 +9,33 @@ class MockInstance:
 
 def test_compA1_5_with_no_web_and_source_code():
     instance = MockInstance(super_type='no_web', src=["https://example.com/src"])
-    assert compA1_5(instance) == True
+    result, logs = compA1_5(instance)
+    assert result == True
 
 def test_compA1_5_with_no_web_and_no_source_code():
     instance = MockInstance(super_type='no_web', src=[])
-    assert compA1_5(instance) == False
+    result, logs = compA1_5(instance)
+    assert result == False
 
 def test_compA1_5_with_web_and_source_code():
     instance = MockInstance(super_type='web', src=["https://example.com/src"])
-    assert compA1_5(instance) == False
+    result, logs = compA1_5(instance)
+    assert result == False
 
 def test_compA1_5_with_web_and_no_source_code():
     instance = MockInstance(super_type='web', src=[])
-    assert compA1_5(instance) == False
+    result, logs = compA1_5(instance)
+    assert result == False
 
 def test_compA1_5_with_none_super_type():
     instance = MockInstance(super_type=None, src=[])
-    assert compA1_5(instance) == False
+    result, logs = compA1_5(instance)
+    assert result == False
 
 def test_compA1_5_with_none_src():
     instance = MockInstance(super_type='no_web', src=None)
-    assert compA1_5(instance) == False
+    result, logs = compA1_5(instance)
+    assert result == False
 
 if __name__ == "__main__":
     pytest.main()

@@ -1,3 +1,8 @@
+# --------------------------------------------
+#      DEPRECATED
+# --------------------------------------------
+
+
 from munch import munchify
 
 from app.helpers.FAIR_indicators import instance

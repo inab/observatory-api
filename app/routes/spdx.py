@@ -6,14 +6,6 @@ import json
 
 router = APIRouter()
 
-@router.get('/EDAMTerms', tags=["spdx"])
-async def EDAMTerms():
-    try:
-        EDAMVocabularyItems = prepareEDAM()
-    except:
-        raise HTTPException(status_code=400, detail="Something went wrong when retrieving the EDAM vocabulary :(")
-    return JSONResponse(content=EDAMVocabularyItems)
-
 @router.get('/SPDXLicenses',  tags=["spdx"])
 async def SPDXLicenses():
     try:

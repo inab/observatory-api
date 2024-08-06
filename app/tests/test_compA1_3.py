@@ -20,7 +20,8 @@ def test_compA1_3_with_no_web_and_download():
         source=[], 
         documentation=[]
     )
-    assert compA1_3(instance) == True
+    result, logs = compA1_3(instance)
+    assert result == True
 
 def test_compA1_3_with_no_web_and_valid_source():
     instance = create_instance(
@@ -29,7 +30,8 @@ def test_compA1_3_with_no_web_and_valid_source():
         source=["bioconda"], 
         documentation=[]
     )
-    assert compA1_3(instance) == True
+    result, logs = compA1_3(instance)
+    assert result == True
 
 def test_compA1_3_with_no_web_and_installation_instructions():
     instance = create_instance(
@@ -38,7 +40,8 @@ def test_compA1_3_with_no_web_and_installation_instructions():
         source=[], 
         documentation=[{'type': 'installation', 'url': 'http://example.com/install'}]
     )
-    assert compA1_3(instance) == True
+    result, logs = compA1_3(instance)
+    assert result == True
 
 def test_compA1_3_with_no_web_and_invalid_source():
     instance = create_instance(
@@ -47,7 +50,8 @@ def test_compA1_3_with_no_web_and_invalid_source():
         source=["random_source"], 
         documentation=[]
     )
-    assert compA1_3(instance) == False
+    result, logs = compA1_3(instance)
+    assert result == False
 
 def test_compA1_3_with_no_web_and_empty_download_source_and_documentation():
     instance = create_instance(
@@ -56,7 +60,8 @@ def test_compA1_3_with_no_web_and_empty_download_source_and_documentation():
         source=[], 
         documentation=[]
     )
-    assert compA1_3(instance) == False
+    result, logs = compA1_3(instance)
+    assert result == False
 
 def test_compA1_3_with_web_and_valid_download():
     instance = create_instance(
@@ -65,7 +70,8 @@ def test_compA1_3_with_web_and_valid_download():
         source=[], 
         documentation=[]
     )
-    assert compA1_3(instance) == False
+    result, logs = compA1_3(instance)
+    assert result == False
 
 def test_compA1_3_with_web_and_valid_source():
     instance = create_instance(
@@ -74,7 +80,8 @@ def test_compA1_3_with_web_and_valid_source():
         source=["bioconda"], 
         documentation=[]
     )
-    assert compA1_3(instance) == False
+    result, logs = compA1_3(instance)
+    assert result == False
 
 def test_compA1_3_with_web_and_installation_instructions():
     instance = create_instance(
@@ -83,7 +90,8 @@ def test_compA1_3_with_web_and_installation_instructions():
         source=[], 
         documentation=[{'type': 'installation', 'url': 'http://example.com/install'}]
     )
-    assert compA1_3(instance) == False
+    result, logs = compA1_3(instance)
+    assert result == False
 
 def test_compA1_3_with_none_super_type():
     instance = create_instance(
@@ -92,7 +100,8 @@ def test_compA1_3_with_none_super_type():
         source=[], 
         documentation=[]
     )
-    assert compA1_3(instance) == False
+    result, logs = compA1_3(instance)
+    assert result == False
 
 if __name__ == "__main__":
     pytest.main()

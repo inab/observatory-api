@@ -8,15 +8,18 @@ class MockInstance:
 
 def test_compI3_1_with_dependencies():
     instance = MockInstance(dependencies=['dependency1', 'dependency2'])
-    assert compI3_1(instance) == True
+    result, logs = compI3_1(instance)
+    assert result == True
 
 def test_compI3_1_with_empty_dependencies():
     instance = MockInstance(dependencies=[])
-    assert compI3_1(instance) == False
+    result, logs = compI3_1(instance)
+    assert result == False
 
 def test_compI3_1_with_none_dependencies():
     instance = MockInstance(dependencies=None)
-    assert compI3_1(instance) == False
+    result, logs = compI3_1(instance)
+    assert result == False
 
 if __name__ == "__main__":
     pytest.main()

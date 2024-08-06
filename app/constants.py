@@ -74,7 +74,7 @@ DEPENDENCIES_AWARE_SYSTEMS = [
     'Dub'                 # D
 ]
 
-DOWNLOADABLE_SOURCES = ['bioconda', 'bioconductor', 'galaxy', 'toolshed', 'bioconda_conda', 'bioconda_recipes']
+INSTALL_INTRUCTIONS_SOURCES = ['bioconda', 'bioconductor', 'galaxy', 'toolshed', 'bioconda_conda', 'bioconda_recipes']
 
 
 FREE_OS = free_operating_systems = [
@@ -171,6 +171,27 @@ PERMISSIONS_TYPES = [
     'Terms and Policies',
     'User Agreement'
 ]
+
+CONTRIBUTION_POLICY_TYPES = [
+        'Contribution',
+        'contribution policy',
+        'contributing guidelines',
+        'contribution guidelines',
+        'contribution rules',
+        'contributing rules',
+        'contributing policy',
+        'contribution procedures'
+    ]
+
+RELEASE_POLICY_TYPES = [
+        'release policy',
+        'version release policy',
+        'distribution policy',
+        'deployment policy',
+        'software release policy',
+        'release guidelines',
+        'release procedures'
+    ]
 
 VERIFIABLE_FORMATS = [
     'json',     # JavaScript Object Notation

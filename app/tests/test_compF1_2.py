@@ -1,4 +1,6 @@
 import pytest
+from io import StringIO
+import logging
 
 # Assuming compF1_2 is imported from the module where it's defined
 from app.services.f_indicators import compF1_2
@@ -7,32 +9,35 @@ class MockInstance:
     def __init__(self, version):
         self.version = version
 
-def test_compF1_2_with_valid_version():
-    '''
-    Should return True for a valid version
-    '''
-    instance = MockInstance(version="1.0")
-    assert compF1_2(instance) == True
+# Ensure that the logger captures the output
+@pytest.fixture
+def caplog(caplog):
+    return caplog
 
-def test_compF1_2_with_invalid_version():
+def test_compF1_2_valid_version(caplog):
+    instance = MockInstance(version="1.0.0")
+    result, log_output = compF1_2(instance)
+    assert result == True
+    assert "Version is valid." in log_output
+    assert "Version provided: 1.0.0" in log_output
+
+def test_compF1_2_invalid_version_parts(caplog):
     instance = MockInstance(version="1")
-    assert compF1_2(instance) == False
+    result, log_output = compF1_2(instance)
+    assert result == False
+    assert "Version does not have enough parts (should be at least major.minor)." in log_output
 
-def test_compF1_2_with_empty_version():
+def test_compF1_2_invalid_version_digit(caplog):
+    instance = MockInstance(version="1.a")
+    result, log_output = compF1_2(instance)
+    assert result == False
+    assert "Part 'a' is not a digit." in log_output
+
+def test_compF1_2_no_version(caplog):
     instance = MockInstance(version="")
-    assert compF1_2(instance) == False
-
-def test_compF1_2_with_none_version():
-    instance = MockInstance(version=None)
-    assert compF1_2(instance) == False
-
-def test_compF1_2_with_complex_valid_version():
-    instance = MockInstance(version="2.3.4")
-    assert compF1_2(instance) == True
-
-def test_compF1_2_with_invalid_format_version():
-    instance = MockInstance(version="a.b")
-    assert compF1_2(instance) == False
+    result, log_output = compF1_2(instance)
+    assert result == False
+    assert "No version provided." in log_output
 
 if __name__ == "__main__":
     pytest.main()

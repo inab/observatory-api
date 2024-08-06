@@ -8,27 +8,45 @@ class MockInstance:
 
 def test_compF2_1_with_structured_sources():
     instance = MockInstance(source=["biotools", "github"])
-    assert compF2_1(instance) == True
+    result, logs = compF2_1(instance)
+    assert result == True
+    assert "Received source: ['biotools', 'github']" in logs
+    assert "Source 'biotools' matches structured metadata. Returning True." in logs
 
 def test_compF2_1_with_unstructured_sources():
     instance = MockInstance(source=["random_source", "another_source"])
-    assert compF2_1(instance) == False
+    result, logs = compF2_1(instance)
+    assert result == False
+    assert "Received source: ['random_source', 'another_source']" in logs
+    assert "No sources match structured metadata. Returning False." in logs
 
 def test_compF2_1_with_mixed_sources():
     instance = MockInstance(source=["biotools", "random_source"])
-    assert compF2_1(instance) == True
+    result, logs = compF2_1(instance)
+    assert result == True
+    assert "Received source: ['biotools', 'random_source']" in logs
+    assert "Source 'biotools' matches structured metadata. Returning True." in logs
 
 def test_compF2_1_with_empty_sources():
     instance = MockInstance(source=[])
-    assert compF2_1(instance) == False
+    result, logs = compF2_1(instance)
+    assert result == False
+    assert "Received source: []" in logs
+    assert "Source is empty. Returning False." in logs
 
 def test_compF2_1_with_none_sources():
     instance = MockInstance(source=None)
-    assert compF2_1(instance) == False
+    result, logs = compF2_1(instance)
+    assert result == False
+    assert "Received source: None" in logs
+    assert "Source is None. Returning False." in logs
 
 def test_compF2_1_with_only_one_structured_source():
     instance = MockInstance(source=["galaxy"])
-    assert compF2_1(instance) == True
+    result, logs = compF2_1(instance)
+    assert result == True
+    assert "Received source: ['galaxy']" in logs
+    assert "Source 'galaxy' matches structured metadata. Returning True." in logs
 
 if __name__ == "__main__":
     pytest.main()

@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from typing import List
 
 class FAIRscores(BaseModel):
     F: float = 0.0
@@ -59,3 +60,45 @@ class FAIRmetrics(BaseModel):
     R4_1: bool = False
     R4_2: bool = False
     R4_3: bool = False
+
+class FAIRLogs(BaseModel):
+    # Each log entry is a list of strings
+    F1_1: List[str] = []
+    F1_2: List[str] = []
+    F2_1: List[str] = []
+    F2_2: List[str] = []
+    F3_1: List[str] = []
+    F3_2: List[str] = []
+    F3_3: List[str] = []
+    A1_1: List[str] = []
+    A1_2: List[str] = []
+    A1_3: List[str] = []
+    A1_4: List[str] = []
+    A1_5: List[str] = []
+    A2_1: List[str] = []
+    A2_2: List[str] = []
+    A3_1: List[str] = []
+    A3_2: List[str] = []
+    A3_3: List[str] = []
+    A3_4: List[str] = []
+    A3_5: List[str] = []
+    I1_1: List[str] = []
+    I1_2: List[str] = []
+    I1_3: List[str] = []
+    I1_4: List[str] = []
+    I1_5: List[str] = []
+    I2_1: List[str] = []
+    I2_2: List[str] = []
+    I3_1: List[str] = []
+    I3_2: List[str] = []
+    I3_3: List[str] = []
+    R1_1: List[str] = []
+    R1_2: List[str] = []
+    R2_1: List[str] = []
+    R2_2: List[str] = []
+    R3_1: List[str] = []
+    R3_2: List[str] = []
+    R4_1: List[str] = []
+    R4_2: List[str] = []
+    R4_3: List[str] = []
+ 
