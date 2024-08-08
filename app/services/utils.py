@@ -1,6 +1,6 @@
 import requests
 from typing import List
-from app.models.instance import instance
+from app.models.instance import Instance
 import requests
 from typing import Optional
 
@@ -11,7 +11,6 @@ def is_url_operational(url: str, timeout: int = 5) -> bool:
     Args:
         url (str): The URL to check.
         timeout (int, optional): The timeout for the request in seconds. Defaults to 5.
-
     Returns:
         bool: True if the URL is operational, False otherwise.
     '''
@@ -29,29 +28,29 @@ def is_url_operational(url: str, timeout: int = 5) -> bool:
         print(f"Error checking URL: {e}")
         return False  # URL is not operational
 
-def log_version(instance: instance, logs: list[str]) -> list[str]:
+def log_version(Instance: Instance, logs: list[str]) -> list[str]:
     '''
-    Log the version of the instance.
+    Log the version of the Instance.
 
     Args:
-        instance (instance): The instance object containing the version.
+        Instance (Instance): The Instance object containing the version.
         logs (list[str]): A list to store the logs.
 
     Returns:
         list[str]: A list containing the logs.
 
     '''
-    if instance.get('version'):
-        logs.append(f"🔍 Version provided: {instance.version}")
+    if Instance.version:
+        logs.append(f"🔍 Version provided: {Instance.version}")
     else:
         logs.append("🔍 No version provided.")
     
     return logs
 
-def log_sources(instance, logs):
-    '''Log the sources of the instance.'''
-    if instance.source:
-        logs.append(f"🔍 Sources provided: {instance.source}")
+def log_sources(Instance, logs):
+    '''Log the sources of the Instance.'''
+    if Instance.source:
+        logs.append(f"🔍 Sources provided: {Instance.source}")
     else:
         logs.append("🔍 No sources provided.")
     
@@ -71,6 +70,7 @@ def build_dict_items_log(dict_items: list[dict]) -> list[str]:
     log = []
     for item in dict_items:
         one_liner = ""
+        item = item.__dict__
         for key, value in item.items():
             one_liner += f"{key}: {value}, "
         
@@ -80,28 +80,28 @@ def build_dict_items_log(dict_items: list[dict]) -> list[str]:
 
 
 
-def log_topics_operations(instance: instance, logs: list[str]) -> list[str]:
+def log_topics_operations(Instance: Instance, logs: list[str]) -> list[str]:
     '''
-    Log the topics and operations of the instance.
+    Log the topics and operations of the Instance.
 
     Args:
-        instance (instance): The instance object containing topics and operations.
+        Instance (Instance): The Instance object containing topics and operations.
         logs (list[str]): A list to store the logs.
 
     Returns:
         list[str]: A list containing the logs.
 
     '''
-    if instance.get('topics'):
+    if Instance.topics:
         logs.append("🔍 Topics provided:")
-        topics_log = build_dict_items_log(instance.topics)
+        topics_log = build_dict_items_log(Instance.topics)
         logs.extend(topics_log)
     else:
         logs.append("🔍 No topics provided.")
     
-    if instance.get('operations'):
+    if Instance.operations:
         logs.append("🔍 Operations provided:")
-        operations_log = build_dict_items_log(instance.operations)
+        operations_log = build_dict_items_log(Instance.operations)
         logs.extend(operations_log)
     else:
         logs.append("🔍 No operations provided.")
@@ -129,21 +129,21 @@ def log_list_strings(string_list: List[str]) -> List[str]:
     
 
 
-def log_registries(instance: instance, logs: list[str]) -> list[str]:
+def log_registries(Instance: Instance, logs: list[str]) -> list[str]:
     '''
-    Log the registries of the instance.
+    Log the registries of the Instance.
 
     Parameters:
-        instance (instance): The instance containing the registries.
+        Instance (Instance): The Instance containing the registries.
         logs (list[str]): The list of logs to append the registry information to.
 
     Returns:
         list[str]: The updated list of logs.
 
     '''
-    if instance.get('registries'):
+    if Instance.registries:
         logs.append(f"🔍 Registries provided:")
-        registries_log = log_list_strings(instance.registries)
+        registries_log = log_list_strings(Instance.registries)
         logs.extend(registries_log)
     else:
         logs.append("🔍 No registries provided.")
@@ -151,21 +151,21 @@ def log_registries(instance: instance, logs: list[str]) -> list[str]:
     return logs
 
 
-def log_repositories(instance: instance, logs: list[str]) -> list[str]:
+def log_repositories(Instance: Instance, logs: list[str]) -> list[str]:
     '''
-    Log the repositories of the instance.
+    Log the repositories of the Instance.
 
     Parameters:
-        instance (instance): The instance containing the repositories.
+        Instance (Instance): The Instance containing the repositories.
         logs (list[str]): The list of logs to append the repository information to.
 
     Returns:
         list[str]: The updated list of logs.
 
     '''
-    if instance.get('repository'):
+    if Instance.repository:
         logs.append(f"🔍 Repositories provided:")
-        repositories_log = log_list_strings(instance.repository)
+        repositories_log = log_list_strings(Instance.repository)
         logs.extend(repositories_log)
     else:
         logs.append("🔍 No repositories provided.")
@@ -192,42 +192,42 @@ def log_pub_identifiers_title(publications: List[dict]) -> List[str]:
     return log
 
 
-def log_publications(instance: instance, logs: list[str]) -> list[str]:
+def log_publications(Instance: Instance, logs: list[str]) -> list[str]:
     '''
-    Log the publications of the instance.
+    Log the publications of the Instance.
 
     Parameters:
-        instance (instance): The instance containing the publications.
+        Instance (Instance): The Instance containing the publications.
         logs (list[str]): The list of logs to append the publication information to.
 
     Returns:
         list[str]: The updated list of logs.
 
     '''
-    if instance.get('publication'):
+    if Instance.publication:
         logs.append(f"🔍 Publications provided:")
-        publications_log = log_pub_identifiers_title(instance.publication)
+        publications_log = log_pub_identifiers_title(Instance.publication)
         logs.extend(publications_log)
     else:
         logs.append("🔍 No publications provided.")
     
     return logs
 
-def log_webpages(instance: instance, logs: list[str]) -> list[str]:
+def log_webpages(Instance: Instance, logs: list[str]) -> list[str]:
     '''
-    Log the webpages of the instance.
+    Log the webpages of the Instance.
 
     Parameters:
-        instance (instance): The instance containing the webpages.
+        Instance (Instance): The Instance containing the webpages.
         logs (list[str]): The list of logs to append the webpage information to.
 
     Returns:
         list[str]: The updated list of logs.
 
     '''
-    if instance.get('webpage'):
+    if Instance.webpage:
         logs.append(f"🔍 Webpages provided:")
-        webpages_log = log_list_strings(instance.webpage)
+        webpages_log = log_list_strings(Instance.webpage)
         logs.extend(webpages_log)
     else:
         logs.append("🔍 No webpages provided.")
@@ -237,7 +237,7 @@ def log_webpages(instance: instance, logs: list[str]) -> list[str]:
 
 def log_downloads(downloads: list, logs: list[str]) -> list[str]:
     '''
-    Log the downloads of the instance.
+    Log the downloads of the Instance.
 
     Parameters:
         downloads (list): The list of downloads.
@@ -257,42 +257,42 @@ def log_downloads(downloads: list, logs: list[str]) -> list[str]:
     return logs
 
 
-def log_documentation(instance: instance, logs: list[str]) -> list[str]:
+def log_documentation(Instance: Instance, logs: list[str]) -> list[str]:
     '''
-    Log the documentation of the instance.
+    Log the documentation of the Instance.
 
     Parameters:
-        instance (instance): The instance containing the documentation.
+        Instance (Instance): The Instance containing the documentation.
         logs (list[str]): The list of logs to append the documentation information to.
 
     Returns:
         list[str]: The updated list of logs.
 
     '''
-    if instance.documentation:
+    if Instance.documentation:
         logs.append(f"🔍 Documentation provided:")
-        documentation_log = build_dict_items_log(instance.documentation)
+        documentation_log = build_dict_items_log(Instance.documentation)
         logs.extend(documentation_log)
     else:
         logs.append("🔍 No documentation provided.")
     
     return logs
 
-def log_test_data_URLs(instance: instance, logs:list[str]) -> list[str]:
+def log_test_data_URLs(Instance: Instance, logs:list[str]) -> list[str]:
     '''
-    Log the test data URLs of the instance.
+    Log the test data URLs of the Instance.
 
     Parameters:
-        instance (instance): The instance containing the test data URLs.
+        Instance (Instance): The Instance containing the test data URLs.
         logs (list[str]): The list of logs to append the test data URL information to.
 
     Returns:
         list[str]: The updated list of logs.
 
     '''
-    if instance.test:
+    if Instance.test:
         logs.append(f"🔍 Test data URLs provided:")
-        test_log = log_list_strings(instance.test)
+        test_log = log_list_strings(Instance.test)
         logs.extend(test_log)
     else:
         logs.append("🔍 No test data URLs provided.")
@@ -300,21 +300,21 @@ def log_test_data_URLs(instance: instance, logs:list[str]) -> list[str]:
     return logs
 
 
-def log_src_URLs(instance: instance, logs: list[str]) -> list[str]:
+def log_src_URLs(Instance: Instance, logs: list[str]) -> list[str]:
     '''
-    Log the source URLs of the instance.
+    Log the source URLs of the Instance.
 
     Parameters:
-        instance (instance): The instance containing the source URLs.
+        Instance (Instance): The Instance containing the source URLs.
         logs (list[str]): The list of logs to append the source URL information to.
 
     Returns:
         list[str]: The updated list of logs.
 
     '''
-    if instance.src:
+    if Instance.src:
         logs.append(f"🔍 Source URLs provided:")
-        src_log = log_list_strings(instance.src)
+        src_log = log_list_strings(Instance.src)
         logs.extend(src_log)
     else:
         logs.append("🔍 No source URLs provided.")
@@ -322,40 +322,40 @@ def log_src_URLs(instance: instance, logs: list[str]) -> list[str]:
     return logs
 
 
-def log_inputs_outputs(instance: instance, logs: list[str]) -> list[str]:
+def log_inputs_outputs(Instance: Instance, logs: list[str]) -> list[str]:
     '''
-    Log the inputs and outputs of the instance.
+    Log the inputs and outputs of the Instance.
 
     Parameters:
-        instance (instance): The instance containing the inputs and outputs.
+        Instance (Instance): The Instance containing the inputs and outputs.
         logs (list[str]): The list of logs to append the input and output information to.
 
     Returns:
         list[str]: The updated list of logs.
 
     '''
-    if instance.get('input'):
+    if Instance.input:
         logs.append(f"🔍 Inputs provided:")
-        inputs_log = build_dict_items_log(instance.input)
+        inputs_log = build_dict_items_log(Instance.input)
         logs.extend(inputs_log)
     else:
         logs.append("🔍 No inputs provided.")
     
-    if instance.get('output'):
+    if Instance.output:
         logs.append(f"🔍 Outputs provided:")
-        outputs_log = build_dict_items_log(instance.output)
+        outputs_log = build_dict_items_log(Instance.output)
         logs.extend(outputs_log)
     else:
         logs.append("🔍 No outputs provided.")
     
     return logs
 
-def log_dependencies(instance: instance, logs: list[str]) -> list[str]:
+def log_dependencies(instance: Instance, logs: list[str]) -> list[str]:
     '''
-    Log the dependencies of the instance.
+    Log the dependencies of the Instance.
 
     Parameters:
-        instance (instance): The instance containing the dependencies.
+        instance (Instance): The Instance containing the dependencies.
         logs (list[str]): The list of logs to append the dependency information to.
 
     Returns:
@@ -372,12 +372,12 @@ def log_dependencies(instance: instance, logs: list[str]) -> list[str]:
     return logs
 
 
-def log_links(instance: instance, logs: list[str]) -> list[str]:
+def log_links(instance: Instance, logs: list[str]) -> list[str]:
     '''
-    Log the links of the instance.
+    Log the links of the Instance.
 
     Parameters:
-        instance (instance): The instance containing the links.
+        instance (Instance): The Instance containing the links.
         logs (list[str]): The list of logs to append the link information to.
 
     Returns:
@@ -393,19 +393,19 @@ def log_links(instance: instance, logs: list[str]) -> list[str]:
     
     return logs
 
-def log_type(instance: instance, logs: list[str]) -> list[str]:
+def log_type(instance: Instance, logs: list[str]) -> list[str]:
     '''
-    Log the type of the instance.
+    Log the type of the Instance.
 
     Parameters:
-        instance (instance): The instance containing the type.
+        instance (Instance): The Instance containing the type.
         logs (list[str]): The list of logs to append the type information to.
 
     Returns:
         list[str]: The updated list of logs.
 
     '''
-    if instance.get('type'):
+    if instance.type:
         logs.append(f"🔍 Type provided: {instance.type}")
     else:
         logs.append("🔍 No type provided.")
@@ -413,12 +413,12 @@ def log_type(instance: instance, logs: list[str]) -> list[str]:
     return logs
 
 
-def log_e_infrastructues(instance: instance, logs: list[str]) -> list[str]:
+def log_e_infrastructues(instance: Instance, logs: list[str]) -> list[str]:
     '''
-    Log the e-infrastructures of the instance.
+    Log the e-infrastructures of the Instance.
 
     Parameters:
-        instance (instance): The instance containing the e-infrastructures.
+        instance (Instance): The Instance containing the e-infrastructures.
         logs (list[str]): The list of logs to append the e-infrastructures information to.
 
     Returns:
@@ -434,12 +434,12 @@ def log_e_infrastructues(instance: instance, logs: list[str]) -> list[str]:
     
     return logs
 
-def log_os(instance: instance, logs: list[str]) -> list[str]:
+def log_os(instance: Instance, logs: list[str]) -> list[str]:
     '''
-    Log the operating systems of the instance.
+    Log the operating systems of the Instance.
 
     Parameters:
-        instance (instance): The instance containing the operating systems.
+        Instance (Instance): The Instance containing the operating systems.
         logs (list[str]): The list of logs to append the operating system information to.
 
     Returns:
@@ -455,12 +455,12 @@ def log_os(instance: instance, logs: list[str]) -> list[str]:
     
     return logs
 
-def log_licenses(instance: instance, logs: list[str]) -> list[str]:
+def log_licenses(instance: Instance, logs: list[str]) -> list[str]:
     '''
-    Log the licenses of the instance.
+    Log the licenses of the Instance.
 
     Parameters:
-        instance (instance): The instance containing the licenses.
+        instance (Instance): The Instance containing the licenses.
         logs (list[str]): The list of logs to append the license information to.
 
     Returns:
@@ -477,12 +477,12 @@ def log_licenses(instance: instance, logs: list[str]) -> list[str]:
     return logs
 
 
-def log_authors(instance: instance, logs: list[str]) -> list[str]:
+def log_authors(instance: Instance, logs: list[str]) -> list[str]:
     '''
-    Log the authors of the instance.
+    Log the authors of the Instance.
 
     Parameters:
-        instance (instance): The instance containing the authors.
+        Instance (Instance): The Instance containing the authors.
         logs (list[str]): The list of logs to append the author information to.
 
     Returns:

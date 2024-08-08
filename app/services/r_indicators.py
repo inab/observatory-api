@@ -1,12 +1,12 @@
 import logging
 from typing import List, Optional, Tuple
 from app.constants import NO_GUIDE, PERMISSIONS_TYPES, CONTRIBUTION_POLICY_TYPES, RELEASE_POLICY_TYPES
-from app.models.instance import instance, License
+from app.models.instance import Instance, License
 
 from app.services.utils import *
 
 
-def compR1_1(instance: instance) -> Tuple[bool, List[str]]:
+def compR1_1(instance: Instance) -> Tuple[bool, List[str]]:
     '''Existence of usage guides.'''
     logs = []
     

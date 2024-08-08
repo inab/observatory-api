@@ -44,6 +44,14 @@ class Person(BaseModel):
             return None
         return v
 
+def remove_nones_empy_string(v):
+    # Remove None values from the list
+    if isinstance(v, list):
+        new_v = [i for i in v if i is not None]
+        return [i for i in new_v if i != '']
+    return v
+
+
 class Instance(BaseModel):
     id: Optional[str] = None
     name: Optional[str] = None
@@ -88,6 +96,20 @@ class Instance(BaseModel):
     metrics: Optional[FAIRmetrics] = None 
     scores: Optional[FAIRscores] = None 
     logs: Optional[List[str]] = []
+
+
+    @field_validator('webpage', mode='before')
+    def filter_empty_webpage(cls, v):
+        return remove_nones_empy_string(v)
+
+
+    @field_validator('download', mode='before')
+    def filter_empty_download(cls, v):
+        return remove_nones_empy_string(v)
+    
+    @field_validator('links', mode='before')
+    def filter_empty_links(cls, v):
+        return remove_nones_empy_string(v)
 
 
     def set_super_type(self, web_types: List[str]):

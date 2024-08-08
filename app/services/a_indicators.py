@@ -57,7 +57,7 @@ def compA1_2(instance) -> Tuple[bool, str]:
     download = instance.download + instance.src
 
     # each download in one line in logs 
-    logs = log_downloads(instance, logs)
+    logs = log_downloads(download, logs)
     
     if bool(download):
         for url in download:

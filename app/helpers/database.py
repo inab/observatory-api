@@ -5,8 +5,8 @@ from pymongo import MongoClient
 def connect_DB():
     # connecting to db
     config = configparser.ConfigParser()
-    #config.read('/api-variables/config_db.ini')
-    config.read('./app/helpers/config_db.ini')
+    config.read('./api-variables/config_db.ini')
+    #config.read('./app/helpers/config_db.ini')
     mongo_host = config['MONGO_DETAILS']['DBHOST']
     mongo_port = config['MONGO_DETAILS']['DBPORT']
     mongo_user = config['MONGO_DETAILS']['DBUSER']
