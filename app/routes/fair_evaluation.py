@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Request, Query
+from fastapi import APIRouter, HTTPException, Request, Body
 from fastapi.responses import JSONResponse
 from app.helpers.FAIR_indicators_eval import computeScores_from_list
 from app.helpers.utils import prepareMetadataForEvaluation
@@ -8,7 +8,8 @@ from app.services.indicator_computation import IndicatorComputation
 from app.services.fair_scores import compute_fair_scores
 from app.constants import WEB_TYPES
 from app.models.fair_metrics import FAIRmetrics, FAIRscores  # Import the necessary classes
-
+from typing import Dict, Any, Optional
+from pydantic import BaseModel
 
 
 router = APIRouter()
@@ -27,39 +28,44 @@ async def evaluate(request: Request):
         raise HTTPException(status_code=400, detail="No metadata provided")
 '''
 
+class MetadataRequest(BaseModel):
+    tool_metadata: Dict[str, Any] = Body(..., description="The metadata related to the tool that needs to be evaluated.")
+    prepare: Optional[bool] = Body(True, description="Indicates whether the metadata needs to be prepared before evaluation. Defaults to True.")
+
 @router.post("/evaluate", tags=["fair"])
-async def evaluate(request: Request, prepare: bool = Query(True, description="Indicate whether the metadata needs preparation")):
-    data = await request.json()
-    if data and 'tool_metadata' in data:
-        tool_metadata = data['tool_metadata']
-
-        # Check if preparation is needed
-        if prepare:
-            prepared_tool = prepareMetadataForEvaluation(tool_metadata)
-        else:
-            prepared_tool = tool_metadata
-        # Create an instance object
-        instance = Instance(**prepared_tool)
-        
-        # Set super type based on web types
-        instance.set_super_type(WEB_TYPES)
-        
-        # Compute metrics
-        computation = IndicatorComputation(instance)
-        computation.compute_indicators()
-        
-        # Compute FAIR scores and get the result dictionary
-        result = compute_fair_scores(instance)
-        logs = instance.logs.__dict__
-
-        data = {
-            'result': result,
-            'logs': logs
-        }
-        
-        return JSONResponse(content=data)
+async def evaluate(
+    request: Request,
+    data: MetadataRequest
+):
+    tool_metadata = data.tool_metadata
+    prepare = data.prepare
+    
+    # Check if preparation is needed
+    if prepare:
+        prepared_tool = prepareMetadataForEvaluation(tool_metadata)
     else:
-        raise HTTPException(status_code=400, detail="No metadata provided")
+        prepared_tool = tool_metadata
+    
+    # Create an instance object
+    instance = Instance(**prepared_tool)
+    
+    # Set super type based on web types
+    instance.set_super_type(WEB_TYPES)
+    
+    # Compute metrics
+    computation = IndicatorComputation(instance)
+    computation.compute_indicators()
+    
+    # Compute FAIR scores and get the result dictionary
+    result = compute_fair_scores(instance)
+    logs = instance.logs.__dict__
+
+    response_data = {
+        'result': result,
+        'logs': logs
+    }
+    
+    return JSONResponse(content=response_data)
 
 @router.post('/evaluateId', tags=["fair"])
 async def evaluateId(request: Request):
