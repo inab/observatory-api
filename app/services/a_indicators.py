@@ -360,9 +360,7 @@ def compA3_4(instance) -> Tuple[bool, List[str]]:
         if operational_e_infra:
             logs.append("Result: PASSED")
             return True, logs
-        else:
-            logs.append("❌ None of the free e-infrastructures referenced in the links are operational.")
-            return False, logs
+
     else:
         logs.append("❌ No links provided.")
 

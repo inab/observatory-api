@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Query
 from fastapi.responses import JSONResponse
 from app.helpers.FAIR_indicators_eval import computeScores_from_list
 from app.helpers.utils import prepareMetadataForEvaluation
@@ -28,12 +28,16 @@ async def evaluate(request: Request):
 '''
 
 @router.post("/evaluate", tags=["fair"])
-async def evaluate(request: Request):
+async def evaluate(request: Request, prepare: bool = Query(True, description="Indicate whether the metadata needs preparation")):
     data = await request.json()
     if data and 'tool_metadata' in data:
         tool_metadata = data['tool_metadata']
-        prepared_tool = prepareMetadataForEvaluation(tool_metadata)
-        
+
+        # Check if preparation is needed
+        if prepare:
+            prepared_tool = prepareMetadataForEvaluation(tool_metadata)
+        else:
+            prepared_tool = tool_metadata
         # Create an instance object
         instance = Instance(**prepared_tool)
         
