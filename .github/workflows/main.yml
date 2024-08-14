@@ -18,7 +18,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.10
+          python-version: 3.10  # Correct Python version
 
       - name: Install dependencies
         run: |
@@ -73,4 +73,3 @@ jobs:
         run: |
           echo "Deploying to server..."
           # Add your deployment steps here (e.g., SSH into a server and pull the image)
-
