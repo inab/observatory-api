@@ -22,21 +22,21 @@ INVALID_CONTRIBUTION_POLICIES = [
 # Test cases for compR3_1 function
 def test_compR3_1_with_valid_policy_types():
     for policy in VALID_CONTRIBUTION_POLICIES:
-        instance = Instance(documentation=[Documentation(type=policy)])
+        instance = Instance(documentation=[Documentation(type=policy, url='https://inab.github.io/oeb-visualizations/')])
         result, logs = compR3_1(instance)
         assert result == True
 
 def test_compR3_1_with_invalid_policy_types():
     for policy in INVALID_CONTRIBUTION_POLICIES:
-        instance = Instance(documentation=[Documentation(type=policy)])
+        instance = Instance(documentation=[Documentation(type=policy, url='https://inab.github.io/oeb-visualizations/')])
         result, logs = compR3_1(instance)
         assert result ==  False
 
 def test_compR3_1_with_mixed_policy_types():
     mixed_documentation = [
-        Documentation(type='contribution policy'),
-        Documentation(type='technical document'),
-        Documentation(type='contributing guidelines')
+        Documentation(type='contribution policy',url='https://inab.github.io/oeb-visualizations/'),
+        Documentation(type='technical document',url='https://inab.github.io/oeb-visualizations/'),
+        Documentation(type='contributing guidelines',url='https://inab.github.io/oeb-visualizations/')
     ]
     instance = Instance(documentation=mixed_documentation)
     result, logs = compR3_1(instance)
@@ -61,6 +61,6 @@ def test_compR3_1_with_case_insensitive_check():
         'contribution RULES'
     ]
     for policy in case_insensitive_policies:
-        instance = Instance(documentation=[Documentation(type=policy)])
+        instance = Instance(documentation=[Documentation(type=policy, url='https://inab.github.io/oeb-visualizations/')])
         result, logs = compR3_1(instance)
         assert result ==  True

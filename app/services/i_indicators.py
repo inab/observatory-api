@@ -1,6 +1,6 @@
 import logging
 from typing import List, Tuple
-from app.constants import VERIFIABLE_FORMATS, DEPENDENCIES_AWARE_SYSTEMS, E_INFRASTRUCTURES
+from app.constants import VERIFIABLE_FORMATS, DEPENDENCIES_AWARE_SYSTEMS, E_INFRASTRUCTURES, E_INFRASTRUCTURES_SOURCES
 from app.services.utils import *
 
 def compI1_1(instance) -> Tuple[bool, List[str]]:
@@ -49,7 +49,7 @@ def compI1_2(instance) -> Tuple[bool, List[str]]:
     # Check if any documentation entry is of type 'API specification'
     logs.append("⚙️ Checking if any documentation entry is an API specification and the url is operational.")
     documentation = instance.documentation or []
-    logs = log_documentation(documentation, logs)
+    logs = log_documentation(instance, logs)
 
     api_spec_found = False
     for doc in documentation:
@@ -203,7 +203,7 @@ def compI2_2(instance) -> Tuple[bool, List[str]]:
 
     # Checking if at least one e-infrastructure is referenced in the source
     if source_data:
-        e_infrastructures_referenced = [source for source in source_data if source in E_INFRASTRUCTURES]
+        e_infrastructures_referenced = [source for source in source_data if source in E_INFRASTRUCTURES_SOURCES]
         if len(e_infrastructures_referenced) >= 1:
             logs.append("✅ At least one e-infrastructure is referenced in the source.")
             logs.append("Result: PASSED")

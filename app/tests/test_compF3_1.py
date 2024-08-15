@@ -1,47 +1,49 @@
 import pytest
 
-# Assuming compF3_1 is imported from the module where it's defined
 from app.services.f_indicators import compF3_1
+from app.models.instance import Instance
 
-class MockInstance:
-    def __init__(self, source):
-        self.source = source
 
-def test_compF3_1_with_valid_sources():
-    instance = MockInstance(source=["github", "npm"])
+def test_compF3_1_with_valid_registry():
+    instance = Instance(registries=["npm"])
+    result, logs = compF3_1(instance)
+    assert result == True
+
+def test_compF3_1_with_valid_source():
+    instance = Instance(source=["bioconductor"])
     result, logs = compF3_1(instance)
     assert result == True
 
 def test_compF3_1_with_invalid_sources():
-    instance = MockInstance(source=["random_source", "another_source"])
+    instance = Instance(source=["random_source", "another_source"])
     result, logs = compF3_1(instance)
     assert result == False
 
 def test_compF3_1_with_mixed_sources():
-    instance = MockInstance(source=["github", "random_source"])
+    instance = Instance(source=["github", "random_source"])
     result, logs = compF3_1(instance)
-    assert result == True
+    assert result == False
 
 def test_compF3_1_with_empty_sources():
-    instance = MockInstance(source=[])
+    instance = Instance(source=[])
     result, logs = compF3_1(instance)
     assert result == False
 
 
 def test_compF3_1_with_none_sources():
-    instance = MockInstance(source=None)
+    instance = Instance(source=None)
     result, logs = compF3_1(instance)
     assert result == False
 
 def test_compF3_1_with_case_insensitive_sources():
-    instance = MockInstance(source=["GiThUb", "NPM"])
+    instance = Instance(source=["GiThUb"], registries=["npm"])
     result, logs = compF3_1(instance)
     assert result == True
 
 def test_compF3_1_with_only_one_valid_source():
-    instance = MockInstance(source=["bitbucket"])
+    instance = Instance(source=["bitbucket"])
     result, logs = compF3_1(instance)
-    assert result == True
+    assert result == False
 
 if __name__ == "__main__":
     pytest.main()

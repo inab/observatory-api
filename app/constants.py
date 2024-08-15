@@ -92,6 +92,10 @@ E_INFRASTRUCTURES = [
     'usegalaxy.'
     ]
 
+E_INFRASTRUCTURES_SOURCES = [
+    'galaxy',
+    'toolshed']
+
 NO_GUIDE = [
     'License', 
     'Terms of Use', 

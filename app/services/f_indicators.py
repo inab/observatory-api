@@ -78,22 +78,25 @@ def compF2_2(instance) -> Tuple[bool, str]:
 
     logs = log_topics_operations(instance, logs)
 
-    # One by one for better logging
-    for topic in instance.topics:
-        if topic.vocabulary:
-            logs.append(f"✅ Topic '{topic.term}' is part of the '{topic.vocabulary}' ontology or controlled vocabulary.")
-            logs.append("Result: PASSED")
-            return True, logs
-        else:
-            logs.append(f"❌ Topic '{topic.term}' is not part of any ontology or controlled vocabulary.")
-        
-    for operation in instance.operations:
-        if operation.vocabulary:
-            logs.append(f"✅ Operation '{operation.term}' is part of the '{operation.vocabulary}' ontology or controlled vocabulary.")
-            logs.append("Result: PASSED")
-            return True, logs
-        else:
-            logs.append(f"❌ Operation '{operation.term}' is not part of any ontology or controlled vocabulary.")
+    if instance.topics:
+        logs.append(f"⚙️ Checking if any topic is part of an ontology or controlled vocabulary.")
+        for topic in instance.topics:
+            if topic.vocabulary:
+                logs.append(f"✅ Topic '{topic.term}' is part of the '{topic.vocabulary}' ontology or controlled vocabulary.")
+                logs.append("Result: PASSED")
+                return True, logs
+            else:
+                logs.append(f"❌ Topic '{topic.term}' is not part of any ontology or controlled vocabulary.")
+
+    if instance.operations:
+        logs.append(f"⚙️ Checking if any operation is part of an ontology or controlled vocabulary.") 
+        for operation in instance.operations:
+            if operation.vocabulary:
+                logs.append(f"✅ Operation '{operation.term}' is part of the '{operation.vocabulary}' ontology or controlled vocabulary.")
+                logs.append("Result: PASSED")
+                return True, logs
+            else:
+                logs.append(f"❌ Operation '{operation.term}' is not part of any ontology or controlled vocabulary.")
 
     
     logs.append("❌ No topic or operation involves the use of ontologies or controlled vocabularies.")

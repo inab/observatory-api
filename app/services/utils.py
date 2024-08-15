@@ -4,7 +4,7 @@ from app.models.instance import Instance
 import requests
 from typing import Optional
 
-def is_url_operational(url: str, timeout: int = 5) -> bool:
+def is_url_operational(url: str, timeout: int = 15) -> bool:
     '''
     Check if a URL is operational by performing a HEAD request.
 
@@ -206,7 +206,8 @@ def log_publications(Instance: Instance, logs: list[str]) -> list[str]:
     '''
     if Instance.publication:
         logs.append(f"🔍 Publications provided:")
-        publications_log = log_pub_identifiers_title(Instance.publication)
+        publications = [p.__dict__ for p in Instance.publication]
+        publications_log = log_pub_identifiers_title(publications)
         logs.extend(publications_log)
     else:
         logs.append("🔍 No publications provided.")

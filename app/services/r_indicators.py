@@ -77,9 +77,8 @@ def compR2_1(instance) -> Tuple[bool, List[str]]:
             return True, logs
         
         else:
-            logs.append("❌ No valid license found.")
-            logs.append("Result: FAILED")
-            return False, logs
+            logs.append("❌ No valid license found. Checking documentation.")
+
 
     # Check for documentation
     logs.append("⚙️ Checking if a valid license/terms of use is found in documentation.")
@@ -99,12 +98,13 @@ def compR2_1(instance) -> Tuple[bool, List[str]]:
         operational_license = False
         for doc in documentation:
             # check doc type and if doc url is operational
-            if doc.type.lower() in (d.lower() for d in PERMISSIONS_TYPES):
+            lower_permissions_types = [d.lower() for d in PERMISSIONS_TYPES]
+            if doc.type.lower() in (d.lower() for d in lower_permissions_types):
                 if is_url_operational(doc.url):
                     logs.append(f"✅ A valid license/terms of use is found in documentation and URL is operational: {doc.type} -- {doc.url}")
                     operational_license = True
                 else:
-                    logs.append(f"❌ A valid license/terms of use is found in documentation but the URL is not operational: {doc.type} --{doc.url}")
+                    logs.append(f"❌ A valid license/terms of use is found in documentation but the URL is not operational: {doc.type} -- {doc.url}")
         
         if operational_license:
             logs.append("✅ At least one valid license/terms of use is found in documentation and its URL is operational.")
@@ -129,7 +129,8 @@ def compR3_1(instance) -> Tuple[bool, List[str]]:
 
     documentation = instance.documentation or []
     
-    contribution_policy_types_lower = [policy.lower() for policy in CONTRIBUTION_POLICY_TYPES]
+    lower_contribution_policy_types = [policy.lower() for policy in CONTRIBUTION_POLICY_TYPES]
+    contribution_policy_types_lower = [policy.lower() for policy in lower_contribution_policy_types]
     logs.append(f"Checking against contribution policy types: https://observatory.openebench.bsc.es/api/lists/contribution_policy_types")
 
     operational_contrib = False

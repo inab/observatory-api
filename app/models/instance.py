@@ -21,6 +21,8 @@ class Publication(BaseModel):
     cit_count: int
     doi: Optional[str] = None
     pmcid: Optional[str] = None
+    pmid: Optional[str] = None
+    cit_count: Optional[int] = None
     ref_count: Optional[int] = None
     refs: Optional[List[Dict[str, Any]]] = None
     title: Optional[str] = None
@@ -50,6 +52,7 @@ def remove_nones_empy_string(v):
         new_v = [i for i in v if i is not None]
         return [i for i in new_v if i != '']
     return v
+
 
 
 class Instance(BaseModel):
@@ -110,6 +113,13 @@ class Instance(BaseModel):
     @field_validator('links', mode='before')
     def filter_empty_links(cls, v):
         return remove_nones_empy_string(v)
+    
+    @field_validator('publication', mode='before')
+    def filter_empty_publication(cls, v):
+        filtered_v = remove_nones_empy_string(v)
+        if filtered_v:
+            return [p for p in filtered_v if p != {}]
+        return filtered_v
 
 
     def set_super_type(self, web_types: List[str]):

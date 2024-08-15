@@ -5,6 +5,8 @@ from app.services.i_indicators import compI2_2
 class MockInstance:
     def __init__(self, source):
         self.source = source
+        self.e_infrastructures = []
+        self.webpage = []
 
 def test_compI2_2_with_galaxy_source():
     instance = MockInstance(source=['galaxy'])
