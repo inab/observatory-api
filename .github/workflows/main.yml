@@ -27,7 +27,7 @@ jobs:
 
       - name: Run tests
         run: |
-          pytest
+          pytest -v app/tests
 
   build:
     runs-on: ubuntu-latest
