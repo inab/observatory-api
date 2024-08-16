@@ -1,56 +1,51 @@
 import pytest
 
 from app.services.a_indicators import compA3_5
-
-class MockInstance:
-    def __init__(self, super_type, e_infrastructures, links, source):
-        self.super_type = super_type
-        self.e_infrastructures = e_infrastructures
-        self.links = links
-        self.source = source
+from app.models.instance import Instance
 
 def test_compA3_5_with_multiple_e_infrastructures():
-    instance = MockInstance(super_type='no_web', e_infrastructures=['infra1', 'infra2'], links=[], source=[])
+    instance = Instance(type='cmd', e_infrastructures=['infra1', 'infra2'], links=[], source=[])
     result, logs = compA3_5(instance)
     assert result == True
 
 def test_compA3_5_with_multiple_e_infrastructure_links():
-    instance = MockInstance(super_type='no_web', e_infrastructures=[], links=['https://vre.multiscalegenomics.eu/resource', 'https://usegalaxy.org/resource'], source=[])
+    instance = Instance(type='cmd', e_infrastructures=[], webpage=['https://vre.multiscalegenomics.eu/', 'https://usegalaxy.eu'], source=[])
     result, logs = compA3_5(instance)
+    print(logs)
     assert result ==  True
 
 def test_compA3_5_with_multiple_galaxy_toolshed_sources():
-    instance = MockInstance(super_type='no_web', e_infrastructures=[], links=[], source=['galaxy', 'toolshed'])
+    instance = Instance(type='lib', e_infrastructures=[], links=[], source=['galaxy', 'toolshed'])
     result, logs = compA3_5(instance)
     assert result ==  True
 
 def test_compA3_5_with_none_super_type():
-    instance = MockInstance(super_type=None, e_infrastructures=[], links=[], source=[])
+    instance = Instance(type=None, e_infrastructures=[], links=[], source=[])
     result, logs = compA3_5(instance)
     assert result ==  False
 
 def test_compA3_5_with_web_super_type_no_e_infrastructures():
-    instance = MockInstance(super_type='web', e_infrastructures=[], links=[], source=[])
+    instance = Instance(type='web', e_infrastructures=[], links=[], source=[])
     result, logs = compA3_5(instance)
     assert result ==  False
 
 def test_compA3_5_with_web_super_type_and_multiple_e_infrastructures():
-    instance = MockInstance(super_type='web', e_infrastructures=['infra1', 'infra2'], links=[], source=[])
+    instance = Instance(type='rest', e_infrastructures=['galaxy.eu', 'infra2'], links=[], source=[])
     result, logs = compA3_5(instance)
-    assert result ==  True
+    assert result ==  False
 
 def test_compA3_5_with_web_super_type_and_multiple_e_infrastructure_links():
-    instance = MockInstance(super_type='web', e_infrastructures=[], links=['https://vre.multiscalegenomics.eu/resource', 'https://usegalaxy.org/resource'], source=[])
+    instance = Instance(type='web', e_infrastructures=[], links=['https://vre.multiscalegenomics.eu/resource', 'https://usegalaxy.org/resource'], source=[])
     result, logs = compA3_5(instance)
-    assert result ==  True
+    assert result == False
 
 def test_compA3_5_with_web_super_type_and_multiple_galaxy_toolshed_sources():
-    instance = MockInstance(super_type='web', e_infrastructures=[], links=[], source=['galaxy', 'toolshed'])
+    instance = Instance(type='web', e_infrastructures=[], links=[], source=['galaxy', 'toolshed'])
     result, logs = compA3_5(instance)
-    assert result ==  True
+    assert result ==  False
 
 def test_compA3_5_with_web_super_type_single_galaxy_source():
-    instance = MockInstance(super_type='web', e_infrastructures=[], links=[], source=['galaxy'])
+    instance = Instance(type='web', e_infrastructures=[], links=[], source=['galaxy'])
     result, logs = compA3_5(instance)
     assert result ==  False
 

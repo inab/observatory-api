@@ -3,45 +3,40 @@ from pydantic import HttpUrl
 from app.services.a_indicators import compA1_4
 from app.models.instance import Instance, Documentation
 
-# Define test instances using Pydantic models
-def create_instance(test, documentation):
-    return Instance(
-        test=test,
-        documentation=[Documentation(type=doc['type'], url=HttpUrl(doc['url'])) for doc in documentation] if documentation else []
-    )
-
+#
 def test_compA1_4_with_test_data():
-    instance = create_instance(test=True, documentation=[])
+    instance = Instance(test=['https://github.com/inab/oeb-visualizations'], documentation=[])
     result, logs = compA1_4(instance)
     assert result == True
 
 def test_compA1_4_with_no_test_data():
-    instance = create_instance(test=False, documentation=[])
+    instance = Instance(test=[], documentation=[])
     result, logs = compA1_4(instance)
     assert result == False
 
 def test_compA1_4_with_test_data_in_docs():
-    instance = create_instance(test=False, documentation=[{'type': 'test data', 'url': 'http://example.com/testdata'}])
+    instance = Instance(test=[], documentation=[{'type': 'test data', 'url': 'https://github.com/inab/oeb-visualizations'}])
     result, logs = compA1_4(instance)
+    print(logs)
     assert result == True
 
 def test_compA1_4_with_no_test_data_in_docs():
-    instance = create_instance(test=False, documentation=[{'type': 'other', 'url': 'http://example.com/other'}])
+    instance = Instance(test=[], documentation=[{'type': 'other', 'url': 'https://github.com/inab/oeb-visualizations'}])
     result, logs = compA1_4(instance)
     assert result == False
 
 def test_compA1_4_with_mixed_test_data():
-    instance = create_instance(test=True, documentation=[{'type': 'test data', 'url': 'http://example.com/testdata'}])
+    instance = Instance(test=['https://github.com/inab/oeb-visualizations'], documentation=[{'type': 'test data', 'url': 'https://github.com/inab/oeb-visualizations'}])
     result, logs = compA1_4(instance)
     assert result == True
 
 def test_compA1_4_with_none_test():
-    instance = create_instance(test=None, documentation=[])
+    instance = Instance(test=[], documentation=[])
     result, logs = compA1_4(instance)
     assert result == False
 
 def test_compA1_4_with_none_documentation():
-    instance = create_instance(test=False, documentation=None)
+    instance = Instance(test=[], documentation=None)
     result, logs = compA1_4(instance)
     assert result == False
 

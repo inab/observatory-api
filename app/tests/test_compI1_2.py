@@ -4,7 +4,7 @@ from app.services.i_indicators import compI1_2
 
 def test_compI1_2_with_api_specification():
     docs=[Documentation(type="API specification", url="https://inab.github.io/oeb-visualizations/")]
-    instance = Instance(documentation=docs)
+    instance = Instance(documentation=docs, type='rest')
     result, logs = compI1_2(instance)
     assert result == True
 
@@ -13,7 +13,7 @@ def test_compI1_2_with_multiple_documentations_including_api_specification():
         Documentation(type="General documentation", url="https://inab.github.io/oeb-visualizations/"),
         Documentation(type="API specification", url="https://inab.github.io/oeb-visualizations/")
     ]
-    instance = Instance(documentation=docs)
+    instance = Instance(documentation=docs, type='rest')
     result, logs = compI1_2(instance)
     assert result == True
 

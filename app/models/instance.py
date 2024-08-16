@@ -1,6 +1,7 @@
 from pydantic import BaseModel, AnyUrl, EmailStr, field_validator, Field, ConfigDict 
 from typing import List, Optional, Dict, Any
 from app.models.fair_metrics import FAIRmetrics, FAIRscores  # Import the necessary classes
+from app.constants import WEB_TYPES
 
 class License(BaseModel):
     name: str
@@ -128,4 +129,8 @@ class Instance(BaseModel):
         else:
             self.super_type = 'no_web'
 
+    # during initizalization, set the super_type
+    def __init__(self, **data):
+        super().__init__(**data)
+        self.set_super_type(WEB_TYPES)
             

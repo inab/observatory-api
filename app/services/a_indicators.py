@@ -1,7 +1,7 @@
 import logging
 import requests
 from typing import Tuple, List, Dict
-from app.constants import INSTALL_INTRUCTIONS_SOURCES, FREE_OS, E_INFRASTRUCTURES
+from app.constants import INSTALL_INTRUCTIONS_SOURCES, FREE_OS, E_INFRASTRUCTURES, E_INFRASTRUCTURES_SOURCES
 from app.services.utils import *
 
 def compA1_1(instance) -> Tuple[bool, str]:
@@ -14,7 +14,7 @@ def compA1_1(instance) -> Tuple[bool, str]:
         logs.append('This is not a web-based software. This indicator is not applicable. ')
         return False, logs
 
-    webpage = instance.webpage[0] if instance.webpage else None
+    webpage = instance.webpage if instance.webpage else None
     
     logs.append("⚙️ Checking if API or web is operational")
     
@@ -95,8 +95,9 @@ def compA1_3(instance) -> Tuple[bool, str]:
         logs.append("❌ No documentation provided.")
     
     installation_instructions = False
+    installation_types = ['installation instructions', 'installation']
     for doc in documentation:
-        if doc.type.lower() == 'installation instructions':
+        if doc.type.lower() in installation_types:
             installation_instructions = True
             if is_url_operational(doc.url):
                 logs.append(f"✅ Installation instructions are available and operational.")
@@ -151,8 +152,7 @@ def compA1_4(instance) -> Tuple[bool, List[str]]:
     test_data_urls = instance.test
     if not test_data_urls:
         logs.append("❌ No test data provided.")
-        logs.append("Result: FAILED")
-        return False, logs
+
     
     has_operationsl_test_data = False
     for url in test_data_urls:
@@ -179,7 +179,7 @@ def compA1_4(instance) -> Tuple[bool, List[str]]:
         return False, logs
 
     # Check whether test data is provided in documentation and test data url operational
-    has_test_data_in_docs = any(doc.type.lower() == 'test data' and is_url_operational(doc.url) for doc in instance.documentation)
+    has_test_data_in_docs = False
     for doc in instance.documentation:
         if doc.type.lower() == 'test data':
             if is_url_operational(doc.url):
@@ -330,13 +330,12 @@ def compA3_4(instance) -> Tuple[bool, List[str]]:
 
     logs.append("Free e-infrastructures considered: {E_INFRASTRUCTURES}")
     if e_infrastructures_data:
-        is_free_e_infra = any(e in e_infrastructures_data for e in E_INFRASTRUCTURES)
-        if is_free_e_infra:
-            logs.append("✅ At least one free e-infrastructure is available.")
-            logs.append("Result: PASSED")
-            return True, logs
-        else:
-            logs.append("❌ No free e-infrastructures available.")
+        for infra in e_infrastructures_data:
+            if any(e in infra for e in E_INFRASTRUCTURES):
+                logs.append("✅ At least one free e-infrastructure is available.")
+                logs.append("Result: PASSED")
+                return True, logs
+        logs.append("❌ No free e-infrastructures available.")
     else:
         logs.append("❌ No e-infrastructures available.")
     
@@ -419,11 +418,14 @@ def compA3_5(instance) -> Tuple[bool, List[str]]:
     # Checking if more than one e-infrastructure is referenced in the links and the link is operational
     if webpage:
         n_operational = 0
+        n = 0
         for url in webpage:
             if any(e in str(url) for e in E_INFRASTRUCTURES):
+                n += 1
                 is_operational = is_url_operational(url)
                 if is_operational:
                     n_operational += 1
+        logs.append(f"Number of e-infrastructures referenced in the links: {n}")
         if n_operational > 1:
             logs.append("✅ More than one operational e-infrastructure is referenced in the links.")
             logs.append("Result: PASSED")
@@ -431,10 +433,10 @@ def compA3_5(instance) -> Tuple[bool, List[str]]:
         elif n_operational == 1:
             logs.append("❌ Only one operational e-infrastructure is referenced in the links.")
         else:
-            logs.append("❌ One e-infrastructure is referenced in the links, but it is not operational. Checking sources ...")
+            logs.append("❌ No operational. Checking sources ...")
 
     else:
-        logs.append("❌ No links provided.")
+        logs.append("❌ No e-infrastructure is referenced in the links. Checking sources ...")
 
     
     logs.append("⚙️ Checking if more than one e-infrastructure is referenced in the source")
@@ -443,18 +445,23 @@ def compA3_5(instance) -> Tuple[bool, List[str]]:
 
     # Checking if more than one e-infrastructure is referenced in the source
     if source_data:
-        e_infrastructures_referenced = [source for source in source_data if source in E_INFRASTRUCTURES]
+        e_infrastructures_referenced = [source for source in source_data if source in E_INFRASTRUCTURES_SOURCES]
         if len(e_infrastructures_referenced) > 1:
             logs.append("✅ More than one e-infrastructure is referenced in the source.")
             logs.append("Result: PASSED")
             return True, logs
-        else:
+        elif len(e_infrastructures_referenced) == 1:
             logs.append("❌ Only one e-infrastructure is referenced in the source.")
+            logs.append("Result: FAILED")
+            return False, logs
+        elif len(e_infrastructures_referenced) == 0:
+            logs.append("❌ No e-infrastructures referenced in the source.")
             logs.append("Result: FAILED")
             return False, logs
     else:
         logs.append("❌ No sources provided.")
         logs.append("Result: FAILED")
+        return False, logs
 
 
 

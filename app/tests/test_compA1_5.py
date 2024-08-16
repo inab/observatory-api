@@ -1,39 +1,35 @@
 import pytest
 
 from app.services.a_indicators import compA1_5
-
-class MockInstance:
-    def __init__(self, super_type, src):
-        self.super_type = super_type
-        self.src = src
+from app.models.instance import Instance
 
 def test_compA1_5_with_no_web_and_source_code():
-    instance = MockInstance(super_type='no_web', src=["https://example.com/src"])
+    instance = Instance(type='cmd', src=["https://github.com/inab/oeb-visualizations"])
     result, logs = compA1_5(instance)
     assert result == True
 
 def test_compA1_5_with_no_web_and_no_source_code():
-    instance = MockInstance(super_type='no_web', src=[])
+    instance = Instance(type='cmd', src=[])
     result, logs = compA1_5(instance)
     assert result == False
 
 def test_compA1_5_with_web_and_source_code():
-    instance = MockInstance(super_type='web', src=["https://example.com/src"])
+    instance = Instance(type='web', src=["https://github.com/inab/oeb-visualizations"])
     result, logs = compA1_5(instance)
     assert result == False
 
 def test_compA1_5_with_web_and_no_source_code():
-    instance = MockInstance(super_type='web', src=[])
+    instance = Instance(type='web', src=[])
     result, logs = compA1_5(instance)
     assert result == False
 
-def test_compA1_5_with_none_super_type():
-    instance = MockInstance(super_type=None, src=[])
+def test_compA1_5_with_none_type():
+    instance = Instance(type=None, src=[])
     result, logs = compA1_5(instance)
     assert result == False
 
 def test_compA1_5_with_none_src():
-    instance = MockInstance(super_type='no_web', src=None)
+    instance = Instance(type='lib', src=None)
     result, logs = compA1_5(instance)
     assert result == False
 
