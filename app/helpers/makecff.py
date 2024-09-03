@@ -1,4 +1,22 @@
 import yaml
+from cffconvert import Citation
+
+def validate_cff_dict(cff_string: dict) -> bool:
+    try:
+        # Load the CFF content from the YAML string
+        citation = Citation.from_string(cff_string)
+        
+        # Perform validation
+        citation.validate()
+        
+        # If no exception is raised, the validation is successful
+        return True
+    except Exception as e:
+        # If there is an exception, print the error and return False
+        print(f"Validation failed: {e}")
+        return False
+
+
 
 def create_cff(metadata):
     cff_data = {
@@ -29,5 +47,10 @@ def create_cff(metadata):
             'journal': publication['title']
         })
 
-    cff_yaml = yaml.dump(cff_data, sort_keys=False)
-    return cff_yaml
+    cff_string = yaml.dump(cff_data, sort_keys=False)
+
+    if validate_cff_dict(cff_string):
+        return cff_string
+    else:        
+        return None
+
