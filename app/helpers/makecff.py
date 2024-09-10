@@ -21,31 +21,55 @@ def validate_cff_dict(cff_string: dict) -> bool:
 def create_cff(metadata):
     cff_data = {
         'cff-version': '1.2.0',
-        'message': 'If you use this software, please cite it as below.',
-        'title': metadata['name'],
-        'version': metadata['version'],
-        'authors': [],
-        'keywords': metadata['tags'],
-        'license': metadata['license'][0]['name'] if metadata['license'] else None,
-        'repository-code': metadata['repository'][0] if metadata['repository'] else None,
-        'url': metadata['webpage'][0] if metadata['webpage'] else None,
-        'references': [],
+        'message': 'If you use this software, please cite it as below.'
     }
+    if metadata.get('name'):
+        cff_data['title'] = metadata.get('name')
+    
+    if metadata.get('version'):
+        cff_data['version'] = metadata.get('version')
+    
+    if metadata.get('license'):
+        license_name = metadata.get('license')[0].get('name')
+        license_url = metadata.get('license')[0].get('url')
+        if license_name:
+            cff_data['license'] = license_name
+        elif license_url:
+            cff_data['license'] = license_url
 
-    for author in metadata['authors']:
-        cff_data['authors'].append({
-            'name': author['name'],
-            'email': author['email'] if author['email'] else None,
-        })
+    if metadata.get('tags'):
+        cff_data['keywords'] = metadata.get('tags')
+    
+    if metadata.get('repository'):
+        cff_data['repository'] = metadata['repository'][0]
+    
+    if metadata.get('webpage'):
+        cff_data['url'] = metadata['webpage'][0]    
 
-    for publication in metadata['publication']:
-        cff_data['references'].append({
-            'type': 'article',
-            'title': publication['title'],
-            'doi': publication['doi'],
-            'year': publication['year'],
-            'journal': publication['title']
-        })
+    if metadata.get('authors'):
+        cff_data['authors'] = []
+
+        for author in metadata['authors']:
+            cff_data['authors'].append({
+                'name': author['name'],
+                'email': author['email'] if author['email'] else None,
+            })
+
+    if metadata.get('publication'):
+        cff_data['references'] = []
+
+        for publication in metadata['publication']:
+            entry = {}
+            if publication.get('doi'):
+                entry['doi'] = publication['doi']
+            if publication.get('title'):
+                entry['title'] = publication['title']
+            if publication.get('year'):
+                entry['year'] = publication['year']
+            if publication.get('journal'):
+                entry['journal'] = publication['journal']
+            cff_data['references'].append(entry)
+
 
     cff_string = yaml.dump(cff_data, sort_keys=False)
 
