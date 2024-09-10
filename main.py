@@ -2,6 +2,8 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import HTMLResponse
 from fastapi.openapi.docs import get_swagger_ui_html
+from fastapi.staticfiles import StaticFiles
+from starlette.responses import FileResponse
 from app.routes import edam, spdx, stats, metadata, fair_evaluation, search, tool
 
 tags_metadata = [
@@ -39,9 +41,14 @@ app = FastAPI(
         "name": "OpenEBench",
         "url": "https://openebench.bsc.es/",
     },
-    openapi_tags=tags_metadata
-    
+    openapi_tags=tags_metadata,
+    redoc_url=None,
+    docs_url=None,
 )
+
+# Mount static files directory
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
 
 # CORS
 app.add_middleware(
@@ -68,6 +75,11 @@ app.include_router(search.router, prefix="")
 def read_main(request: Request):
     return {"message": "Hello World", "root_path": request.scope.get("root_path")}
 
+# Route to serve the favicon
+@app.get("/favicon", include_in_schema=False)
+async def favicon():
+    return FileResponse("./static/favicon.ico")
+
 @app.get("/docs", include_in_schema=False)
 async def swagger_ui_html(req: Request) -> HTMLResponse:
     root_path = req.scope.get("root_path", "").rstrip("/")
@@ -79,7 +91,8 @@ async def swagger_ui_html(req: Request) -> HTMLResponse:
         openapi_url=openapi_url,
         title=app.title + " - Swagger UI",
         oauth2_redirect_url=oauth2_redirect_url,
-        init_oauth=app.swagger_ui_init_oauth
+        init_oauth=app.swagger_ui_init_oauth,
+        swagger_favicon_url="https://observatory.openebench.bsc.es/api/favicon"
     )
 
 
