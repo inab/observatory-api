@@ -15,6 +15,7 @@ pip install -r requirements.txt
 Then, start the development server: 
 
 ```
+export CONFIG_PATH=./api-variables/config_db.ini
 python3 main.py
 ```
 

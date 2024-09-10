@@ -1,12 +1,20 @@
 import configparser
 from pymongo import MongoClient
+import os
 
 
 def connect_DB():
     # connecting to db
     config = configparser.ConfigParser()
-    config.read('./api-variables/config_db.ini')
-    #config.read('./app/helpers/config_db.ini')
+    # read the env variable CONFIG_FILE
+    config_path = os.getenv('CONFIG_PATH')
+
+    if config_path:
+        # Read the config file from the path defined in CONFIG_PATH
+        config.read(config_path)
+    else:
+        raise EnvironmentError("CONFIG_PATH environment variable is not set.")
+        
     mongo_host = config['MONGO_DETAILS']['DBHOST']
     mongo_port = config['MONGO_DETAILS']['DBPORT']
     mongo_user = config['MONGO_DETAILS']['DBUSER']

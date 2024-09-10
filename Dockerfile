@@ -17,6 +17,9 @@ RUN apt-get update && \
 # Copy the current directory contents into the container at /app
 COPY . .
 
+#
+ENV CONFIG_PATH='/api-variables/config_db.ini'
+
 # Make port 3500 available to the world outside this container
 EXPOSE 3500
 
