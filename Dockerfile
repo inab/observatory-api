@@ -11,7 +11,7 @@ COPY requirements.txt .
 RUN apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y git && \
-    pip install --no-cache-dir FAIRsoft && \
+    pip install pytest && \
     pip install --no-cache-dir -r requirements.txt
 
 # Copy the current directory contents into the container at /app
