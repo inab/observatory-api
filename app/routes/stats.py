@@ -93,3 +93,5 @@ async def fair_scores_means(request: Request):
     params = request.query_params
     resp = await make_query('FAIR_scores_means', params)
     return JSONResponse(content=resp)
+
+

@@ -1,7 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
-from app.helpers.prepareVocabularies import prepareEDAM
-
+import os
 import json
 
 router = APIRouter()
@@ -9,31 +8,34 @@ router = APIRouter()
 @router.get('/SPDXLicenses',  tags=["spdx"])
 async def SPDXLicenses():
     try:
-        with open('licenses.json') as f:
+        print(os.getcwd())
+        with open('./app/routes/licenses.json') as f:
             data = json.load(f)
-        SPDXLicenses = [license['name'] for license in data['licenses']]
-    except:
+        SPDXLicenses = [license['licenseId'] for license in data['licenses']]
+    except Exception as e:
+        print(e)
         raise HTTPException(status_code=400, detail="Something went wrong when retrieving the SPDX licenses :(")
     return JSONResponse(content=SPDXLicenses)
 
 @router.get('/SPDXLicenses/url/{license}', tags=["spdx"])
 async def SPDXLicenseURL(license: str):
     try:
-        with open('licenses.json') as f:
+        with open('./app/routes/licenses.json') as f:
             data = json.load(f)
         URL = ''
         for l in data['licenses']:
-            if l['name'] == license:
+            if l['licenseId'] == license:
                 URL = l['reference']
                 break
-    except:
+    except Exception as e:
+        print(e)
         raise HTTPException(status_code=400, detail="Something went wrong when retrieving the URL of the SPDX license :(")
     return JSONResponse(content={"URL": URL})
 
 @router.get('/SPDXLicenses/match/{license}', tags=["spdx"])
 async def SPDXLicenseMatch(license: str):
     try:
-        with open('licenses.json') as f:
+        with open('./app/routes/licenses.json') as f:
             data = json.load(f)
         match = ''
         for l in data['licenses']:

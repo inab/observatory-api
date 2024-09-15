@@ -3,6 +3,13 @@ from typing import List, Optional, Dict, Any
 from app.models.fair_metrics import FAIRmetrics, FAIRscores  # Import the necessary classes
 from app.constants import WEB_TYPES
 
+def remove_nones_empty_string(v):
+    """Helper function to remove None or empty string values from a list."""
+    if isinstance(v, list):
+        return [i for i in v if i is not None and i != '']
+    return v
+
+
 class License(BaseModel):
     name: str
     url: Optional[AnyUrl] = Field(None, description="URL of the license. Can be empty.")
@@ -102,35 +109,29 @@ class Instance(BaseModel):
     logs: Optional[List[str]] = []
 
 
-    @field_validator('webpage', mode='before')
-    def filter_empty_webpage(cls, v):
-        return remove_nones_empy_string(v)
+     # Helper field validator to remove invalid URLs from AnyUrl lists
+    @field_validator('webpage', 'download', 'links', 'repository', 'src', mode='before')
+    def filter_invalid_urls(cls, v):
+        if isinstance(v, list):
+            # Use remove_nones_empty_string to clean list and keep only valid URLs
+            return [i for i in v if isinstance(i, AnyUrl)]
+        return v
 
-
-    @field_validator('download', mode='before')
-    def filter_empty_download(cls, v):
-        return remove_nones_empy_string(v)
-    
-    @field_validator('links', mode='before')
-    def filter_empty_links(cls, v):
-        return remove_nones_empy_string(v)
-    
+    # Filter empty strings and non-valid entries in the publications field
     @field_validator('publication', mode='before')
     def filter_empty_publication(cls, v):
-        filtered_v = remove_nones_empy_string(v)
+        filtered_v = remove_nones_empty_string(v)
         if filtered_v:
             return [p for p in filtered_v if p != {}]
         return filtered_v
 
-
+    # Set super_type based on whether the instance is part of web_types
     def set_super_type(self, web_types: List[str]):
         if self.type in web_types:
             self.super_type = 'web'
         else:
             self.super_type = 'no_web'
 
-    # during initizalization, set the super_type
     def __init__(self, **data):
         super().__init__(**data)
         self.set_super_type(WEB_TYPES)
-            

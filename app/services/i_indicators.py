@@ -244,7 +244,6 @@ def compI3_2(instance) -> Tuple[bool, List[str]]:
     lowercase_systems = [system.lower() for system in DEPENDENCIES_AWARE_SYSTEMS]
     
     logs.append("⚙️ Checking if dependencies are provided through dependencies-aware systems.")
-    logs.append(f"Considered systems: https://observatory.openebench.bsc.es/api/lists/dependencies_aware_systems")
     logs.append("Checking registries, links, and sources.")
 
     logs = log_sources(instance, logs)
@@ -279,5 +278,5 @@ def compI3_2(instance) -> Tuple[bool, List[str]]:
 
 def compI3_3(instance):
     '''Dependency-aware system.'''
-    result, logs = compI3_1(instance)
+    result, logs = compI3_2(instance)
     return result, logs

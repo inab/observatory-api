@@ -95,7 +95,7 @@ def compA1_3(instance) -> Tuple[bool, str]:
         logs.append("❌ No documentation provided.")
     
     installation_instructions = False
-    installation_types = ['installation instructions', 'installation']
+    installation_types = ['installation instructions', 'installation', 'installation guide', 'install']
     for doc in documentation:
         if doc.type.lower() in installation_types:
             installation_instructions = True
