@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: If you use this software, please cite it as below.
+title: oeb-visualizations
+license: MIT
+repository: https://github.com/inab/oeb-visualizations
+url: https://inab.github.io/oeb-visualizations/
+authors:
+  - name: Eva Martin del Pico
+    email: eva.mdpico@gmail.com
+  - name: Eva Martin del Pico
+    email: eva.martin@bsc.es

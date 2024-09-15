@@ -741,7 +741,7 @@ def prepareMetadataForEvaluation(metadata):
     ]
 
     for field in fields:
-        #print('preparing field: ', field)
+        print('preparing field: ', field)
         new_list = [] 
         for item in metadata[field]:
             new_item = item['term']
