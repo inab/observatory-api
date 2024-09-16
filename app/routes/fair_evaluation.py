@@ -10,6 +10,7 @@ from app.constants import WEB_TYPES
 from app.models.fair_metrics import FAIRmetrics, FAIRscores  # Import the necessary classes
 from typing import Dict, Any, Optional
 from pydantic import BaseModel
+import logging
 
 
 router = APIRouter()
@@ -32,40 +33,72 @@ class MetadataRequest(BaseModel):
     tool_metadata: Dict[str, Any] = Body(..., description="The metadata related to the tool that needs to be evaluated.")
     prepare: Optional[bool] = Body(True, description="Indicates whether the metadata needs to be prepared before evaluation. Defaults to True.")
 
+
 @router.post("/evaluate", tags=["fair"])
 async def evaluate(
     request: Request,
     data: MetadataRequest
 ):
-    tool_metadata = data.tool_metadata
-    prepare = data.prepare
-    
-    # Check if preparation is needed
-    if prepare:
-        prepared_tool = prepareMetadataForEvaluation(tool_metadata)
-    else:
-        prepared_tool = tool_metadata
-    
-    # Create an instance object
-    instance = Instance(**prepared_tool)
-    
-    # Set super type based on web types
-    instance.set_super_type(WEB_TYPES)
-    
-    # Compute metrics
-    computation = IndicatorComputation(instance)
-    computation.compute_indicators()
-    
-    # Compute FAIR scores and get the result dictionary
-    result = compute_fair_scores(instance)
-    logs = instance.logs.__dict__
+    try:
+        tool_metadata = data.tool_metadata
+        prepare = data.prepare
+        
+        # Check if preparation is needed
+        if prepare:
+            try:
+                prepared_tool = prepareMetadataForEvaluation(tool_metadata)
+            except Exception as e:
+                logging.error(f"Error during metadata preparation: {str(e)}")
+                raise HTTPException(status_code=400, detail=f"Metadata preparation failed: {str(e)}")
+        else:
+            prepared_tool = tool_metadata
+        
+        # Create an instance object
+        try:
+            instance = Instance(**prepared_tool)
+        except Exception as e:
+            logging.error(f"Error creating instance: {str(e)}")
+            raise HTTPException(status_code=400, detail=f"Instance creation failed: {str(e)}")
+        
+        # Set super type based on web types
+        try:
+            instance.set_super_type(WEB_TYPES)
+        except Exception as e:
+            logging.error(f"Error setting super type: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Error setting super type: {str(e)}")
+        
+        # Compute metrics
+        try:
+            computation = IndicatorComputation(instance)
+            computation.compute_indicators()
+        except Exception as e:
+            logging.error(f"Error computing indicators: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Error computing indicators: {str(e)}")
+        
+        # Compute FAIR scores and get the result dictionary
+        try:
+            result = compute_fair_scores(instance)
+            logs = instance.logs.__dict__
+        except Exception as e:
+            logging.error(f"Error computing FAIR scores: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Error computing FAIR scores: {str(e)}")
 
-    response_data = {
-        'result': result,
-        'logs': logs
-    }
+        # If all goes well, prepare the response
+        response_data = {
+            'result': result,
+            'logs': logs
+        }
+        
+        return JSONResponse(content=response_data)
+
+    except HTTPException as http_exc:
+        # Return the HTTP error response directly
+        return JSONResponse(content={"error": http_exc.detail}, status_code=http_exc.status_code)
+    except Exception as e:
+        # Catch any unexpected exceptions and return a generic error response
+        logging.error(f"Unexpected error: {str(e)}")
+        return JSONResponse(content={"error": "An unexpected error occurred."}, status_code=500)
     
-    return JSONResponse(content=response_data)
 
 @router.post('/evaluateId', tags=["fair"])
 async def evaluateId(request: Request):

@@ -15,6 +15,7 @@ pyyaml = "*"
 fastapi = "*"
 uvicorn = "*"
 cffconvert = "*"
+validators = "*"
 
 [dev-packages]
 

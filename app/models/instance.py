@@ -1,4 +1,5 @@
-from pydantic import BaseModel, AnyUrl, EmailStr, field_validator, Field, ConfigDict 
+from pydantic import BaseModel, AnyUrl, EmailStr, field_validator, Field, ConfigDict, HttpUrl
+from urllib.parse import urlparse
 from typing import List, Optional, Dict, Any
 from app.models.fair_metrics import FAIRmetrics, FAIRscores  # Import the necessary classes
 from app.constants import WEB_TYPES
@@ -109,13 +110,6 @@ class Instance(BaseModel):
     logs: Optional[List[str]] = []
 
 
-     # Helper field validator to remove invalid URLs from AnyUrl lists
-    @field_validator('webpage', 'download', 'links', 'repository', 'src', mode='before')
-    def filter_invalid_urls(cls, v):
-        if isinstance(v, list):
-            # Use remove_nones_empty_string to clean list and keep only valid URLs
-            return [i for i in v if isinstance(i, AnyUrl)]
-        return v
 
     # Filter empty strings and non-valid entries in the publications field
     @field_validator('publication', mode='before')
