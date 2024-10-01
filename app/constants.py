@@ -184,7 +184,8 @@ CONTRIBUTION_POLICY_TYPES = [
         'contribution rules',
         'contributing rules',
         'contributing policy',
-        'contribution procedures'
+        'contribution procedures',
+        'contributing'
     ]
 
 RELEASE_POLICY_TYPES = [
