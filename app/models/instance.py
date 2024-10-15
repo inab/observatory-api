@@ -38,6 +38,12 @@ class Publication(BaseModel):
     year: Optional[int] = None
     citations: Optional[List[Dict[str, Any]]] = None
 
+    @field_validator('year', mode='before')
+    def convert_string_year(cls, v):
+        if isinstance(v, str):
+            return int(v)
+        return v
+
 class ControlledTerm(BaseModel):
     vocabulary: Optional[str] = None
     term: Optional[str] = None
