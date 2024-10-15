@@ -29,10 +29,56 @@ jobs:
           - name: Run tests
             run: |
               pytest -v app/tests
+  
+  tag_version:
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - uses: actions/checkout@v3
+
+      # Step to fetch the version, validate, and tag the code
+      - name: Fetch version and create Git tag
+        id: fetch_version
+        run: |
+          VERSION=$(cat VERSION)
+
+          echo "Validating version format for $VERSION..."
+
+          # Check if the version follows Semantic Versioning (MAJOR.MINOR.PATCH)
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "ERROR: The version '$VERSION' does not follow Semantic Versioning (e.g., 1.0.0)."
+            exit 1
+          fi
+
+          # Prepend 'v' if not present
+          if [[ "$VERSION" != v* ]]; then
+            VERSION="v$VERSION"
+            echo "Prepending 'v'. New version is $VERSION"
+          fi
+
+          # Check if the version already has a Git tag
+          if git rev-parse "$VERSION" >/dev/null 2>&1; then
+            echo "ERROR: Version $VERSION already has a Git tag!"
+            exit 1
+          fi
+
+          # Configure Git user for tagging
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+
+          # Create the Git tag
+          git tag "$VERSION"
+
+          # Push the tag to the repository
+          git push origin "$VERSION"
+
+          # Export the version to be used in the next jobs
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
   build:
     runs-on: ubuntu-latest
-    needs: test
+    needs: tag_version
 
     steps:
       - uses: actions/checkout@v3
@@ -58,35 +104,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Step to read the VERSION file and validate its format
-      - name: Read and validate VERSION file
-        id: validate_version
-        run: |
-          VERSION=$(cat VERSION)
-
-          echo "Validating version format for $VERSION..."
-
-          # Check if the version follows Semantic Versioning (MAJOR.MINOR.PATCH)
-          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "ERROR: The version '$VERSION' does not follow Semantic Versioning (e.g., 1.0.0)."
-            exit 1
-          fi
-
-          # Prepend 'v' if not present
-          if [[ "$VERSION" != v* ]]; then
-            VERSION="v$VERSION"
-            echo "Prepending 'v'. New version is $VERSION"
-          fi
-
-          # Check if the version already has a Git tag
-          if git rev-parse "$VERSION" >/dev/null 2>&1; then
-            echo "ERROR: Version $VERSION already has a Git tag!"
-            exit 1
-          fi
-
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-
-      # Build and tag Docker image using the validated version
+      # Build and tag Docker image using the version fetched in the previous job
       - name: Build and tag Docker image
         run: |
           docker build -t ghcr.io/inab/observatory-api:${{ env.VERSION }} -t ghcr.io/inab/observatory-api:latest .
