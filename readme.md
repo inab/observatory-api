@@ -23,7 +23,7 @@ The API will be available at `http://localhost:3500`.
 
 ### Versioning 
 
-After a pull request is merged, the version of the API should be updated. This is done by adding the new version to `VERSION` and then running the script `update_version.sh`. This script will update the version to the last version in `VERSION` file and commit the changes.
+ When a push is done to the `main` branch, the version of the API should be updated. This is done by adding the new version to `VERSION`. A GitHub action will create a tag with the version to the version in `VERSION` file, build and publish the docker image.
 
 ### Collections 
  
