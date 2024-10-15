@@ -61,16 +61,17 @@ jobs:
       - name: Read the VERSION file
         id: get_version
         run: |
-          VERSION=$(cat VERSION)
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "VERSION=$(cat VERSION)" >> "$GITHUB_OUTPUT"
 
       - name: Build and tag Docker image
         uses: docker/build-push-action@v5
+        env:
+          VERSION: ${{ steps.get_version.outputs.version }}
         with:
           context: .
           push: true
           tags: |
-            ghcr.io/inab/observatory-api:${{ env.VERSION }}
+            ghcr.io/inab/observatory-api:$VERSION
             ghcr.io/inab/observatory-api:latest
 
   tag:
@@ -86,6 +87,9 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Create Git tag with version
+        env:
+          VERSION: ${{ steps.get_version.outputs.version }}
         run: |
-          git tag -a v${{ env.VERSION }} -m "Version ${{ env.VERSION }}"
-          git push origin v${{ env.VERSION }}
+          git tag -a v$VERSION -m "Version $VERSION"
+          git push origin v$env.VERSION
+        
