@@ -29,10 +29,12 @@ jobs:
           - name: Run tests
             run: |
               pytest -v app/tests
-  
+
   tag_version:
     runs-on: ubuntu-latest
-    needs: test
+
+    outputs:
+      version: ${{ steps.fetch_version.outputs.version }}
 
     steps:
       - uses: actions/checkout@v3
@@ -73,8 +75,8 @@ jobs:
           # Push the tag to the repository
           git push origin "$VERSION"
 
-          # Export the version to be used in the next jobs
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          # Set the version as an output using GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
 
   build:
     runs-on: ubuntu-latest
@@ -107,12 +109,10 @@ jobs:
       # Build and tag Docker image using the version fetched in the previous job
       - name: Build and tag Docker image
         run: |
-          docker build -t ghcr.io/inab/observatory-api:${{ env.VERSION }} -t ghcr.io/inab/observatory-api:latest .
-        env:
-          VERSION: ${{ env.VERSION }}
+          docker build -t ghcr.io/inab/observatory-api:${{ needs.tag_version.outputs.version }} -t ghcr.io/inab/observatory-api:latest .
 
       # Push Docker image to the registry
       - name: Push Docker image
         run: |
-          docker push ghcr.io/inab/observatory-api:${{ env.VERSION }}
+          docker push ghcr.io/inab/observatory-api:${{ needs.tag_version.outputs.version }}
           docker push ghcr.io/inab/observatory-api:latest
