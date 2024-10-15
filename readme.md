@@ -21,6 +21,10 @@ python3 main.py
 
 The API will be available at `http://localhost:3500`.
 
+### Versioning 
+
+After a pull request is merged, the version of the API should be updated. This is done by adding the new version to `VERSION` and then running the script `update_version.sh`. This script will update the version to the last version in `VERSION` file and commit the changes.
+
 ### Ready-to-use database
 
 To facilitate the testing of the Observatory API, a docker-compose to deploy and populate a full and ready-to-use database is available (`mongo-compose/docker-compose.yml`). 
