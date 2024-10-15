@@ -61,7 +61,8 @@ jobs:
       - name: Read the VERSION file
         id: get_version
         run: |
-          echo "CURRENT_VERSION=$(cat VERSION)" >> "$GITHUB_OUTPUT"
+          VER=$(cat VERSION)
+          echo "CURRENT_VERSION=$VER" >> "$GITHUB_OUTPUT"
 
       - name: Build and tag Docker image
         uses: docker/build-push-action@v5
