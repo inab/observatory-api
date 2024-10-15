@@ -2,6 +2,7 @@ import re
 from functools import wraps
 import warnings
 import time
+from pathlib import Path
 
 from app.helpers.EDAM_forFE import EDAMDict
 
@@ -930,8 +931,9 @@ def prepare_sources_labels(tool):
     return(tool)
 
 
-
-################
-# Database connection
-################
-
+def get_version():
+    # Get the absolute path to the VERSION file
+    version_path = Path(__file__).parent.parent.parent / "VERSION"
+    
+    # Read the VERSION file
+    return version_path.read_text().strip()

@@ -5,6 +5,7 @@ from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.staticfiles import StaticFiles
 from starlette.responses import FileResponse
 from app.routes import edam, spdx, stats, metadata, fair_evaluation, search, tool, downloads
+from app.helpers.utils import get_version
 
 tags_metadata = [
         {
@@ -37,10 +38,11 @@ tags_metadata = [
         }
     ]
 
+version = get_version()
 app = FastAPI(
     title="Software Observatory API",
     description="This is the API for the Software Observatory at [OpenEBench](https://openebench.bsc.es)",
-    version="2.0.0",
+    version=version,
     contact={
         "name": "OpenEBench",
         "url": "https://openebench.bsc.es/",
