@@ -8,6 +8,8 @@ from app.services.utils import *
 
 def compR1_1(instance: Instance) -> Tuple[bool, List[str]]:
     '''Existence of usage guides.'''
+    print('Computing R1.1')
+
     logs = []
     
     logs.append("⚙️ Checking if any documentation is a usage guide and URL is operational.")
@@ -44,6 +46,9 @@ def compR1_1(instance: Instance) -> Tuple[bool, List[str]]:
 
 def compR2_1(instance) -> Tuple[bool, List[str]]:
     '''Existence of license.'''
+
+    print('Computing R2.1')
+
     logs = []
     
     # Check for licenses 
@@ -117,11 +122,14 @@ def compR2_1(instance) -> Tuple[bool, List[str]]:
 
 def compR2_2(instance):
     '''Technical conditions of use.'''
+
+    print('Computing R2.2')
     result, logs = compR2_1(instance)
     return result, logs
 
 def compR3_1(instance) -> Tuple[bool, List[str]]:
     '''Contribution policy.'''
+    print('Computing R3.1')
     logs = []
     
     logs.append("⚙️ Checking if any documentation matches contribution policy types and the URL is operational.")
@@ -156,6 +164,8 @@ def compR3_1(instance) -> Tuple[bool, List[str]]:
 
 def compR3_2(instance) -> Tuple[bool, List[str]]:
     '''Existence of credit.'''
+
+    print('Computing R3.2')
     logs = []
     
     logs.append("⚙️ Checking if any authors are stated.")
@@ -177,6 +187,8 @@ def compR3_2(instance) -> Tuple[bool, List[str]]:
 
 def compR4_1(instance) -> Tuple[bool, List[str]]:
     '''Usage of (public) version control.'''
+
+    print('Computing R4.1')
     logs = []
     
     logs.append("⚙️ Checking if version control is used.")
@@ -197,6 +209,8 @@ def compR4_1(instance) -> Tuple[bool, List[str]]:
 
 def compR4_2(instance) -> Tuple[bool, List[str]]:
     '''Release Policy.'''
+
+    print('Computing R4.2')
     logs = []
 
     logs.append("⚙️ Checking if any documentation matches release policy types and the URL is operational.")

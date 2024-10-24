@@ -31,6 +31,8 @@ def map_license(license_string):
     'Content-Type': 'application/json'  # Assuming the API expects JSON
     }
     print(url)
+
+     
     # Send the GET request
     response = requests.post(url, data={}, headers=headers)
 

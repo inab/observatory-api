@@ -6,6 +6,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.responses import FileResponse
 from app.routes import edam, spdx, stats, metadata, fair_evaluation, search, tool, downloads
 from app.helpers.utils import get_version
+import logging
 
 tags_metadata = [
         {
@@ -55,7 +56,6 @@ app = FastAPI(
 # Mount static files directory
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-
 # CORS
 app.add_middleware(
     CORSMiddleware,
@@ -77,6 +77,9 @@ app.include_router(downloads.router, prefix="/downloads")
 app.include_router(search.router, prefix="")
 
 
+# logging
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 @app.get("/app")
 def read_main(request: Request):

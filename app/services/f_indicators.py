@@ -8,6 +8,7 @@ logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
 def compF1_2(instance) -> Tuple[bool, str]:
     '''Semantic versioning'''
+    print('Computing F1.2')
     logs = []
     recommendation = []
     recommendation.append("Aligning with semantic versioning involves adopting the MAJOR.MINOR.PATCH format, using pre-release labels and build metadata, and maintaining consistency in version increments. By clearly documenting your versioning practices and using tools to manage versions, you can improve version management and make your software easier to maintain and use.") 
@@ -45,9 +46,10 @@ def compF1_2(instance) -> Tuple[bool, str]:
 
 def compF2_1(instance) -> Tuple[bool, str]:
     '''Structured Metadata.'''
-    logs = []
 
-    
+    print('Computing F2.1')
+
+    logs = []
     logs.append(f"⚙️ Checking if any source provides structured metadata.")
     logs = log_sources(instance, logs)
 
@@ -72,6 +74,9 @@ def compF2_1(instance) -> Tuple[bool, str]:
 
 def compF2_2(instance) -> Tuple[bool, str]:
     '''Software described using ontologies or controlled vocabularies.'''
+
+    print('Computing F2.2')
+
     logs = []
     
     logs.append("⚙️ Verifying whether a topic or operation is part of a specific ontology or controlled vocabulary.")
@@ -104,8 +109,10 @@ def compF2_2(instance) -> Tuple[bool, str]:
     return False, logs
 
 def compF3_1(instance) -> Tuple[bool, str]:
-    '''Searchability in registries.
-    '''
+    '''Searchability in registries.'''
+
+    print('Computing F3.1')
+
     logs = []
 
     logs.append(f"⚙️ Checking if any source matches software registries.")
@@ -152,6 +159,9 @@ def compF3_2(instance) -> Tuple[bool, str]:
     '''Searchability in software repositories.
     GitHub, GitLab or Bitbucket
     '''
+
+    print('Computing F3.2')
+
     logs = []
     
     logs.append(f"⚙️ Checking if any repository is an operational software repository.")
@@ -174,6 +184,9 @@ def compF3_2(instance) -> Tuple[bool, str]:
 
 def compF3_3(instance) -> Tuple[bool, str]:
     '''Searchability in literature.'''
+
+    print('Computing F3.3')
+    
     logs = []
     
     logs.append(f"⚙️ Checking if any publication is a valid publication.")

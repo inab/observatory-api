@@ -2,9 +2,16 @@ import logging
 from typing import List, Tuple
 from app.constants import VERIFIABLE_FORMATS, DEPENDENCIES_AWARE_SYSTEMS, E_INFRASTRUCTURES, E_INFRASTRUCTURES_SOURCES
 from app.services.utils import *
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 def compI1_1(instance) -> Tuple[bool, List[str]]:
     '''Usage of standard data formats.'''
+
+    logger.info('Computing I1.1')
+
     logs = []
 
     # Check if any of the inputs or outputs have a standard vocabulary
@@ -40,6 +47,8 @@ def compI1_1(instance) -> Tuple[bool, List[str]]:
 
 def compI1_2(instance) -> Tuple[bool, List[str]]:
     '''API standard specification.'''
+
+    logger.debug('Computing I1.2')
     logs = []
     super_type = instance.super_type
     if super_type == 'no_web':
@@ -110,6 +119,8 @@ def compI1_4(instance) -> Tuple[bool, List[str]]:
     '''
     Flexibility of data format supported.
     '''
+
+    logger.debug('Computing I1.4')
     logs = []
 
     logs.append("⚙️ Checking if more than one input and output data formats are supported.")
@@ -132,6 +143,8 @@ def compI1_4(instance) -> Tuple[bool, List[str]]:
 
 def compI2_1(instance) -> Tuple[bool, List[str]]:
     '''Existence of API/library version.'''
+
+    logger.debug('Computing I2.1')
     logs = []
     
     logs.append("⚙️ Checking if the instance type is one of the valid options (lib, rest, soap, or api).")
@@ -151,6 +164,8 @@ def compI2_1(instance) -> Tuple[bool, List[str]]:
 
 def compI2_2(instance) -> Tuple[bool, List[str]]:
     '''E-infrastructure compatibility.'''
+
+    logger.debug('Computing I2.2')
     logs = []
 
     # Checking if at least one e-infrastructure is available
@@ -220,6 +235,8 @@ def compI2_2(instance) -> Tuple[bool, List[str]]:
 
 def compI3_1(instance) -> Tuple[bool, List[str]]:
     '''Dependencies statement.'''
+
+    logger.debug('Computing I3.1')
     logs = []
     
     logs.append("⚙️ Checking if dependencies are stated.")
@@ -239,6 +256,8 @@ def compI3_1(instance) -> Tuple[bool, List[str]]:
 
 def compI3_2(instance) -> Tuple[bool, List[str]]:
     '''Dependencies are provided.'''
+    logger.debug('Computing I3.2')
+
     logs = []
     
     lowercase_systems = [system.lower() for system in DEPENDENCIES_AWARE_SYSTEMS]
@@ -255,19 +274,28 @@ def compI3_2(instance) -> Tuple[bool, List[str]]:
     links = instance.links or []
     
     # Check sources
+    logger.debug('-- Checking sources')
+    logger.debug(f'Sources: {sources}')
+
     if any(source in ['toolshed', 'bioconda', 'bioconductor'] for source in sources):
         logs.append("✅ Dependencies-aware system identified in sources.")
         logs.append("Result: PASSED")
         return True, logs
     
     # Check registries
+    logger.debug('-- Checking registries')
+    logger.debug(f'Registries: {registries}')
+
     if any(registry.lower() in lowercase_systems for registry in registries):
         logs.append("✅ Dependencies-aware system identified in registries.")
         logs.append("Result: PASSED")
         return True, logs
 
     # Check links
-    if any(any(a in url for a in ['bioconda', 'bioconductor', 'galaxy']) for url in links):
+    logger.debug('-- Checking links')
+    logger.debug(f'Links: {links}')
+
+    if any(any(a in str(url) for a in ['bioconda', 'bioconductor', 'galaxy']) for url in links):
         logs.append("✅ Dependencies-aware system identified in links.")
         logs.append("Result: PASSED")
         return True, logs

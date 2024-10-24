@@ -6,6 +6,8 @@ from app.services.utils import *
 
 def compA1_1(instance) -> Tuple[bool, str]:
     '''Existence of API or web.'''
+
+    print('Computing A1.1')
     logs = []
 
     # Check if the software is not web-based (not applicable)
@@ -43,6 +45,9 @@ def compA1_1(instance) -> Tuple[bool, str]:
 
 def compA1_2(instance) -> Tuple[bool, str]:
     '''Existence of downloadable and buildable software working version.'''
+
+    print('Computing A1.2')
+
     logs = []
 
     # Check if the software is web-based (not applicable)
@@ -76,6 +81,9 @@ def compA1_2(instance) -> Tuple[bool, str]:
 
 def compA1_3(instance) -> Tuple[bool, str]:
     '''Existence of installation instructions.'''
+
+    print('Computing A1.3')
+
     logs = []
 
     # Check if the software is web-based (not applicable)
@@ -136,6 +144,9 @@ def compA1_3(instance) -> Tuple[bool, str]:
 
 def compA1_4(instance) -> Tuple[bool, List[str]]:
     '''Existence of test data.'''
+
+    print('Computing A1.4')
+
     logs = []
 
     # Check if the software is web-based (not applicable)
@@ -202,6 +213,8 @@ def compA1_4(instance) -> Tuple[bool, List[str]]:
 
 def compA1_5(instance) -> Tuple[bool, List[str]]:
     '''Existence of software source code.'''
+    print('Computing A1.5')
+
     logs = []
 
     # Check if the software is web-based (not applicable)
@@ -238,6 +251,9 @@ def compA1_5(instance) -> Tuple[bool, List[str]]:
 
 def compA3_1(instance) -> Tuple[bool, List[str]]:
     '''Registration not compulsory.'''
+
+    print('Computing A3.1')
+
     logs = []
 
     logs.append("⚙️ Checking if registration is compulsory")
@@ -257,6 +273,9 @@ def compA3_1(instance) -> Tuple[bool, List[str]]:
 
 def compA3_2(instance) -> Tuple[bool, List[str]]:
     '''Availability of version for free OS.'''
+
+    print('Computing A3.2')
+
     logs = []
     super_type = instance.super_type
     if super_type == 'web':
@@ -288,6 +307,9 @@ def compA3_2(instance) -> Tuple[bool, List[str]]:
 
 def compA3_3(instance) -> Tuple[bool, List[str]]:
     '''Availability for several OS.'''
+
+    print('Computing A3.3')
+
     logs = []
     super_type = instance.super_type
     if super_type == 'web':
@@ -317,6 +339,9 @@ def compA3_3(instance) -> Tuple[bool, List[str]]:
 
 def compA3_4(instance) -> Tuple[bool, List[str]]:
     '''Availability on free e-Infrastructures.'''
+
+    print('Computing A3.4')
+
     logs = []
     super_type = instance.super_type 
     if super_type == 'web':
@@ -386,6 +411,9 @@ def compA3_4(instance) -> Tuple[bool, List[str]]:
 
 def compA3_5(instance) -> Tuple[bool, List[str]]:
     '''Availability on several e-Infrastructures.'''
+
+    print('Computing A3.5')
+    
     logs = []
     super_type = instance.super_type 
     if super_type == 'web':
