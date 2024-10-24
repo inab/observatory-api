@@ -10,7 +10,7 @@ def test_compR1_1_with_usage_guide():
     assert result == True
 
 def test_compR1_1_with_usage_guide_no_op_url():
-    instance = Instance(documentation=[Documentation(type='usage guide', url='https://github.com')])
+    instance = Instance(documentation=[Documentation(type='usage guide', url='https://githubbbb.com')])
     result, logs = compR1_1(instance)
     assert result == False
 
