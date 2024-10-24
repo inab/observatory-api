@@ -5,12 +5,12 @@ from app.services.r_indicators import compR1_1
 
 # Test cases
 def test_compR1_1_with_usage_guide():
-    instance = Instance(documentation=[Documentation(type='usage guide', url='https://inab.github.io/oeb-visualizations/')])
+    instance = Instance(documentation=[Documentation(type='usage guide', url='https://github.com')])
     result, logs = compR1_1(instance)
     assert result == True
 
 def test_compR1_1_with_usage_guide_no_op_url():
-    instance = Instance(documentation=[Documentation(type='usage guide', url='https://github.io/oeb-visualizations/')])
+    instance = Instance(documentation=[Documentation(type='usage guide', url='https://github.com')])
     result, logs = compR1_1(instance)
     assert result == False
 
@@ -22,8 +22,8 @@ def test_compR1_1_with_license():
 
 def test_compR1_1_with_mixed_docs():
     instance = Instance(documentation=[
-        Documentation(type='license', url='https://inab.github.io/oeb-visualizations/'), 
-        Documentation(type='usage guide', url='https://inab.github.io/oeb-visualizations/')
+        Documentation(type='license', url='https://github.com'), 
+        Documentation(type='usage guide', url='https://github.com')
     ])
     result, logs = compR1_1(instance)
     assert result == True
@@ -47,7 +47,7 @@ def test_compR1_1_with_none_docs():
     assert result == False
 
 def test_compR1_1_with_case_insensitive_check():
-    instance = Instance(documentation=[Documentation(type='UsAgE GuIdE', url='https://inab.github.io/oeb-visualizations/')])
+    instance = Instance(documentation=[Documentation(type='UsAgE GuIdE', url='https://github.com')])
     result, logs = compR1_1(instance)
     assert result == True
 

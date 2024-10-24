@@ -16,7 +16,7 @@ def create_instance(type, download, source, documentation):
 def test_compA1_3_with_no_web_and_download():
     instance = create_instance(
         type='cmd', 
-        download=["https://github.com/inab/oeb-visualizations"], 
+        download=["https://github.com"], 
         source=[], 
         documentation=[]
     )
@@ -38,7 +38,7 @@ def test_compA1_3_with_no_web_and_installation_instructions():
         type='cmd', 
         download=[], 
         source=[], 
-        documentation=[{'type': 'installation instructions', 'url': 'https://github.com/inab/oeb-visualizations'}]
+        documentation=[{'type': 'installation instructions', 'url': 'https://github.com'}]
     )
     result, logs = compA1_3(instance)
     print(logs)
@@ -68,7 +68,7 @@ def test_compA1_3_with_no_web_and_empty_download_source_and_documentation():
 def test_compA1_3_with_web_and_valid_download():
     instance = create_instance(
         type='web', 
-        download=["http://github.com/inab/oeb-visualizations"], 
+        download=["https://github.com"], 
         source=[], 
         documentation=[]
     )
@@ -90,7 +90,7 @@ def test_compA1_3_with_web_and_installation_instructions():
         type='web', 
         download=[], 
         source=[], 
-        documentation=[{'type': 'installation', 'url': 'http://github.com/inab/oeb-visualizations'}]
+        documentation=[{'type': 'installation', 'url': 'https://github.com'}]
     )
     result, logs = compA1_3(instance)
     assert result == False

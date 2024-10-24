@@ -4,7 +4,7 @@ from app.services.a_indicators import compA1_5
 from app.models.instance import Instance
 
 def test_compA1_5_with_no_web_and_source_code():
-    instance = Instance(type='cmd', src=["https://github.com/inab/oeb-visualizations"])
+    instance = Instance(type='cmd', src=["https://github.com"])
     result, logs = compA1_5(instance)
     assert result == True
 
@@ -14,7 +14,7 @@ def test_compA1_5_with_no_web_and_no_source_code():
     assert result == False
 
 def test_compA1_5_with_web_and_source_code():
-    instance = Instance(type='web', src=["https://github.com/inab/oeb-visualizations"])
+    instance = Instance(type='web', src=["https://github.com"])
     result, logs = compA1_5(instance)
     assert result == False
 
