@@ -1,0 +1,9 @@
+cff-version: 1.2.0
+message: If you use this software, please cite it as below.
+title: observatory-api
+authors:
+- given-names: Eva Martin del Pico
+  email: eva.mdpico@gmail.com
+version: 2.2.3
+repository: https://github.com/inab/observatory-api
+url: https://observatory.openebench.bsc.es/api/docs
