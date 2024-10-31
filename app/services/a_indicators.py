@@ -92,7 +92,20 @@ def compA1_3(instance) -> Tuple[bool, str]:
         logs.append('This is a web-based software. This indicator is not applicable.')
         return False, logs
     
-    # 1. Check if there is a valid document similar to installation instructions
+
+    # 1. Check if @inst_instr is True
+    logs.append("⚙️ Checking if installation instructions are provided")
+    inst_instr = instance.inst_instr
+    logs.append(f"🔍 Received inst_instr: {inst_instr}")
+    if inst_instr is True:
+        logs.append("✅ Installation instructions are provided.")
+        logs.append("Result: PASSED")
+        return True, logs
+    else:
+        logs.append("❌ Installation instructions are not provided. Checking documentation ...")
+
+    
+    # 2. Check if there is a valid document similar to installation instructions
     # Check if the url is operational
     logs.append("⚙️ Checking if there are installation instructions and whether they are operational")
     documentation = instance.documentation
@@ -119,7 +132,7 @@ def compA1_3(instance) -> Tuple[bool, str]:
     else:
         logs.append("❌ No installation instructions found in documentation. Checking sources ...")
 
-    #2. Check if any of the sources provide installation instructions
+    # 3. Check if any of the sources provide installation instructions
     logs.append("⚙️ Checking if any of the sources provide installation instructions")
     source = instance.source
     logs = log_sources(instance, logs)
