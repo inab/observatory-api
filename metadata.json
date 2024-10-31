@@ -1,0 +1,65 @@
+{
+  "@context": {
+    "schema": "https://schema.org/",
+    "bs": "https://bioschemas.org/terms/",
+    "codemeta": "https://w3id.org/codemeta/",
+    "rdf": "https://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "https://www.w3.org/2000/01/rdf-schema#",
+    "maSMP": "https://discovery.biothings.io/view/maSMP/"
+  },
+  "@type": "schema:SoftwareApplication",
+  "schema:applicationSubcategory": [
+    "https://github.com/topics/fastapi",
+    "https://github.com/topics/fair-software",
+    "https://github.com/topics/fairsoft",
+    "https://github.com/topics/software-metadata"
+  ],
+  "schema:additionalType": "api",
+  "schema:name": "observatory-api",
+  "@id": "https://openebench.bsc.es/bioschemas/tools/observatory:observatory-api:2.2.3/api",
+  "schema:description": "Software Observatory API",
+  "schema:applicationCategory": "api",
+  "schema:operatingSystem": [
+    "Windows",
+    "MacOS",
+    "Linux"
+  ],
+  "schema:license": [
+    {
+      "@type": "schema:CreativeWork",
+      "schema:name": "MIT License",
+      "schema:url": "http://choosealicense.com/licenses/mit/"
+    }
+  ],
+  "schema:author": [
+    {
+      "@type": "schema:Person",
+      "schema:name": "Eva Martin del Pico",
+      "schema:email": "eva.mdpico@gmail.com"
+    }
+  ],
+  "schema:softwareVersion": "2.2.3",
+  "schema:codeRepository": [
+    "https://github.com/inab/observatory-api"
+  ],
+  "bioschemas:output": [
+    {
+      "@type": "https://bioschemas.org/FormatParameter",
+      "bioschemas:encodingFormat": "edam:format_3464"
+    },
+    {
+      "@type": "https://bioschemas.org/FormatParameter",
+      "bioschemas:encodingFormat": "edam:format_3749"
+    }
+  ],
+  "schema:softwareHelp": [
+    {
+      "@id": "https://github.com/inab/observatory-api/blob/main/readme.md"
+    },
+    {
+      "@id": "https://github.com/inab/observatory-api/blob/main/requirements.txt"
+    }
+  ],
+  "schema:dateModified": "2024-10-31T16:50:31Z",
+  "codemeta:readme": "https://github.com/inab/observatory-api/blob/main/readme.md"
+}
