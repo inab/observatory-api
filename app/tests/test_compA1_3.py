@@ -5,12 +5,13 @@ from app.services.a_indicators import compA1_3
 from app.models.instance import Instance, Documentation
 
 # Define test instances using Pydantic models
-def create_instance(type, download, source, documentation):
+def create_instance(type, download, source, documentation, inst_instr=False):
     return Instance(
         type=type,
         download=[HttpUrl(url) for url in download] if download else [],
         source=source,
-        documentation=[Documentation(type=doc['type'], url=HttpUrl(doc['url'])) for doc in documentation] if documentation else []
+        documentation=[Documentation(type=doc['type'], url=HttpUrl(doc['url'])) for doc in documentation] if documentation else [],
+        inst_instr=inst_instr
     )
 
 def test_compA1_3_with_no_web_and_download():
@@ -84,6 +85,28 @@ def test_compA1_3_with_web_and_valid_source():
     )
     result, logs = compA1_3(instance)
     assert result == False
+
+def test_compA1_3_with_web_and_true_inst_intr():
+    instance = create_instance(
+        type='web', 
+        download=[], 
+        source=["bioconda"], 
+        documentation=[],
+        inst_instr=True
+    )
+    result, logs = compA1_3(instance)
+    assert result == False
+
+def test_compA1_3_with_cmd_and_true_inst_intr():
+    instance = create_instance(
+        type='cmd', 
+        download=[], 
+        source=["bioconda"], 
+        documentation=[],
+        inst_instr=True
+    )
+    result, logs = compA1_3(instance)
+    assert result == True
 
 def test_compA1_3_with_web_and_installation_instructions():
     instance = create_instance(
