@@ -124,6 +124,11 @@ class Instance(BaseModel):
         if filtered_v:
             return [p for p in filtered_v if p != {}]
         return filtered_v
+    
+    # Filter empty strings and non-valid entries in the webpage field
+    @field_validator('webpage', mode='before')
+    def filter_empty_webpage(cls, v):
+        return remove_nones_empty_string(v)
 
     # Set super_type based on whether the instance is part of web_types
     def set_super_type(self, web_types: List[str]):
