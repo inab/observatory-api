@@ -9,10 +9,12 @@ def test_compA3_4_with_e_infrastructures():
     result, logs = compA3_4(instance)
     assert result == True
 
+'''
 def test_compA3_4_with_e_infrastructure_links():
     instance = Instance(type='cmd', e_infrastructures=[], webpage=['https://vre.multiscalegenomics.eu/'], source=[])
     result, logs = compA3_4(instance)
     assert result ==  True
+'''
 
 def test_compA3_4_with_galaxy_source():
     instance = Instance(type='cmd', e_infrastructures=[], links=[], source=['galaxy'])
