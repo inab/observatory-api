@@ -22,6 +22,8 @@ def compute_fair_scores(instance: Instance) -> dict:
     if instance.super_type == 'web':
         instance.scores.A1 = (0.6 * instance.metrics.A1_1 + 0.4 * instance.metrics.A1_4)
         instance.scores.A3 = 1.0 * instance.metrics.A3_1
+        #instance.scores.A3 = 0.0
+
     else:
         # print the instance.metrics.A1_2, instance.metrics.A1_3, instance.metrics.A1_4, instance.metrics.A1_5
         print('Accessiblity 1:')
@@ -32,7 +34,9 @@ def compute_fair_scores(instance: Instance) -> dict:
     instance.scores.A = (0.7 * instance.scores.A1 + 0.3 * instance.scores.A3)
     
     # Compute Interoperability Scores
-    instance.scores.I1 = (0.5 * instance.metrics.I1_1 + 0.3 * instance.metrics.I1_2 + 0.3 * instance.metrics.I1_3 + 0.2 * instance.metrics.I1_4)
+    #instance.scores.I1 = (0.5 * instance.metrics.I1_1 + 0.3 * instance.metrics.I1_2 + 0.3 * instance.metrics.I1_3 + 0.2 * instance.metrics.I1_4)
+    # TODO: correct the weights when I1_2 is available
+    instance.scores.I1 = (0.5 * instance.metrics.I1_1 + 0.3 * instance.metrics.I1_3 + 0.2 * instance.metrics.I1_4)
     instance.scores.I2 = (0.5 * instance.metrics.I2_1 + 0.5 * instance.metrics.I2_2)
     instance.scores.I3 = (1 / 3) * (instance.metrics.I3_1 + instance.metrics.I3_2 + instance.metrics.I3_3)
     instance.scores.I = (0.6 * instance.scores.I1 + 0.1 * instance.scores.I2 + 0.3 * instance.scores.I3)
