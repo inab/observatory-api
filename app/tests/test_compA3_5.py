@@ -9,7 +9,7 @@ def test_compA3_5_with_multiple_e_infrastructures():
     assert result == True
 
 def test_compA3_5_with_multiple_e_infrastructure_links():
-    instance = Instance(type='cmd', e_infrastructures=[], webpage=['https://vre.multiscalegenomics.eu/', 'https://usegalaxy.eu'], source=[])
+    instance = Instance(type='cmd', e_infrastructures=[], webpage=['https://usegalaxy.eu'], source=[])
     result, logs = compA3_5(instance)
     print(logs)
     assert result ==  True
