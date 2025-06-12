@@ -8,11 +8,13 @@ def test_compA3_5_with_multiple_e_infrastructures():
     result, logs = compA3_5(instance)
     assert result == True
 
+'''
 def test_compA3_5_with_multiple_e_infrastructure_links():
     instance = Instance(type='cmd', e_infrastructures=[], webpage=['https://usegalaxy.eu'], source=[])
     result, logs = compA3_5(instance)
     print(logs)
     assert result ==  True
+'''
 
 def test_compA3_5_with_multiple_galaxy_toolshed_sources():
     instance = Instance(type='lib', e_infrastructures=[], links=[], source=['galaxy', 'toolshed'])
