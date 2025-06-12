@@ -11,6 +11,8 @@ from app.models.fair_metrics import FAIRmetrics, FAIRscores  # Import the necess
 from typing import Dict, Any, Optional
 from pydantic import BaseModel
 import logging
+import traceback
+
 
 
 router = APIRouter()
@@ -73,7 +75,9 @@ async def evaluate(
             computation.compute_indicators()
         except Exception as e:
             logging.error(f"Error computing indicators: {str(e)}")
-            raise HTTPException(status_code=500, detail=f"Error computing indicators: {str(e)}")
+            tb_str = traceback.format_exc()  # Capture full traceback as string
+            logging.error(f"Error computing indicators:\n{tb_str}")
+            raise HTTPException(status_code=500, detail=f"Error computing indicators:\n{tb_str}")
         
         # Compute FAIR scores and get the result dictionary
         try:

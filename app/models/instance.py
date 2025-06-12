@@ -52,7 +52,7 @@ class ControlledTerm(BaseModel):
 class Person(BaseModel):
     name: str
     type: str
-    email: Optional[EmailStr] = None
+    email: Optional[str] = None
     maintainer: Optional[bool] = False
 
     @field_validator('email', mode='before')
@@ -107,9 +107,9 @@ class Instance(BaseModel):
     webpage: Optional[List[AnyUrl]] = []
     registration_not_mandatory: Optional[bool] = False
     registries: Optional[List[str]] = []
-    other_versions: Optional[List[str]] = []
-    e_infrastructures: Optional[List[Any]] = []
-    version_control: Optional[bool] = False
+    other_versions: Optional[List[str]] = []                 
+    e_infrastructures: Optional[List[Any]] = []               
+    version_control: Optional[bool] = False          
     super_type: Optional[str] = None 
     metrics: Optional[FAIRmetrics] = None 
     scores: Optional[FAIRscores] = None 

@@ -58,6 +58,12 @@ async def features(request: Request):
     resp = await make_query('features', params)
     return JSONResponse(content=resp)
 
+@router.get('/tools/features_dots', tags=["stats"])
+async def features(request: Request):
+    params = request.query_params
+    resp = await make_query('features_dots', params)
+    return JSONResponse(content=resp)
+
 @router.get('/tools/coverage_sources', tags=["stats"])
 async def coverage_sources(request: Request):
     params = request.query_params

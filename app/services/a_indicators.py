@@ -239,6 +239,7 @@ def compA1_5(instance) -> Tuple[bool, List[str]]:
     # Check whether source code is provided and if it is operational
     logs.append("⚙️ Checking if source code is provided and operational")
     src = instance.src
+    print(f'src: {src}')
     logs = log_src_URLs(instance, logs)
 
     src_operational = False
@@ -257,6 +258,8 @@ def compA1_5(instance) -> Tuple[bool, List[str]]:
             return True, logs
         else:
             logs.append("❌ No source code URL provided was operational.")
+            logs.append("Result: FAILED")
+            return False, logs 
     else:
         logs.append("❌ Source code is not provided.")
         logs.append("Result: FAILED")
