@@ -40,6 +40,13 @@ async def publications_journals_IF(request: Request):
     resp = await make_query('publications_journals_IF', params)
     return JSONResponse(content=resp)
 
+
+@router.get('/tools/dependencies_count', tags=["stats"])
+async def dependencies_count(request: Request):
+    params = request.query_params
+    resp = await make_query('dependencies_count', params)
+    return JSONResponse(content=resp)
+
 @router.get('/tools/count_per_source', tags=["stats"])
 async def counts_per_source(request: Request):
     params = request.query_params
