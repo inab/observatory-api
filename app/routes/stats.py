@@ -53,6 +53,21 @@ async def documentation(request: Request):
     resp = await make_query('documentation', params)
     return JSONResponse(content=resp)
 
+
+@router.get('/tools/input_formats', tags=["stats"])
+async def input_formats(request: Request):
+    params = request.query_params
+    resp = await make_query('input_formats', params)
+    return JSONResponse(content=resp)
+
+
+@router.get('/tools/output_formats', tags=["stats"])
+async def input_formats(request: Request):
+    params = request.query_params
+    resp = await make_query('output_formats', params)
+    return JSONResponse(content=resp)
+
+
 @router.get('/tools/count_per_source', tags=["stats"])
 async def counts_per_source(request: Request):
     params = request.query_params
