@@ -72,10 +72,10 @@ async def documentation_coverage(request: Request):
     return JSONResponse(content=resp)
 
 
-@router.get('/tools/input_formats_coverage', tags=["stats"])
-async def input_formats_coverage(request: Request):
+@router.get('/tools/input_formats', tags=["stats"])
+async def input_formats(request: Request):
     params = request.query_params
-    resp = await make_query('input_formats_coverage', params)
+    resp = await make_query('input_formats', params)
     return JSONResponse(content=resp)
 
 @router.get('/tools/input_formats_coverage', tags=["stats"])
