@@ -40,11 +40,23 @@ async def publications_journals_IF(request: Request):
     resp = await make_query('publications_journals_IF', params)
     return JSONResponse(content=resp)
 
+@router.get('/tools/publications_coverage', tags=["stats"])
+async def publications_coverage(request: Request):
+    params = request.query_params
+    resp = await make_query('publications_coverage', params)
+    return JSONResponse(content=resp)
+
 
 @router.get('/tools/dependencies_count', tags=["stats"])
 async def dependencies_count(request: Request):
     params = request.query_params
     resp = await make_query('dependencies_count', params)
+    return JSONResponse(content=resp)
+
+@router.get('/tools/dependencies_coverage', tags=["stats"])
+async def dependencies_coverage(request: Request):
+    params = request.query_params
+    resp = await make_query('dependencies_coverage', params)
     return JSONResponse(content=resp)
 
 @router.get('/tools/documentation', tags=["stats"])
@@ -53,18 +65,36 @@ async def documentation(request: Request):
     resp = await make_query('documentation', params)
     return JSONResponse(content=resp)
 
-
-@router.get('/tools/input_formats', tags=["stats"])
-async def input_formats(request: Request):
+@router.get('/tools/documentation_coverage', tags=["stats"])
+async def documentation_coverage(request: Request):
     params = request.query_params
-    resp = await make_query('input_formats', params)
+    resp = await make_query('documentation_coverage', params)
+    return JSONResponse(content=resp)
+
+
+@router.get('/tools/input_formats_coverage', tags=["stats"])
+async def input_formats_coverage(request: Request):
+    params = request.query_params
+    resp = await make_query('input_formats_coverage', params)
+    return JSONResponse(content=resp)
+
+@router.get('/tools/input_formats_coverage', tags=["stats"])
+async def input_formats_coverage(request: Request):
+    params = request.query_params
+    resp = await make_query('input_formats_coverage', params)
     return JSONResponse(content=resp)
 
 
 @router.get('/tools/output_formats', tags=["stats"])
-async def input_formats(request: Request):
+async def output_formats(request: Request):
     params = request.query_params
     resp = await make_query('output_formats', params)
+    return JSONResponse(content=resp)
+
+@router.get('/tools/output_formats_coverage', tags=["stats"])
+async def output_formats_coverage(request: Request):
+    params = request.query_params
+    resp = await make_query('output_formats_coverage', params)
     return JSONResponse(content=resp)
 
 
