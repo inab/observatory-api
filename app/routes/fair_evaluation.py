@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, Request, Body
 from fastapi.responses import JSONResponse
 from app.helpers.FAIR_indicators_eval import computeScores_from_list
+from app.helpers.indicators_feedback import get_feedback
 from app.helpers.utils import prepareMetadataForEvaluation
 from app.helpers.database import connect_DB
 from app.models.instance import Instance
@@ -83,14 +84,18 @@ async def evaluate(
         try:
             result = compute_fair_scores(instance)
             logs = instance.logs.__dict__
+            feedback = get_feedback(result)
+
         except Exception as e:
-            logging.error(f"Error computing FAIR scores: {str(e)}")
-            raise HTTPException(status_code=500, detail=f"Error computing FAIR scores: {str(e)}")
+            raise
+            #logging.error(f"Error computing FAIR scores: {str(e)}")
+            #raise HTTPException(status_code=500, detail=f"Error computing FAIR scores: {str(e)}")
 
         # If all goes well, prepare the response
         response_data = {
             'result': result,
-            'logs': logs
+            'logs': logs,
+            'feedback': feedback
         }
         
         return JSONResponse(content=response_data)
