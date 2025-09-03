@@ -1,0 +1,154 @@
+{
+    "F1_1": {
+        "strengths": "",
+        "improvements": "Ensure the name is not easily confused with existing projects and update it if major modifications create a substantially new tool."
+    },
+    "F1_2":{
+        "strengths": "The project uses a versioning scheme (e.g., 1.0, 2.1) that makes releases easy to identify and reference.",
+        "improvements": "Adopt a consistent and well-documented versioning system (e.g., semantic versioning X.Y.Z) and apply it to all releases."
+    },
+    "F2_1": {
+        "strengths": "The software provides structured metadata (e.g., JSON, XML, YAML), making it more discoverable and machine-readable.",
+        "improvements": "Adopt and publish metadata in widely recognized structured formats, ensuring it is kept consistent and up to date across repositories and websites."
+    },
+    "F2_2": {
+        "strengths": "Metadata uses the EDAM ontology, enabling consistent interpretation and better integration with external resources.",
+        "improvements": "Incorporate standard ontologies into your metadata to describe functionality, inputs/outputs, and domains, ensuring your software can be more easily indexed and connected with related tools."
+    },
+    "F3_1": {
+        "strengths": "The software is listed in major registries, improving discoverability and user trust.",
+        "improvements": "Register the software in recognized registries (e.g., bio.tools, SciCrunch) and ensure the metadata is accurate and regularly updated."
+    },
+    "F3_2": {
+        "strengths": "The project is hosted on a well-known repository platform (e.g., GitHub, GitLab, Bitbucket), making it accessible to users and contributors.",
+        "improvements": "Create and maintain a public repository in a major platform, including clear documentation and links to official project pages."
+    },
+    "F3_3": {
+        "strengths": "The software is cited in scientific literature, increasing visibility, credibility, and validation through peer review.",
+        "improvements": "Publish a software article or preprint (e.g., in journals like *Bioinformatics* or *F1000Research*) and ensure the publication cites and links back to the software project."
+    },
+    "A1_1": {
+        "strengths": "The software provides a working web interface or API, allowing users to access it directly without installation.",
+        "improvements": "Ensure a stable and well-documented API or web interface is available, and provide clear examples or tutorials for its use."
+    },
+    "A1_2": {
+        "strengths": "A downloadable or containerized version of the software is available, enabling flexible local use.",
+        "improvements": "Offer ready-to-use builds or containers (e.g., Docker, Singularity) and maintain updated download links to guarantee usability."
+    },
+    "A1_3": {
+        "strengths": "Clear installation instructions are provided, helping users set up the software successfully.",
+        "improvements": "Expand or refine installation guides with step-by-step instructions, dependency lists, and troubleshooting tips."
+    },
+    "A1_4": {
+        "strengths": "Test data is provided, allowing users to validate the installation and learn how to run the software.",
+        "improvements": "Add representative test datasets and include example commands or workflows that demonstrate expected outputs."
+    },
+    "A1_5": {
+        "strengths": "The software source code is available, enabling users to build, adapt, or extend the software.",
+        "improvements": "Provide a clearly documented source code repository with build instructions and contribution guidelines."
+    },
+    "A2_1": {
+        "strengths": "Metadata from previous versions is preserved, ensuring traceability of changes and evolution of the software.",
+        "improvements": "Maintain metadata for all past releases in a permanent repository and link it clearly to each version of the software."
+    },
+    "A2_2": {
+        "strengths": "Previous versions of the software are available, supporting reproducibility of analyses.",
+        "improvements": "Archive and make accessible all past releases (e.g., using Zenodo, Figshare, or GitHub releases) with permanent identifiers."
+    },
+    "A3_1": {
+        "strengths": "The software can be used without mandatory registration, lowering entry barriers for new users.",
+        "improvements": "Avoid requiring user accounts for basic functionality, or provide an anonymous/demo mode when registration is needed."
+    },
+    "A3_2": {
+        "strengths": "The software is available for at least one free/open-source operating system (e.g., Linux, FreeBSD).",
+        "improvements": "Ensure compatibility with major free operating systems and provide installation instructions tailored to them."
+    },
+    "A3_3": {
+        "strengths": "The software runs on multiple operating systems, broadening its accessibility to diverse users.",
+        "improvements": "Release and maintain versions for at least two major operating systems (e.g., Linux, Windows, macOS) to cover user needs."
+    },
+    "A3_4": {
+        "strengths": "The software can be used through a public e-infrastructure, removing the need for local installations.",
+        "improvements": "Deploy the software on widely used public platforms (e.g., Galaxy, VREs) and provide links and documentation."
+    },
+    "A3_5": {
+        "strengths": "The software is accessible through multiple e-infrastructures, supporting diverse workflows and user communities.",
+        "improvements": "Expand availability across additional infrastructures (e.g., more Galaxy servers, VREs) to increase adoption and flexibility."
+    },
+    "I1_1": {
+        "strengths": "Inputs/outputs are formally specified and mapped to accepted ontologies (e.g., EDAM terms for data types/formats).",
+        "improvements": "Annotate each input/output with EDAM IDs in docs and metadata (README, CITATION.cff, bio.tools entry) and link to the exact ontology terms."
+    },
+    "I1_2": {
+        "strengths": "APIs/libraries are documented in a standard framework, enabling straightforward integration.",
+        "improvements": "Publish an OpenAPI/Swagger (or JSON:API/GraphQL schema) spec, host interactive docs (e.g., Swagger UI/Redoc), and link the spec URL from the README and website."
+    },
+    "I1_3": {
+        "strengths": "Input/output structures are defined with verifiable schemas (e.g., JSON Schema, XML Schema, RDF shapes).",
+        "improvements": "Provide machine-readable schemas (JSON Schema/XSD/SHACL), add validation examples and a CLI flag or CI check to validate user data against the schema."
+    },
+    "I1_4": {
+        "strengths": "Multiple standard data formats are supported or conversion mechanisms are provided, increasing flexibility.",
+        "improvements": "Support at least two community formats (declare them with EDAM) and ship converters or import/export flags; document format selection with examples."
+    },
+    "I1_5": {
+        "strengths": "The software emits provenance in accepted standards, improving traceability and reproducibility.",
+        "improvements": "Generate provenance using W3C PROV (PROV-O) or RO-Crate; include run metadata (versions, parameters, inputs/outputs) and store alongside results."
+    },
+    "I2_1": {
+        "strengths": "An API or library version is available, allowing inclusion in user workflows and pipelines.",
+        "improvements": "Distribute a stable library API with versioned releases, minimal examples, and workflow snippets (Snakemake/Nextflow/WDL/CWL) showing programmatic use."
+    },
+    "I2_2": {
+        "strengths": "The software is deployable on e-infrastructures, enabling use within larger platforms/workflows.",
+        "improvements": "Provide a Galaxy ToolShed wrapper (tool XML + tests) and containerized dependencies; document how to run on public Galaxy/VRE instances."
+    },
+    "I3_1": {
+        "strengths": "Dependencies are clearly listed, helping users prepare the environment.",
+        "improvements": "Declare runtime/build dependencies in standard files (e.g., requirements.txt/pyproject.toml, environment.yml, DESCRIPTION/NAMESPACE, package.json) and pin compatible versions."
+    },
+    "I3_2": {
+        "strengths": "Dependencies are bundled or accessible via standard channels, reducing setup friction.",
+        "improvements": "Provide containers (Docker/Singularity) and/or recipes on Bioconda/Conda; ensure images include all system libs and publish image digests for reproducibility."
+    },
+    "I3_3": {
+        "strengths": "The software is available through a dependencies-aware package manager, simplifying installation and updates.",
+        "improvements": "Publish to at least one community package index (e.g., Bioconductor, Bioconda/Conda, PyPI, CRAN, npm) with automated builds/tests and installation instructions."
+    },
+    "R1_1": {
+        "strengths": "Comprehensive user guides are available, helping users understand features and workflows.",
+        "improvements": "Add a structured ‘User Guide’ with task-based sections, screenshots/CLI examples, and a quick-start; link it from README and the project website."
+    },
+    "R1_2": {
+        "strengths": "Concrete use-case examples demonstrate typical inputs, commands, and expected outputs.",
+        "improvements": "Provide runnable examples (sample data + commands/notebooks) with expected results and a ‘replicate this example’ section users can copy-paste."
+    },
+    "R2_1": {
+        "strengths": "Clear license/terms of use are stated, enabling informed adoption.",
+        "improvements": "Include a top-level LICENSE file using a standard OSI-approved license and link ‘Terms of Use’ from the footer/README for quick access."
+    },
+    "R2_2": {
+        "strengths": "Conditions for installation and use are documented, clarifying user obligations and constraints.",
+        "improvements": "Explicitly document install/runtime conditions (system requirements, data/privacy constraints, rate limits) in INSTALL.md and surface them during setup."
+    },
+    "R3_1": {
+        "strengths": "A contributor policy exists, guiding external contributions and collaboration.",
+        "improvements": "Add CONTRIBUTING.md with workflow (fork/branch/PR), coding standards, issue templates, and a code of conduct; link it in README and docs."
+    },
+    "R3_2": {
+        "strengths": "Contributors are credited, recognizing their work and roles.",
+        "improvements": "Maintain AUTHORS/CITATION.cff and use all-contributors or GitHub credits; describe authorship criteria and acknowledgment practices in CONTRIBUTING.md."
+    },
+    "R4_1": {
+        "strengths": "The project uses a version-control system, enabling traceability of changes.",
+        "improvements": "Host the repository on GitHub/GitLab/Bitbucket with protected main branches, PR reviews, and tagged releases for each version."
+    },
+    "R4_2": {
+        "strengths": "A documented release policy clarifies how versions are produced and communicated.",
+        "improvements": "Define a RELEASE.md (semantic versioning, branching, changelog rules, deprecation policy), automate releases via CI, and publish release notes with each tag."
+    },
+    "R4_3": {
+        "strengths": "Metadata for previous versions is preserved, supporting reproducibility and auditability.",
+        "improvements": "Archive every release with versioned metadata (release notes, environment files, containers) and mint DOIs (e.g., via Zenodo) linking to each tagged version."
+    }
+}
