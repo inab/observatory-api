@@ -9,19 +9,19 @@ def get_feedback(result):
 
     feedback = {
         'F': {
-            'strenghts': [],
+            'strengths': [],
             'improvements': []
         },
         'A': {
-            'strenghts': [],
+            'strengths': [],
             'improvements': []
         },
         'I': {
-            'strenghts': [],
+            'strengths': [],
             'improvements': []
         },
         'R': {
-            'strenghts': [],
+            'strengths': [],
             'improvements': []
         },
 
