@@ -21,9 +21,9 @@ COPY . .
 ENV CONFIG_PATH='/api-variables/config_db.ini'
 
 # Make port 3500 available to the world outside this container
-EXPOSE 3500
+EXPOSE 3800
 
 # Run the application
-CMD ["uvicorn", "main:app", "--root-path", "/api",  "--host", "0.0.0.0", "--port", "3500", "--reload"]
+CMD ["uvicorn", "main:app", "--root-path", "/api",  "--host", "0.0.0.0", "--port", "3800", "--reload"]
 
 
