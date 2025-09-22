@@ -16,10 +16,10 @@ async def names_type_labels():
     tools = list(tools_collection.find({'source': {'$ne': ['galaxy_metadata']}}, {
         '_id': 0,
         '@id': 1,
-        'label': 1,
-        'type': 1,
-        'sources_labels': 1,
-        'name': 1
+        'data.label': 1,
+        'data.type': 1,
+        'data.sources_labels': 1,
+        'data.name': 1
     }))
     resp = [keep_first_label(tool) for tool in tools]
     return JSONResponse(content=resp)

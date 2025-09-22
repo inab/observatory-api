@@ -761,9 +761,12 @@ def keep_first_label(tool):
     '''
     Processes a tool to turn a list of labels into a single label (index=0)
     '''
-    tool['label'] = tool['label'][0]
+    if tool['data']['label']:
+        tool['data']['label'] = tool['data']['label'][0]
+    else:
+        tool['data']['label'] = tool['data']['name']
     
-    return tool
+    return tool['data']
 
 
 ##############

@@ -8,6 +8,8 @@ def connect_DB():
     config = configparser.ConfigParser()
     # read the env variable CONFIG_FILE
     config_path = os.getenv('CONFIG_PATH', './api-variables/dev_config_db.ini')
+    #config_path = os.getenv('CONFIG_PATH', 'api-variables/dev_config_db.ini')
+
 
     if config_path:
         # Read the config file from the path defined in CONFIG_PATH

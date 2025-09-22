@@ -24,6 +24,8 @@ ENV CONFIG_PATH='/api-variables/config_db.ini'
 EXPOSE 3500
 
 # Run the application
+# uvicorn main:app --root-path /api --host 0.0.0.0 --port 3500 --reload
+
 CMD ["uvicorn", "main:app", "--root-path", "/api",  "--host", "0.0.0.0", "--port", "3500", "--reload"]
 
 
