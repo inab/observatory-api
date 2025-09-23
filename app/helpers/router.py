@@ -3,7 +3,7 @@ from fastapi import HTTPException
 from fastapi.responses import JSONResponse
 from app.helpers.database import connect_DB
 
-tools_collection, stats = connect_DB()
+tools_collection, stats, pubs_collection = connect_DB()
 
 def process_request(action, parameters):
     try:

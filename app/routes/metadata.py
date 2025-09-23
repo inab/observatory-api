@@ -4,10 +4,11 @@ from app.helpers.utils import prepareToolMetadata, prepareMetadataForEvaluation,
 from app.helpers.makejson import build_json_ld
 from app.helpers.makecff import create_cff
 from app.helpers.database import connect_DB
+from bson import ObjectId
 
 router = APIRouter()
 
-tools_collection, stats = connect_DB()
+tools_collection, stats, pubs_collection = connect_DB()
 
 
 
@@ -23,12 +24,40 @@ async def names_type_labels():
     return JSONResponse(content=resp)
 
 @router.get('', tags=["tools"])
-async def tool_metadata(name: str = None, type: str = None):
-    if not name and not type:
-        raise HTTPException(status_code=400, detail="No tool name or type provided")
-    tool = tools_collection.find_one({'name': name, 'type': type})
+async def tool_metadata(name: str = None):
+    if not name:
+        raise HTTPException(status_code=400, detail="No tool name provided")
+    tool = tools_collection.find_one({'data.name': name})
     if tool:
-        tool = prepareToolMetadata(tool)
+        pub_ids_raw = tool['data'].get("publication", [])
+        if pub_ids_raw:
+            def to_object_id(x):
+                if isinstance(x, ObjectId):
+                    return x
+                if isinstance(x, str) and ObjectId.is_valid(x):
+                    return ObjectId(x)
+                return x  # leave as-is; you can also choose to drop/raise
+            pub_ids = [to_object_id(x) for x in pub_ids_raw]
+
+            # 2) Use the proper handle for the publications collection
+            pubs = list(
+                pubs_collection.find(
+                    {"_id": {"$in": pub_ids}},
+                    {"data": 1}  # _id is included by default unless excluded
+                    )
+            )
+            print(pubs)
+            # build order index from the pub_ids array
+            idx = {pid: i for i, pid in enumerate(pub_ids)}
+            # reorder pubs according to that index
+            pubs.sort(key=lambda p: idx.get(p["_id"], 10**9))
+
+            # replace with just the 'data' dicts
+            tool['data']["publication"] = [p["data"] for p in pubs]
+
+    tool = tool['data']
+    if tool:
+        #tool = prepareToolMetadata(tool)
         tool = prepareListsIds(tool)
         return JSONResponse(content=tool)
     else:

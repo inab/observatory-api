@@ -4,7 +4,7 @@ from app.helpers.database import connect_DB
 
 router = APIRouter()
 
-tools_collection, stats = connect_DB()
+tools_collection, stats, pubs_collection = connect_DB()
 
 
 @router.get('/description')

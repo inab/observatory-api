@@ -18,7 +18,7 @@ import traceback
 
 router = APIRouter()
 
-tools_collection, stats = connect_DB()
+tools_collection, stats, pubs_collection = connect_DB()
 
 ''' OLD CODE
 @router.post('/evaluate',  tags=["fair"])

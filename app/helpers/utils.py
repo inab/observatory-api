@@ -468,6 +468,7 @@ def build_authors(authors):
     new_authors = []
     seen_authors = set()
     for author in authors:
+        print(author)
         name = clean_first_end_parenthesis(author)
         name = clean_brakets(name)
         name = clean_doctor(name)

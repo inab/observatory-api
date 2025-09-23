@@ -1,7 +1,7 @@
 from app.helpers.utils import prepareToolMetadata
 from app.helpers.database import connect_DB
 
-tools_collection, stats = connect_DB()
+tools_collection, stats, pubs_collection = connect_DB()
 
 def search_input(tools, counts, search, label):
     results = tools_collection.find(search) 
