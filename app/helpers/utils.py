@@ -765,7 +765,15 @@ def keep_first_label(tool):
         tool['data']['label'] = tool['data']['label'][0]
     else:
         tool['data']['label'] = tool['data']['name']
-    
+
+    if len(tool["data"]["type"])>0:
+        tool["data"]["types"] = tool['data']['type']
+        tool['data']['type'] = tool['data']['type'][0]
+        
+    elif len(tool["data"]["type"])==0:
+        tool["data"]["types"] = []
+        tool['data']['type'] = "unknown"
+        
     return tool['data']
 
 
