@@ -7,3 +7,15 @@ authors:
 version: 2.2.3
 repository: https://github.com/inab/observatory-api
 url: https://observatory.openebench.bsc.es/api/docs
+preferred-citation:
+  type: software
+  title: "Observatory API"
+  version: "2.2.3"
+  authors:
+    - family-names: "Martín del Pico"
+      given-names: "Eva"
+  institution: "Barcelona Supercomputing Center (BSC) – INB"
+  license: "MIT"
+  repository-code: "https://github.com/inab/observatory-api"
+  url: "https://observatory.openebench.bsc.es/api/docs"
+  notes: "Core API service of the ELIXIR Software Observatory, providing programmatic access to software metadata, statistics and FAIRness evaluation endpoints."
