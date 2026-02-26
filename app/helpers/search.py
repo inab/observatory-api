@@ -1,6 +1,6 @@
 from app.helpers.utils import prepareToolMetadata
 from app.helpers.database import connect_DB
-
+from pprint import pprint
 tools_collection, stats, pubs_collection = connect_DB()
 
 def search_input(tools, counts, search, label):
@@ -12,12 +12,15 @@ def search_input(tools, counts, search, label):
         if tool['source'] == ['galaxy_metadata']:
             continue
         else:
-            entry = prepareToolMetadata(tool)
-            if entry['@id'] in tools.keys():
-                tools[entry['@id']]['foundIn'].append(label)
+            id = str(tool['_id'])
+            tool = tool['data']
+            tool['id'] = id
+            #entry = prepareToolMetadata(tool)
+            if str(tool['id']) in tools.keys():
+                tools[str(tool['id'])]['foundIn'].append(label)
             else:
-                entry['foundIn'] = [label]
-                tools[entry['@id']] = entry
+                tool['foundIn'] = [label]
+                tools[str(tool['id'])] = tool
 
             counts[label] += 1
 
@@ -28,7 +31,9 @@ def make_search(label, query_field, query_expression, search, tools, counts):
     search[query_field] = query_expression
 
     search = {'$and': [{key:value} for key, value in search.items() ]}
+    pprint(search)
     tools, counts = search_input(tools, counts, search, label)
+    print(f"Tools found {len(tools)}")
     return tools, counts
 
 def calculate_stats(tools):
@@ -44,10 +49,11 @@ def calculate_stats(tools):
     }
     for tool in tools:
         #---- TYPE --------
-        if tool['type'] in stats['type'].keys():
-            stats['type'][tool['type']] += 1
-        else:
-            stats['type'][tool['type']] = 1
+        for type in tool['type']:
+            if type in stats['type'].keys():
+                stats['type'][type] += 1
+            else:
+                stats['type'][type] = 1
         
         #---- SOURCE --------
         seen_sources = []

@@ -48,29 +48,31 @@ async def search(request: Request):
             search['output.term'] = {'$in': output.split(',')}
 
         q = params.get('q')
+
         pat = re.compile(rf'{q}', re.I)
 
         search_in = params.get('searchIn', '').split(',')
+        print(search_in)
         if search_in:
             if 'name' in search_in:
-                tools, counts = make_search('name', 'name', {'$regex': pat}, search, tools, counts)
+                tools, counts = make_search('name', 'data.name', {'$regex': pat}, search, tools, counts)
 
             if 'description' in search_in:
-                tools, counts = make_search('description', 'description', {'$regex': pat}, search, tools, counts)
+                tools, counts = make_search('description', 'data.description', {'$regex': pat}, search, tools, counts)
 
             if 'topics' in search_in:
                 edam_ids = [key for key, value in EDAMDict.items() if re.search(pat, value)]
-                tools, counts = make_search('topics', 'edam_topics', {'$in': edam_ids}, search, tools, counts)
+                tools, counts = make_search('topics', 'data.edam_topics', {'$in': edam_ids}, search, tools, counts)
 
             if 'operations' in search_in:
                 edam_ids = [key for key, value in EDAMDict.items() if re.search(pat, value)]
-                tools, counts = make_search('operations', 'edam_operations', {'$in': edam_ids}, search, tools, counts)
+                tools, counts = make_search('operations', 'data.edam_operations', {'$in': edam_ids}, search, tools, counts)
         else:
-            tools, counts = make_search('name', 'name', {'$regex': pat}, search, tools, counts)
-            tools, counts = make_search('description', 'description', {'$regex': pat}, search, tools, counts)
+            tools, counts = make_search('name', 'data.name', {'$regex': pat}, search, tools, counts)
+            tools, counts = make_search('description', 'data.description', {'$regex': pat}, search, tools, counts)
             edam_ids = [key for key, value in EDAMDict.items() if re.search(pat, value)]
-            tools, counts = make_search('topics', 'edam_topics', {'$in': edam_ids}, search, tools, counts)
-            tools, counts = make_search('operations', 'edam_operations', {'$in': edam_ids}, search, tools, counts)
+            tools, counts = make_search('topics', 'data.edam_topics', {'$in': edam_ids}, search, tools, counts)
+            tools, counts = make_search('perations', 'data.edam_operations', {'$in': edam_ids}, search, tools, counts)
 
         tools = list(tools.values())
         tools = [prepare_sources_labels(tool) for tool in tools]
@@ -88,6 +90,7 @@ async def search(request: Request):
         }
 
     except Exception as err:
-        raise HTTPException(status_code=400, detail=f"Something went wrong while fetching: {err}")
+        raise
+        #raise HTTPException(status_code=400, detail=f"Something went wrong while fetching: {err}")
 
     return JSONResponse(content=data)

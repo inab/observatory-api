@@ -20,6 +20,7 @@ async def names_type_labels():
         'data.type': 1,
         'data.name': 1
     }))
+
     resp = [keep_first_label(tool) for tool in tools]
     return JSONResponse(content=resp)
 
@@ -28,6 +29,7 @@ async def tool_metadata(name: str = None):
     if not name:
         raise HTTPException(status_code=400, detail="No tool name provided")
     tool = tools_collection.find_one({'data.name': name})
+    '''
     if tool:
         pub_ids_raw = tool['data'].get("publication", [])
         if pub_ids_raw:
@@ -54,10 +56,11 @@ async def tool_metadata(name: str = None):
 
             # replace with just the 'data' dicts
             tool['data']["publication"] = [p["data"] for p in pubs]
+        '''
 
     tool = tool['data']
     if tool:
-        #tool = prepareToolMetadata(tool)
+        tool = prepareToolMetadata(tool)
         tool = prepareListsIds(tool)
         return JSONResponse(content=tool)
     else:
