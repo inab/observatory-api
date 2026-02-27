@@ -1,6 +1,6 @@
 from pydantic import BaseModel, AnyUrl, EmailStr, field_validator, Field, ConfigDict, HttpUrl
 from urllib.parse import urlparse
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Union
 from app.models.fair_metrics import FAIRmetrics, FAIRscores  # Import the necessary classes
 from app.constants import WEB_TYPES
 
@@ -73,8 +73,8 @@ def remove_nones_empy_string(v):
 class Instance(BaseModel):
     id: Optional[str] = None
     name: Optional[str] = None
-    type: Optional[str] = None
-    version: Optional[str] = None
+    type: Optional[List[str]] = None
+    version: Optional[List[str]] = None
     authors: Optional[List[Person]] = []
     bioschemas: Optional[bool] = False
     contribPolicy: Optional[List[str]] = []
@@ -115,7 +115,24 @@ class Instance(BaseModel):
     scores: Optional[FAIRscores] = None 
     logs: Optional[List[str]] = []
 
+    # type may come as a string
+    @field_validator("type", mode="before")
+    @classmethod
+    def coerce_str_to_list(cls, v: Any):
+        if v is None:
+            return None
+        if isinstance(v, str):
+            return [v]
+        return v
 
+    @field_validator("version", mode="before")
+    @classmethod
+    def coerce_str_to_list_version(cls, v: Any):
+        if v is None:
+            return None
+        if isinstance(v, str):
+            return [v]
+        return v
 
     # Filter empty strings and non-valid entries in the publications field
     @field_validator('publication', mode='before')
@@ -132,10 +149,21 @@ class Instance(BaseModel):
 
     # Set super_type based on whether the instance is part of web_types
     def set_super_type(self, web_types: List[str]):
-        if self.type in web_types:
-            self.super_type = 'web'
+        web = False
+        non_web = False
+        for type in self.type:
+            if type in web_types:
+                web = True 
+            else:
+                non_web = True 
+        
+        if web and non_web:
+            self.super_type = 'both'
         else:
-            self.super_type = 'no_web'
+            if web:
+                self.super_type = 'web'
+            else:
+                self.super_type = 'non-web'
 
     def __init__(self, **data):
         super().__init__(**data)

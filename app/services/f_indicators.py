@@ -14,27 +14,28 @@ def compF1_2(instance) -> Tuple[bool, str]:
     recommendation.append("Aligning with semantic versioning involves adopting the MAJOR.MINOR.PATCH format, using pre-release labels and build metadata, and maintaining consistency in version increments. By clearly documenting your versioning practices and using tools to manage versions, you can improve version management and make your software easier to maintain and use.") 
     
     if instance.version:
-        logs.append(f"⚙️ Checking if version '{instance.version}' follows semantic versioning standards.")
+        logs.append(f"⚙️ Checking if versions '{instance.version}' follows semantic versioning standards.")
         logs = log_version(instance, logs)
         
         # remove any leading 'v' from the version
-        if instance.version.lower().startswith('v'):
-            instance.version = instance.version[1:]
+        for version in instance.version:
+            if version.lower().startswith('v'):
+                version = version[1:]
 
-        parts = instance.version.split('.')
-        
-        if len(parts) < 2:
-            logs.append("❌ Version does not have enough parts (should be at least MAJOR.MINOR).")
-            logs.append("Result: FAILED")
-            return False, logs
-        
-        for part in parts:
-            if not part.isdigit():
-                logs.append(f"❌ Part '{part}' is not a digit.")
+            parts = instance.version.split('.')
+            
+            if len(parts) < 2:
+                logs.append("❌ Version does not have enough parts (should be at least MAJOR.MINOR).")
                 logs.append("Result: FAILED")
                 return False, logs
+            
+            for part in parts:
+                if not part.isdigit():
+                    logs.append(f"❌ Part '{part}' is not a digit.")
+                    logs.append("Result: FAILED")
+                    return False, logs
         
-        logs.append("✅ Version is valid.")
+        logs.append("✅ Versions are valid.")
         logs.append("Result: PASSED")
         recommendation = [] 
         return True, logs

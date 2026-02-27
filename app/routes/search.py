@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import JSONResponse
 from app.helpers.search import make_search, calculate_stats
-from app.helpers.utils import prepare_sources_labels
+from app.helpers.utils import prepare_sources_labels, prepareToolMetadata
 from app.helpers.EDAM_forFE import EDAMDict
 import re
 
@@ -52,7 +52,6 @@ async def search(request: Request):
         pat = re.compile(rf'{q}', re.I)
 
         search_in = params.get('searchIn', '').split(',')
-        print(search_in)
         if search_in:
             if 'name' in search_in:
                 tools, counts = make_search('name', 'data.name', {'$regex': pat}, search, tools, counts)
@@ -76,6 +75,7 @@ async def search(request: Request):
 
         tools = list(tools.values())
         tools = [prepare_sources_labels(tool) for tool in tools]
+        tools = [prepareToolMetadata(tool) for tool in tools]
         stats = calculate_stats(tools)
         page = int(params.get('page', 0))
         a = page * 10

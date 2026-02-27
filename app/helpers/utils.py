@@ -48,6 +48,7 @@ def get_pub(object_id):
     else:
         return None
 
+
 def prepareToolMetadata(entry):
 
     publications_records = set()
@@ -66,29 +67,6 @@ def prepareToolMetadata(entry):
                 publications_new.append(publication)
         
     entry['publication'] = publications_new
-
-    if entry.get('type'):
-        if len(entry.get('type', []))>1:
-            entry['other_types'] = entry.get('type', [])[1:]
-            entry['type'] = entry.get('type', [])[0]
-        else:
-            entry['other_types'] = []
-            entry['type'] = entry.get('type', [])[0]
-    else:
-        entry['type'] = None
-        entry['other_types'] = []
-
-    if entry.get('version'):
-        if len(entry.get('version', []))>1:
-            entry['other_versions'] = entry.get('version', [])[1:]
-            entry['version'] = entry.get('version', [])[0]
-        else:
-            entry['other_versions'] = []
-            entry['version'] = entry.get('version', [])[0]
-    else:
-        entry['version'] = None
-        entry['other_versions'] = []
-
 
     if entry['authors'] is None:
         entry['authors'] = []
@@ -362,6 +340,7 @@ def prepareListsIds(metadata):
 # Prepare metadata for evaluation
 ################
 
+
 def prepareMetadataForEvaluation(metadata):
     '''
     Reverts the kind of processing done in prepareListsIds
@@ -547,15 +526,18 @@ def prepare_sources_labels(tool):
     for repo in repos:
         if repo.get('kind') == 'github':
             sources_labels['github'] = repo.get('url')
-            remain_sources.remove('github')
+            if 'github' in remain_sources:
+                remain_sources.remove('github')
         
         if repo.get('kind') == 'bioconductor':
             sources_labels['bioconductor'] = repo.get('url')
-            remain_sources.remove('bioconductor')
+            if 'bioconductor' in remain_sources:
+                remain_sources.remove('bioconductor')
 
         if repo.get('kind') == 'bitbucket':
             sources_labels['bitbucket'] = repo.get('url')
-            remain_sources.remove('bitbucket')
+            if 'bitbucket' in remain_sources:
+                remain_sources.remove('bitbucket')
         
 
 

@@ -19,7 +19,7 @@ def compute_fair_scores(instance: Instance) -> dict:
     instance.scores.F = (0.4 * instance.scores.F1 + 0.2 * instance.scores.F2 + 0.4 * instance.scores.F3)
     
     # Compute Accessibility Scores
-    if instance.super_type == 'web':
+    if instance.super_type == 'web' or instance.super_type == 'both':
         instance.scores.A1 = (0.6 * instance.metrics.A1_1 + 0.4 * instance.metrics.A1_4)
         instance.scores.A3 = 1.0 * instance.metrics.A3_1
         #instance.scores.A3 = 0.0
