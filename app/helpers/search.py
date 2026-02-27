@@ -31,7 +31,6 @@ def make_search(label, query_field, query_expression, search, tools, counts):
     search[query_field] = query_expression
 
     search = {'$and': [{key:value} for key, value in search.items() ]}
-    pprint(search)
     tools, counts = search_input(tools, counts, search, label)
     print(f"Tools found {len(tools)}")
     return tools, counts

@@ -543,6 +543,21 @@ def prepare_sources_labels(tool):
         sources_labels['galaxy'] = 'https://usegalaxy.eu/'
         remain_sources.remove('galaxy')
 
+    repos = tool.get('repository', None)
+    for repo in repos:
+        if repo.get('kind') == 'github':
+            sources_labels['github'] = repo.get('url')
+            remain_sources.remove('github')
+        
+        if repo.get('kind') == 'bioconductor':
+            sources_labels['bioconductor'] = repo.get('url')
+            remain_sources.remove('bioconductor')
+
+        if repo.get('kind') == 'bitbucket':
+            sources_labels['bitbucket'] = repo.get('url')
+            remain_sources.remove('bitbucket')
+        
+
 
     for link in tool['links']:
         foundLink = False
@@ -551,14 +566,6 @@ def prepare_sources_labels(tool):
             # some tools have bioconductor in name in some sources like bioconda
             if f'bioconductor-{tool["name"]}' in link:
                 sources_labels['bioconda'] = f'https://anaconda.org/bioconda/bioconductor-{tool["name"]}'
-
-            # github
-            github_repo = find_github_repo(link)
-            if github_repo:
-                sources_labels['github'] = github_repo
-                foundLink = True
-                if 'github' in remain_sources:
-                    remain_sources.remove('github')
             
             # bioconductor
             bioconductor_link = find_bioconductor_link(link)

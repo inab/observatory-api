@@ -16,7 +16,7 @@ Then, start the development server:
 
 ```
 export CONFIG_PATH=./api-variables/config_db.ini
-python3 main.py
+uvicorn main:app --host 0.0.0.0 --port 3500 --reload --log-level debug
 ```
 
 The API will be available at `http://localhost:3500`.
