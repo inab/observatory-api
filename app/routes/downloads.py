@@ -23,7 +23,6 @@ async def download_content(request: URLRequest):
         dict: A dictionary containing the original URL and the downloaded content.
     """
     try:
-        print(request.url)
         response = requests.get(request.url)
         response.raise_for_status()
     except requests.exceptions.RequestException as e:

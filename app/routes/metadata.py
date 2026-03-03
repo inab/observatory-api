@@ -8,7 +8,7 @@ from bson import ObjectId
 
 router = APIRouter()
 
-tools_collection, stats, pubs_collection = connect_DB()
+tools_collection, stats, pubs_collection, availability_collection = connect_DB()
 
 
 

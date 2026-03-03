@@ -40,7 +40,7 @@ def timeit(func):
 def get_pub(object_id):
     from app.helpers.database import connect_DB
 
-    tools_collection, stats, pubs_collection = connect_DB()
+    tools_collection, stats, pubs_collection, availability_collection = connect_DB()
 
     publication = pubs_collection.find_one({"_id": object_id})    
     if publication:

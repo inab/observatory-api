@@ -27,6 +27,7 @@ def connect_DB():
     tools_collection_name = config['MONGO_DETAILS']['TOOLS']
 
     pubs_collection_name = config['MONGO_DETAILS']['PUBS']
+    availability_collection_name = config['MONGO_DETAILS']['AVAILABILITY']
 
     client = MongoClient(
                 host=[f'{mongo_host}:{mongo_port}'],
@@ -39,5 +40,6 @@ def connect_DB():
     tools_collection = client[mongo_db][tools_collection_name]
     stats = client[mongo_db][stats_collection_name]
     pubs_collection = client[mongo_db][pubs_collection_name]
+    availability_collection = client[mongo_db][availability_collection_name]
 
-    return tools_collection, stats, pubs_collection
+    return tools_collection, stats, pubs_collection, availability_collection
