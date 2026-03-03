@@ -63,13 +63,6 @@ async def evaluate(
             logging.error(f"Error creating instance: {str(e)}")
             raise HTTPException(status_code=400, detail=f"Instance creation failed: {str(e)}")
         
-        # Set super type based on web types
-        try:
-            instance.set_super_type(WEB_TYPES)
-        except Exception as e:
-            logging.error(f"Error setting super type: {str(e)}")
-            raise HTTPException(status_code=500, detail=f"Error setting super type: {str(e)}")
-        
         # Compute metrics
         try:
             computation = IndicatorComputation(instance)
@@ -118,10 +111,7 @@ async def evaluateId(request: Request):
         if tool:
             # Create an instance object
             instance = Instance(**tool)
-            
-            # Set super type based on web types
-            instance.set_super_type(WEB_TYPES)
-            
+
             # Compute metrics
             computation = IndicatorComputation(instance)
             computation.compute_indicators()

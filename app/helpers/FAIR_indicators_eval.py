@@ -39,7 +39,6 @@ def convert_dict2instance(tool):
         tool['name'] = None
     NewInst = instance(tool.get('name'), tool.get('type'), tool.get('version'))
     NewInst.__dict__ = munchify(tool)
-    NewInst.set_super_type()
 
     return(NewInst)
 
