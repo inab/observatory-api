@@ -1,4 +1,4 @@
-from pydantic import BaseModel, AnyUrl, EmailStr, field_validator, Field, ConfigDict, HttpUrl
+from pydantic import BaseModel, AnyUrl, EmailStr, field_validator, model_validator, Field, ConfigDict, HttpUrl
 from urllib.parse import urlparse
 from typing import List, Optional, Dict, Any, Union
 from app.models.fair_metrics import FAIRmetrics, FAIRscores  # Import the necessary classes
@@ -73,8 +73,8 @@ def remove_nones_empy_string(v):
 class Instance(BaseModel):
     id: Optional[str] = None
     name: Optional[str] = None
-    type: Optional[List[str]] = None
-    version: Optional[List[str]] = None
+    type: List[str] = Field(default_factory=list)
+    version: List[str] = Field(default_factory=list)
     authors: Optional[List[Person]] = []
     bioschemas: Optional[bool] = False
     contribPolicy: Optional[List[str]] = []
@@ -120,7 +120,7 @@ class Instance(BaseModel):
     @classmethod
     def coerce_str_to_list(cls, v: Any):
         if v is None:
-            return None
+            return []
         if isinstance(v, str):
             return [v]
         return v
@@ -129,7 +129,7 @@ class Instance(BaseModel):
     @classmethod
     def coerce_str_to_list_version(cls, v: Any):
         if v is None:
-            return None
+            return []
         if isinstance(v, str):
             return [v]
         return v
@@ -147,24 +147,19 @@ class Instance(BaseModel):
     def filter_empty_webpage(cls, v):
         return remove_nones_empty_string(v)
 
-    # Set super_type based on whether the instance is part of web_types
-    def set_super_type(self, web_types: List[str]):
-        web = False
-        non_web = False
-        for type in self.type:
-            if type in web_types:
-                web = True 
-            else:
-                non_web = True 
-        
-        if web and non_web:
-            self.super_type = 'both'
-        else:
-            if web:
-                self.super_type = 'web'
-            else:
-                self.super_type = 'non-web'
+     # ---- model validator for derived field ----
 
-    def __init__(self, **data):
-        super().__init__(**data)
-        self.set_super_type(WEB_TYPES)
+    @model_validator(mode="after")
+    def set_super_type(self):
+        # by here, self.type is guaranteed to be a list
+        web = any(t in WEB_TYPES for t in self.type)
+        non_web = any(t not in WEB_TYPES for t in self.type)
+
+        if web and non_web:
+            self.super_type = "both"
+        elif web:
+            self.super_type = "web"
+        else:
+            self.super_type = "no_web"
+
+        return self

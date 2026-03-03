@@ -23,41 +23,7 @@ The API will be available at `http://localhost:3500`.
 
 ### Versioning 
 
- When a push is done to the `main` branch, the version of the API should be updated. This is done by adding the new version to `VERSION`. A GitHub action will create a tag with the version to the version in `VERSION` file, build and publish the docker image.
-
-### Collections 
- 
-Most endpoints use the `observatory.tools` collection. The endpoint `GET "/tools/names_type_labels"` uses the collection `observatory.tools_discoverer_w_index`. This is due to this collection being processed to contain information of types and labels in a more convenient way. 
-
-
-### Mappings 
-
-| bioschema |  UI    |
-| --------- | ------ |
-| `@type`   | `type` |
-| `schema:applicationSubcategory` | `topics` |
-| `schema:additionalType` | `type` |
-| `schema:name` | `name` |
-| `schema:url` | `webpages` |
-| `schema:description` | `description` |
-| `schema:applicationCategory` | `type` |
-| `schema:operatingSystem` | `os` |
-| `schema:license` | `license` |
-| `schema:author` | `authors` |
-| `schema:maintainer` | `authors` |
-| `schema:softwareVersion` | `version` |
-| `schema:codeRepository` | `repository` 
-| `schema:featureList` | `operations` |
-| `schema:input` | `input` |
-| `schema:output` | `output` |
-| `schema:downloadURL` | `download` |
-| `schema:softwareHelp` | `documentation` | 
-| `schema:citation` | `publication` |
-| `schema:requirements` | `dependencies` |
-| `schema:isAccessibleForFree` | `registration_not_manadatory` |
-| `schema:dateModified` | - |
-| `@context` | - |
-
+When a push is done to the `main` branch, the version of the API should be updated. This is done by adding the new version to `VERSION`. A GitHub action will create a tag with the version to the version in `VERSION` file, build and publish the docker image.
 
 
 ## API Documentation
@@ -73,6 +39,14 @@ The API is deployed in the BSC's infrastructure. The deployment is done using do
 The docker image is built as part of the CI/CD pipeline. It is triggered by pushing a tag to the repository.
 
 Notice that the API is accessible at a subdomain of the OpenEBench platform. The API is available at [https://observatory.openebench.bsc.es/api](https://observatory.openebench.bsc.es/api). In development, the API is available directly at `http://localhost:3500`.
+
+## Development 
+
+### Testing 
+
+```
+PYTHONPATH=$(pwd) pytest -s app/tests
+```
 
 ## License
 

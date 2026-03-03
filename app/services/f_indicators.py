@@ -22,7 +22,7 @@ def compF1_2(instance) -> Tuple[bool, str]:
             if version.lower().startswith('v'):
                 version = version[1:]
 
-            parts = instance.version.split('.')
+            parts = version.split('.')
             
             if len(parts) < 2:
                 logs.append("❌ Version does not have enough parts (should be at least MAJOR.MINOR).")
