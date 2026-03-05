@@ -151,7 +151,11 @@ def compI2_1(instance) -> Tuple[bool, List[str]]:
     # Check if the type is one of the valid options
     logs = log_type(instance, logs)
 
-    has_valid_type = instance.type in ['lib', 'rest', 'soap', 'api']
+    has_valid_type = False
+    for type in instance.type:
+        if type in ['lib', 'rest', 'soap', 'api']:
+            has_valid_type = True
+
     if has_valid_type:
         logs.append("✅ Instance type is valid.")
         logs.append("Result: PASSED")
