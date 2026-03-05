@@ -4,7 +4,7 @@ from app.services.i_indicators import compI2_1
 
 class MockInstance:
     def __init__(self, type):
-        self.type = type
+        self.type = [type]
 
 def test_compI2_1_with_lib_type():
     instance = MockInstance(type="lib")
