@@ -1,0 +1,28 @@
+{
+  "properties": {
+    "tool_metadata": {
+      "additionalProperties": true,
+      "description": "The metadata related to the tool that needs to be evaluated.",
+      "title": "Tool Metadata",
+      "type": "object"
+    },
+    "prepare": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": true,
+      "description": "Indicates whether the metadata needs to be prepared before evaluation. Defaults to True.",
+      "title": "Prepare"
+    }
+  },
+  "required": [
+    "tool_metadata"
+  ],
+  "title": "MetadataRequest",
+  "type": "object"
+}
