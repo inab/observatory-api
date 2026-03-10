@@ -101,7 +101,7 @@ class Instance(BaseModel):
     ssl: Optional[bool] = False
     tags: Optional[List[str]] = []
     termsUse: Optional[bool] = False
-    test: Optional[List] = False
+    test: Optional[List] = []
     topics: Optional[List[ControlledTerm]] = []
     operations: Optional[List[ControlledTerm]] = []
     webpage: Optional[List[AnyUrl]] = []
