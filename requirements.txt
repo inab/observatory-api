@@ -1,5 +1,5 @@
 cffconvert==2.0.0
-fairsoft_core==0.1.1
+fairsoft_core==0.2.1
 fastapi==0.136.1
 pydantic==2.13.3
 pymongo==4.17.0
