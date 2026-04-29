@@ -1,6 +1,6 @@
 cffconvert==2.0.0
 fairsoft_core==0.2.1
-fastapi==0.150.0
+fastapi==0.105.0
 pydantic==2.12.0
 pymongo==4.15.3
 pytest==9.0.2
