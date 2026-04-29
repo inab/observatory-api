@@ -1,16 +1,15 @@
+####
+# This endpoint is deprecated but still available for compatibility 
+#
+### 
+
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import JSONResponse
-from app.routes.fairsoft import run_fairsoft_evaluation
 from app.helpers.database import connect_DB
-from app.models.instance import Instance
-from app.services.indicator_computation import IndicatorComputation
-from app.services.fair_scores import compute_fair_scores
 from pydantic import BaseModel,  Field
 import logging
-from app.services.fairsoft_evaluation import run_fairsoft_evaluation
+from app.helpers.fairsoft_evaluation import fairsoft_evaluation
 from typing import Dict, Any, Optional
-
-
 
 
 router = APIRouter()
@@ -34,7 +33,7 @@ async def evaluate_fair_legacy(
     data: MetadataRequest
 ):
     try:
-        response_data = await run_fairsoft_evaluation(
+        response_data = await fairsoft_evaluation(
             tool_metadata=data.tool_metadata,
             prepare=data.prepare,
         )

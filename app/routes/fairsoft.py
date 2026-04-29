@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 from app.helpers.database import connect_DB
 from typing import Dict, Any, Optional, Annotated
 from fastapi import APIRouter, HTTPException, Request, Body
-from app.services.fairsoft_evaluation import run_fairsoft_evaluation
+from app.helpers.fairsoft_evaluation import fairsoft_evaluation
 
 
 router = APIRouter()
@@ -121,7 +121,7 @@ async def evaluate_fairsoft(
     ]
 ):
     try:
-        response_data = await run_fairsoft_evaluation(
+        response_data = await fairsoft_evaluation(
             tool_metadata=data.tool_metadata,
             prepare=data.prepare,
         )
@@ -139,34 +139,3 @@ async def evaluate_fairsoft(
             status_code=500,
         )
 
-'''
-@router.post('/evaluateId', tags=["fairsoft"])
-async def evaluateId(request: Request):
-    data = await request.json()
-    id_ = data.get('id')
-    if id_:
-        tool = tools_collection.find_one({'@id': id_})
-        if tool:
-            # Create an instance object
-            instance = Instance(**tool)
-
-            # Compute metrics
-            computation = IndicatorComputation(instance)
-            computation.compute_indicators()
-            
-            # Compute FAIR scores and get the result dictionary
-            result = compute_fair_scores(instance)
-            
-            logs = instance.logs.__dict__
-
-            data = {
-                'result': result,
-                'logs': logs
-            }
-            return JSONResponse(content=data)
-        else:
-            raise HTTPException(status_code=400, detail="No tool id or metadata provided")
-    else:
-        raise HTTPException(status_code=400, detail="No tool id or metadata provided")
-
-'''

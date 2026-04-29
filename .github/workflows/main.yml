@@ -4,116 +4,73 @@ on:
   push:
     branches:
       - main
+
   pull_request:
     branches:
       - main
 
+  release:
+    types: [published]
+
 jobs:
   test:
-        runs-on: ubuntu-latest
-
-        steps:
-          - uses: actions/checkout@v3
-
-          - name: Set up Python
-            uses: actions/setup-python@v4
-            with:
-              python-version: 3.10.6
-
-          - name: Install dependencies
-            run: |
-              python -m pip install --upgrade pip
-              pip install pytest
-              pip install -r requirements.txt
-
-          - name: Run tests
-            run: |
-              pytest -v app/tests
-
-  tag_version:
     runs-on: ubuntu-latest
-    needs: test
-
-    outputs:
-      version: ${{ steps.fetch_version.outputs.version }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      # Step to fetch the version, validate, and tag the code
-      - name: Fetch version and create Git tag
-        id: fetch_version
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10.6"
+
+      - name: Install dependencies
         run: |
-          VERSION=$(cat VERSION)
+          python -m pip install --upgrade pip
+          pip install pytest
+          pip install -r requirements.txt
 
-          echo "Validating version format for $VERSION..."
-
-          # Check if the version follows Semantic Versioning (MAJOR.MINOR.PATCH)
-          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "ERROR: The version '$VERSION' does not follow Semantic Versioning (e.g., 1.0.0)."
-            exit 1
-          fi
-
-          # Prepend 'v' if not present
-          if [[ "$VERSION" != v* ]]; then
-            VERSION="v$VERSION"
-            echo "Prepending 'v'. New version is $VERSION"
-          fi
-
-          # Check if the version already has a Git tag
-          if git rev-parse "$VERSION" >/dev/null 2>&1; then
-            echo "ERROR: Version $VERSION already has a Git tag!"
-            exit 1
-          fi
-
-          # Configure Git user for tagging
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-
-          # Create the Git tag
-          git tag "$VERSION"
-
-          # Push the tag to the repository
-          git push origin "$VERSION"
-
-          # Set the version as an output using GITHUB_OUTPUT
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+      - name: Run tests
+        run: pytest -v app/tests
 
   build:
     runs-on: ubuntu-latest
-    needs: tag_version
+    needs: test
+    if: github.event_name == 'release' && github.event.action == 'published'
+
+    permissions:
+      contents: read
+      packages: write
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+
+      - name: Set Docker image tag
+        id: vars
+        run: |
+          echo "version=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      - name: Cache Docker layers
-        uses: actions/cache@v3
-        with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
+        uses: docker/setup-buildx-action@v3
 
       - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Build and tag Docker image using the version fetched in the previous job
-      - name: Build and tag Docker image
+      - name: Build Docker image
         run: |
-          docker build -t ghcr.io/inab/observatory-api:${{ needs.tag_version.outputs.version }} -t ghcr.io/inab/observatory-api:latest .
+          docker build \
+            -t ghcr.io/inab/observatory-api:${{ steps.vars.outputs.version }} \
+            -t ghcr.io/inab/observatory-api:latest \
+            .
 
-      # Push Docker image to the registry
       - name: Push Docker image
         run: |
-          docker push ghcr.io/inab/observatory-api:${{ needs.tag_version.outputs.version }}
+          docker push ghcr.io/inab/observatory-api:${{ steps.vars.outputs.version }}
           docker push ghcr.io/inab/observatory-api:latest
