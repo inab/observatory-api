@@ -380,13 +380,13 @@ def prepareMetadataForEvaluation(metadata):
     ]
 
     for field in fields:
-        print('preparing field: ', field)
-        new_list = [] 
-        for item in metadata[field]:
-            new_item = item['term']
-            new_list.append(new_item)
+        if field in metadata:
+            new_list = [] 
+            for item in metadata[field]:
+                new_item = item['term']
+                new_list.append(new_item)
         
-        metadata[field] = new_list
+            metadata[field] = new_list
 
     return metadata
 
