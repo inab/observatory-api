@@ -58,10 +58,15 @@ async def make_query(variable_name: str, parameters: dict):
     collection, version = prep_parameters(parameters)
     if version == 'latest':
         print("latest version queried")
-        record = list(stats.find({
-            "variable": variable_name,
-            "collection": collection,
-        }).sort("version", -1).limit(1))
+        record = list(stats.find(
+            {
+                "variable": variable_name,
+                "collection": collection,
+            },
+            {
+                "createdFrom": 0
+            }
+            ).sort("version", -1).limit(1))
         
         q = {"variable": variable_name, "collection": collection}
         print(stats.count_documents(q))
