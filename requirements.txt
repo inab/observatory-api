@@ -1,3 +1,4 @@
+fairsoft_core==0.2.1
 annotated-types==0.7.0 ; python_version >= '3.8'
 anyio==4.4.0 ; python_version >= '3.8'
 attrs==24.2.0 ; python_version >= '3.7'
