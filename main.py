@@ -47,12 +47,10 @@ tags_metadata = [
         }
     ]
 
-version = get_version()
 app = FastAPI(
     root_path="/api",
     title="Software Observatory API",
     description="This is the API for the Software Observatory at [OpenEBench](https://openebench.bsc.es)",
-    version=version,
     contact={
         "name": "OpenEBench",
         "url": "https://openebench.bsc.es/",
