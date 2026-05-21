@@ -2,9 +2,8 @@ from fastapi import APIRouter, HTTPException, Request
 from typing import Any, Dict, List
 from fastapi.responses import JSONResponse
 from app.helpers.database import connect_DB
-from app.helpers.search import make_search, calculate_stats
+from app.helpers.search import make_search, calculate_stats, calculate_total_stats
 from app.helpers.utils import prepare_sources_labels, prepareToolMetadata
-from app.helpers.EDAM_forFE import EDAMDict
 import re
 from bson import ObjectId 
 
@@ -63,20 +62,22 @@ async def search(request: Request):
                 tools, counts = make_search('description', 'data.description', {'$regex': pat}, search, tools, counts)
 
             if 'topics' in search_in:
-                edam_ids = [key for key, value in EDAMDict.items() if re.search(pat, value)]
-                tools, counts = make_search('topics', 'data.edam_topics', {'$in': edam_ids}, search, tools, counts)
+                tools, counts = make_search('topics', 'data.topics.term', {'$regex': pat}, search, tools, counts)
 
             if 'operations' in search_in:
-                edam_ids = [key for key, value in EDAMDict.items() if re.search(pat, value)]
-                tools, counts = make_search('operations', 'data.edam_operations', {'$in': edam_ids}, search, tools, counts)
+                tools, counts = make_search('operations', 'data.operations.term', {'$regex': pat}, search, tools, counts)
         else:
             tools, counts = make_search('name', 'data.name', {'$regex': pat}, search, tools, counts)
             tools, counts = make_search('description', 'data.description', {'$regex': pat}, search, tools, counts)
-            edam_ids = [key for key, value in EDAMDict.items() if re.search(pat, value)]
-            tools, counts = make_search('topics', 'data.edam_topics', {'$in': edam_ids}, search, tools, counts)
-            tools, counts = make_search('perations', 'data.edam_operations', {'$in': edam_ids}, search, tools, counts)
+            tools, counts = make_search('topics', 'data.topics.term', {'$regex': pat}, search, tools, counts)
+            tools, counts = make_search('operations', 'data.operations.term', {'$regex': pat}, search, tools, counts)
 
         tools = list(tools.values())
+
+        _, stats_collection, pubs_collection, _ = connect_DB()
+        _hydrate_publications(tools, pubs_collection)
+        _hydrate_fairsoft(tools, stats_collection)
+
         tools = [prepare_sources_labels(tool) for tool in tools]
         tools = [prepareToolMetadata(tool) for tool in tools]
         stats = calculate_stats(tools)
@@ -99,79 +100,60 @@ async def search(request: Request):
     return JSONResponse(content=data)
 
 
-RELEVANT_TYPES = {"rest", "web", "app", "suite", "workbench", "db", "soap", "sparql"}
 
-
-def _projection_for_cards() -> Dict[str, int]:
-    # Keep _id only for internal dedupe; we will drop it from the response.
-    return {
-        "_id": 1,
-        "data": 1,  # simplest: keep whole data blob
-        # If data is huge and you want to slim it down, replace with specific fields.
-    }
-
-
-def _base_match(extra: Dict[str, Any] | None = None) -> Dict[str, Any]:
-    match: Dict[str, Any] = {
-        "data.name": {"$exists": True, "$ne": ""},
-        "data.description": {"$exists": True, "$ne": ""},
-        "data.webpage": {"$exists": True, "$type": "array", "$ne": []},
-        "data.type": {"$in": list(RELEVANT_TYPES)},
-    }
-    if extra:
-        match.update(extra)
-    return match
-
-
-def _dedupe_by_id(docs: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    seen = set()
-    out = []
-    for d in docs:
-        _id = d.get("_id")
-        if _id in seen:
-            continue
-        seen.add(_id)
-        out.append(d)
-    return out
-
-
-def _hydrate_publications_in_data(
-    tools_docs: List[Dict[str, Any]], pubs_collection
-) -> None:
-    """In-place: tools_docs[i]['data']['publication'] becomes list of publication.data dicts."""
-    pub_ids: Set[Any] = set()
-
-    for doc in tools_docs:
-        data = doc.get("data") or {}
-        pub_list = data.get("publication") or []
-        if isinstance(pub_list, list):
-            for pid in pub_list:
-                if pid is not None:
-                    pub_ids.add(pid)
+def _hydrate_publications(tools: List[Dict[str, Any]], pubs_collection) -> None:
+    """In-place: each tool's 'publication' list of ObjectIds becomes a list of publication.data dicts."""
+    pub_ids = set()
+    for tool in tools:
+        for pid in (tool.get('publication') or []):
+            if pid is not None:
+                try:
+                    pub_ids.add(ObjectId(pid))
+                except Exception:
+                    pass
 
     if not pub_ids:
-        # normalize to []
-        for doc in tools_docs:
-            data = doc.setdefault("data", {})
-            if not isinstance(data.get("publication"), list):
-                data["publication"] = []
         return
 
-    cursor = pubs_collection.find(
-        {"_id": {"$in": list(pub_ids)}},
-        projection={"_id": 1, "data": 1},
-    )
-    pub_map: Dict[Any, Any] = {p["_id"]: p.get("data") for p in cursor}
+    pub_map = {
+        str(p["_id"]): p.get("data")
+        for p in pubs_collection.find(
+            {"_id": {"$in": list(pub_ids)}},
+            projection={"_id": 1, "data": 1},
+        )
+    }
 
-    for doc in tools_docs:
-        data = doc.setdefault("data", {})
-        pub_list = data.get("publication") or []
+    for tool in tools:
+        pub_list = tool.get('publication') or []
         if not isinstance(pub_list, list):
-            data["publication"] = []
+            tool['publication'] = []
             continue
-        data["publication"] = [
-            pub_map[pid] for pid in pub_list if pid in pub_map and pub_map[pid] is not None
+        tool['publication'] = [
+            pub_map[str(ObjectId(pid))]
+            for pid in pub_list
+            if pid is not None and str(ObjectId(pid)) in pub_map
         ]
+
+
+def _hydrate_fairsoft(tools: List[Dict[str, Any]], stats_collection) -> None:
+    """In-place: add 'fairsoft' key to each tool from the stats collection."""
+    tool_ids = [tool['id'] for tool in tools if tool.get('id')]
+
+    if not tool_ids:
+        return
+
+    fairsoft_map: Dict[str, Any] = {}
+    for doc in stats_collection.find(
+        {"createdFrom": {"$in": tool_ids}, "variable": "FAIR_scores"},
+        projection={"createdFrom": 1, "data": 1},
+    ):
+        for tid in doc.get("createdFrom", []):
+            if tid in tool_ids:
+                fairsoft_map[tid] = doc.get("data")
+
+    for tool in tools:
+        tid = tool.get('id')
+        tool['fairsoft'] = fairsoft_map.get(tid)
 
 
 def _jsonify_mongo(value: Any) -> Any:
@@ -185,61 +167,74 @@ def _jsonify_mongo(value: Any) -> Any:
 
 
 @router.get("/initial-search", tags=["search"])
-async def initial_search():
-    tools_collection, stats, pubs_collection, availability_collection = connect_DB()
+async def initial_search(request: Request):
+    tools_collection, stats_collection, pubs_collection, _ = connect_DB()
 
-    target_n = 10
-    projection = _projection_for_cards()
-    selected: List[Dict[str, Any]] = []
+    params = request.query_params
+    page = int(params.get('page', 0))
+    page_size = 10
 
-    # 1) Diversity pass (1 per type)
-    for t in sorted(RELEVANT_TYPES):
-        if len(selected) >= target_n:
-            break
-        pipeline = [
-            {"$match": _base_match({"data.type": t})},
-            {"$sample": {"size": 1}},
-            {"$project": projection},
+    filters: Dict[str, Any] = {}
+    if source := params.get('source'):
+        filters['data.source'] = {'$in': source.split(',')}
+    if type_ := params.get('type'):
+        filters['data.type'] = {'$in': type_.split(',')}
+    if topics := params.get('topics'):
+        filters['data.topics.uri'] = {'$in': topics.split(',')}
+    if operations := params.get('operations'):
+        filters['data.operations.uri'] = {'$in': operations.split(',')}
+    if license_ := params.get('license'):
+        filters['data.license.name'] = {'$in': license_.split(',')}
+    if tags := params.get('tags'):
+        filters['data.tags'] = {'$in': tags.split(',')}
+    if input_fmt := params.get('input_format'):
+        filters['data.input.term'] = {'$in': input_fmt.split(',')}
+    if output_fmt := params.get('output_format'):
+        filters['data.output.term'] = {'$in': output_fmt.split(',')}
+
+    # Score each tool by completeness so richer, more validated tools surface first.
+    score_expr: Dict[str, Any] = {
+        '$add': [
+            {'$cond': [{'$gt': [{'$size': {'$ifNull': ['$data.publication', []]}}, 0]}, 3, 0]},
+            {'$cond': [{'$gt': [{'$size': {'$ifNull': ['$data.webpage', []]}}, 0]}, 2, 0]},
+            {'$size': {'$ifNull': ['$data.source', []]}},
+            {'$cond': [{'$gt': [{'$size': {'$ifNull': ['$data.topics', []]}}, 0]}, 1, 0]},
+            {'$cond': [{'$gt': [{'$size': {'$ifNull': ['$data.operations', []]}}, 0]}, 1, 0]},
+            {'$cond': [{'$ifNull': ['$data.inst_instr', False]}, 1, 0]},
         ]
-        selected.extend(list(tools_collection.aggregate(pipeline)))
+    }
 
-    selected = _dedupe_by_id(selected)
+    pipeline = [
+        {'$match': filters},
+        {'$addFields': {'_score': score_expr}},
+        {'$sort': {'_score': -1, '_id': 1}},
+        {'$facet': {
+            'total': [{'$count': 'count'}],
+            'tools': [
+                {'$skip': page * page_size},
+                {'$limit': page_size},
+                {'$project': {'_score': 0}},
+            ],
+        }},
+    ]
 
-    # 2) Fill remaining constrained
-    remaining = target_n - len(selected)
-    if remaining > 0:
-        exclude_ids = [d["_id"] for d in selected if "_id" in d]
-        pipeline = [
-            {"$match": _base_match({"_id": {"$nin": exclude_ids}})},
-            {"$sample": {"size": remaining}},
-            {"$project": projection},
-        ]
-        selected.extend(list(tools_collection.aggregate(pipeline)))
-        selected = _dedupe_by_id(selected)
+    result = list(tools_collection.aggregate(pipeline))
+    facet = result[0]
+    total = facet['total'][0]['count'] if facet['total'] else 0
 
-    # 3) Fallback relax
-    remaining = target_n - len(selected)
-    if remaining > 0:
-        exclude_ids = [d["_id"] for d in selected if "_id" in d]
-        pipeline = [
-            {"$match": {"_id": {"$nin": exclude_ids}}},
-            {"$sample": {"size": remaining}},
-            {"$project": projection},
-        ]
-        selected.extend(list(tools_collection.aggregate(pipeline)))
-        selected = _dedupe_by_id(selected)
+    tools_data = []
+    for doc in facet['tools']:
+        tool = doc.get('data', {})
+        tool['id'] = str(doc['_id'])
+        tools_data.append(tool)
 
-    # Hydrate publications inside data
-    _hydrate_publications_in_data(selected, pubs_collection)
+    _hydrate_publications(tools_data, pubs_collection)
+    _hydrate_fairsoft(tools_data, stats_collection)
 
-    # Return only the data payloads
-    tools_data = [doc.get("data", {}) for doc in selected]
-
-    return _jsonify_mongo(
-        {
-            "query": "",
-            "totalTools": len(tools_data),
-            "tools": tools_data,
-            "note": "Initial sample (constrained-random, diverse + reasonably complete).",
-        }
-    )
+    return JSONResponse(content=_jsonify_mongo({
+        'query': '',
+        'tools': tools_data,
+        'total_tools': total,
+        'page': page,
+        'stats': calculate_total_stats(),
+    }))

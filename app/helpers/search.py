@@ -5,6 +5,7 @@ tools_collection, stats, pubs_collection, availability_collection = connect_DB()
 
 def search_input(tools, counts, search, label):
     results = tools_collection.find(search) 
+    ## add FAIR scores to all tools
     results = list(results)
     results.reverse()
     for tool in results:
@@ -34,6 +35,16 @@ def make_search(label, query_field, query_expression, search, tools, counts):
     tools, counts = search_input(tools, counts, search, label)
     print(f"Tools found {len(tools)}")
     return tools, counts
+
+
+def calculate_total_stats():
+    '''
+    Stats of the full collection, for initial search
+    '''
+    tools = tools_collection.find({}) 
+    tools = [tool['data'] for tool in tools]
+    stats = calculate_stats(tools)
+    return stats
 
 def calculate_stats(tools):
     stats = {

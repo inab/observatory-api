@@ -56,7 +56,10 @@ def prepareToolMetadata(entry):
     publications_new = []
     if entry.get('publication'):
         for pub in entry['publication']:
-            publication = get_pub(ObjectId(pub))
+            if isinstance(pub, dict):
+                publication = pub
+            else:
+                publication = get_pub(ObjectId(pub))
             if publication:
                 publications_records.add(id)
                 if 'citations' in publication:

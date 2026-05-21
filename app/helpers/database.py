@@ -22,6 +22,7 @@ def connect_DB():
     mongo_user = config['MONGO_DETAILS']['DBUSER']
     mongo_pass = config['MONGO_DETAILS']['DBPASS']
     mongo_auth_src = config['MONGO_DETAILS']['DBAUTHSRC']
+
     mongo_db = config['MONGO_DETAILS']['DATABASE']
     stats_collection_name = config['MONGO_DETAILS']['STATS']
     tools_collection_name = config['MONGO_DETAILS']['TOOLS']
