@@ -26,28 +26,28 @@ async def search(request: Request):
         params = request.query_params
 
         if source := params.get('source'):
-            search['source'] = {'$in': source.split(',')}
+            search['data.source'] = {'$in': source.split(',')}
 
         if type_ := params.get('type'):
-            search['type'] = {'$in': type_.split(',')}
+            search['data.type'] = {'$in': type_.split(',')}
 
         if topics := params.get('topics'):
-            search['topics.uri'] = {'$in': topics.split(',')}
+            search['data.topics.uri'] = {'$in': topics.split(',')}
 
         if operations := params.get('operations'):
-            search['operations.uri'] = {'$in': operations.split(',')}
+            search['data.operations.uri'] = {'$in': operations.split(',')}
 
         if license := params.get('license'):
-            search['license.name'] = {'$in': license.split(',')}
+            search['data.license.name'] = {'$in': license.split(',')}
 
         if collections := params.get('tags'):
-            search['tags'] = {'$in': collections.split(',')}
+            search['data.tags'] = {'$in': collections.split(',')}
 
         if input := params.get('input_format'):
-            search['input.term'] = {'$in': input.split(',')}
+            search['data.input.term'] = {'$in': input.split(',')}
 
         if output := params.get('output_format'):
-            search['output.term'] = {'$in': output.split(',')}
+            search['data.output.term'] = {'$in': output.split(',')}
 
         q = params.get('q')
 
