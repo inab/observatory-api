@@ -2,102 +2,97 @@ from fastapi import APIRouter, HTTPException, Request
 from typing import Any, Dict, List
 from fastapi.responses import JSONResponse
 from app.helpers.database import connect_DB
-from app.helpers.search import make_search, calculate_stats, calculate_total_stats
+from app.helpers.search import calculate_stats, calculate_total_stats
 from app.helpers.utils import prepare_sources_labels, prepareToolMetadata
-import re
-from bson import ObjectId 
+from bson import ObjectId
 
 router = APIRouter()
 
+
+def _build_filters(params) -> Dict[str, Any]:
+    filters: Dict[str, Any] = {}
+    if source := params.get('source'):
+        filters['data.source'] = {'$in': source.split(',')}
+    if type_ := params.get('type'):
+        filters['data.type'] = {'$in': type_.split(',')}
+    if topics := params.get('topics'):
+        filters['data.topics.uri'] = {'$in': topics.split(',')}
+    if operations := params.get('operations'):
+        filters['data.operations.uri'] = {'$in': operations.split(',')}
+    if license_ := params.get('license'):
+        filters['data.license.name'] = {'$in': license_.split(',')}
+    if tags := params.get('tags'):
+        filters['data.tags'] = {'$in': tags.split(',')}
+    if input_fmt := params.get('input_format'):
+        filters['data.input.term'] = {'$in': input_fmt.split(',')}
+    if output_fmt := params.get('output_format'):
+        filters['data.output.term'] = {'$in': output_fmt.split(',')}
+    return filters
+
+
 @router.get('/search', tags=["search"])
 async def search(request: Request):
-    try:
-        tools = {}
-        counts = {
-            'name': 0,
-            'description': 0,
-            'topics': 0,
-            'operations': 0,
-            'publication_title': 0,
-            'publication_abstract': 0,
-        }
+    tools_collection, stats_collection, pubs_collection, _ = connect_DB()
 
-        search = {}
-        params = request.query_params
+    params = request.query_params
+    q = params.get('q')
+    page = int(params.get('page', 0))
+    page_size = 10
 
-        if source := params.get('source'):
-            search['data.source'] = {'$in': source.split(',')}
+    filters = _build_filters(params)
 
-        if type_ := params.get('type'):
-            search['data.type'] = {'$in': type_.split(',')}
+    if q:
+        match: Dict[str, Any] = {'$text': {'$search': q}, **filters}
+        add_score = {'$addFields': {'_score': {'$meta': 'textScore'}}}
+        sort_stage = {'$sort': {'_score': -1, '_id': 1}}
+    else:
+        match = filters
+        add_score = {'$addFields': {'_score': 0}}
+        sort_stage = {'$sort': {'_id': 1}}
 
-        if topics := params.get('topics'):
-            search['data.topics.uri'] = {'$in': topics.split(',')}
+    pipeline = [
+        {'$match': match},
+        add_score,
+        sort_stage,
+        {'$facet': {
+            'total': [{'$count': 'count'}],
+            # Lightweight projection over all matching docs for facet stats
+            'stats_docs': [{'$project': {
+                'data.type': 1, 'data.source': 1, 'data.edam_topics': 1,
+                'data.edam_operations': 1, 'data.license': 1,
+                'data.input': 1, 'data.output': 1, 'data.tags': 1,
+            }}],
+            # Full documents for the requested page only
+            'tools': [
+                {'$skip': page * page_size},
+                {'$limit': page_size},
+                {'$project': {'_score': 0}},
+            ],
+        }},
+    ]
 
-        if operations := params.get('operations'):
-            search['data.operations.uri'] = {'$in': operations.split(',')}
+    result = list(tools_collection.aggregate(pipeline))[0]
+    total = result['total'][0]['count'] if result['total'] else 0
+    stats_data = [doc['data'] for doc in result['stats_docs']]
+    search_stats = calculate_stats(stats_data)
 
-        if license := params.get('license'):
-            search['data.license.name'] = {'$in': license.split(',')}
+    tools_data = []
+    for doc in result['tools']:
+        tool = doc.get('data', {})
+        tool['id'] = str(doc['_id'])
+        tools_data.append(tool)
 
-        if collections := params.get('tags'):
-            search['data.tags'] = {'$in': collections.split(',')}
+    _hydrate_publications(tools_data, pubs_collection)
+    _hydrate_fairsoft(tools_data, stats_collection)
+    tools_data = [prepare_sources_labels(t) for t in tools_data]
+    tools_data = [prepareToolMetadata(t) for t in tools_data]
 
-        if input := params.get('input_format'):
-            search['data.input.term'] = {'$in': input.split(',')}
-
-        if output := params.get('output_format'):
-            search['data.output.term'] = {'$in': output.split(',')}
-
-        q = params.get('q')
-
-        pat = re.compile(rf'{q}', re.I)
-
-        search_in = params.get('searchIn', '').split(',')
-        if search_in:
-            if 'name' in search_in:
-                tools, counts = make_search('name', 'data.name', {'$regex': pat}, search, tools, counts)
-
-            if 'description' in search_in:
-                tools, counts = make_search('description', 'data.description', {'$regex': pat}, search, tools, counts)
-
-            if 'topics' in search_in:
-                tools, counts = make_search('topics', 'data.topics.term', {'$regex': pat}, search, tools, counts)
-
-            if 'operations' in search_in:
-                tools, counts = make_search('operations', 'data.operations.term', {'$regex': pat}, search, tools, counts)
-        else:
-            tools, counts = make_search('name', 'data.name', {'$regex': pat}, search, tools, counts)
-            tools, counts = make_search('description', 'data.description', {'$regex': pat}, search, tools, counts)
-            tools, counts = make_search('topics', 'data.topics.term', {'$regex': pat}, search, tools, counts)
-            tools, counts = make_search('operations', 'data.operations.term', {'$regex': pat}, search, tools, counts)
-
-        tools = list(tools.values())
-
-        _, stats_collection, pubs_collection, _ = connect_DB()
-        _hydrate_publications(tools, pubs_collection)
-        _hydrate_fairsoft(tools, stats_collection)
-
-        tools = [prepare_sources_labels(tool) for tool in tools]
-        tools = [prepareToolMetadata(tool) for tool in tools]
-        stats = calculate_stats(tools)
-        page = int(params.get('page', 0))
-        a = page * 10
-        b = page * 10 + 10
-
-        data = {
-            'query': q,
-            'tools': tools[a:b],
-            'total_tools': len(tools),
-            'counts': counts,
-            'stats': stats,
-        }
-
-    except Exception as err:
-        raise
-        #raise HTTPException(status_code=400, detail=f"Something went wrong while fetching: {err}")
-
-    return JSONResponse(content=data)
+    return JSONResponse(content=_jsonify_mongo({
+        'query': q,
+        'tools': tools_data,
+        'total_tools': total,
+        'stats': search_stats,
+    }))
 
 
 
@@ -174,56 +169,13 @@ async def initial_search(request: Request):
     page = int(params.get('page', 0))
     page_size = 10
 
-    filters: Dict[str, Any] = {}
-    if source := params.get('source'):
-        filters['data.source'] = {'$in': source.split(',')}
-    if type_ := params.get('type'):
-        filters['data.type'] = {'$in': type_.split(',')}
-    if topics := params.get('topics'):
-        filters['data.topics.uri'] = {'$in': topics.split(',')}
-    if operations := params.get('operations'):
-        filters['data.operations.uri'] = {'$in': operations.split(',')}
-    if license_ := params.get('license'):
-        filters['data.license.name'] = {'$in': license_.split(',')}
-    if tags := params.get('tags'):
-        filters['data.tags'] = {'$in': tags.split(',')}
-    if input_fmt := params.get('input_format'):
-        filters['data.input.term'] = {'$in': input_fmt.split(',')}
-    if output_fmt := params.get('output_format'):
-        filters['data.output.term'] = {'$in': output_fmt.split(',')}
+    filters = _build_filters(params)
 
-    # Score each tool by completeness so richer, more validated tools surface first.
-    score_expr: Dict[str, Any] = {
-        '$add': [
-            {'$cond': [{'$gt': [{'$size': {'$ifNull': ['$data.publication', []]}}, 0]}, 3, 0]},
-            {'$cond': [{'$gt': [{'$size': {'$ifNull': ['$data.webpage', []]}}, 0]}, 2, 0]},
-            {'$size': {'$ifNull': ['$data.source', []]}},
-            {'$cond': [{'$gt': [{'$size': {'$ifNull': ['$data.topics', []]}}, 0]}, 1, 0]},
-            {'$cond': [{'$gt': [{'$size': {'$ifNull': ['$data.operations', []]}}, 0]}, 1, 0]},
-            {'$cond': [{'$ifNull': ['$data.inst_instr', False]}, 1, 0]},
-        ]
-    }
-
-    pipeline = [
-        {'$match': filters},
-        {'$addFields': {'_score': score_expr}},
-        {'$sort': {'_score': -1, '_id': 1}},
-        {'$facet': {
-            'total': [{'$count': 'count'}],
-            'tools': [
-                {'$skip': page * page_size},
-                {'$limit': page_size},
-                {'$project': {'_score': 0}},
-            ],
-        }},
-    ]
-
-    result = list(tools_collection.aggregate(pipeline))
-    facet = result[0]
-    total = facet['total'][0]['count'] if facet['total'] else 0
+    total = tools_collection.count_documents(filters)
+    docs = tools_collection.find(filters).sort('_id', 1).skip(page * page_size).limit(page_size)
 
     tools_data = []
-    for doc in facet['tools']:
+    for doc in docs:
         tool = doc.get('data', {})
         tool['id'] = str(doc['_id'])
         tools_data.append(tool)

@@ -1,50 +1,21 @@
-from app.helpers.utils import prepareToolMetadata
 from app.helpers.database import connect_DB
-from pprint import pprint
+
 tools_collection, stats, pubs_collection, availability_collection = connect_DB()
 
-def search_input(tools, counts, search, label):
-    results = tools_collection.find(search) 
-    ## add FAIR scores to all tools
-    results = list(results)
-    results.reverse()
-    for tool in results:
-        # skip tools that are only in galaxy_metadata
-        if tool['source'] == ['galaxy_metadata']:
-            continue
-        else:
-            id = str(tool['_id'])
-            tool = tool['data']
-            tool['id'] = id
-            #entry = prepareToolMetadata(tool)
-            if str(tool['id']) in tools.keys():
-                tools[str(tool['id'])]['foundIn'].append(label)
-            else:
-                tool['foundIn'] = [label]
-                tools[str(tool['id'])] = tool
-
-            counts[label] += 1
-
-    return tools, counts
-
-def make_search(label, query_field, query_expression, search, tools, counts):
-    search = search.copy()
-    search[query_field] = query_expression
-
-    search = {'$and': [{key:value} for key, value in search.items() ]}
-    tools, counts = search_input(tools, counts, search, label)
-    print(f"Tools found {len(tools)}")
-    return tools, counts
+_total_stats_cache = None
 
 
 def calculate_total_stats():
-    '''
-    Stats of the full collection, for initial search
-    '''
-    tools = tools_collection.find({}) 
-    tools = [tool['data'] for tool in tools]
-    stats = calculate_stats(tools)
-    return stats
+    global _total_stats_cache
+    if _total_stats_cache is not None:
+        return _total_stats_cache
+    tools = [doc['data'] for doc in tools_collection.find(
+        {}, projection={'data.type':1,'data.source':1,'data.edam_topics':1,
+                        'data.edam_operations':1,'data.license':1,
+                        'data.input':1,'data.output':1,'data.tags':1}
+    )]
+    _total_stats_cache = calculate_stats(tools)
+    return _total_stats_cache
 
 def calculate_stats(tools):
     stats = {
