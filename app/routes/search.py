@@ -1,45 +1,61 @@
-from fastapi import APIRouter, HTTPException, Request
-from typing import Any, Dict, List
+from fastapi import APIRouter, HTTPException, Query
+from typing import Any, Dict, List, Optional
 from fastapi.responses import JSONResponse
 from app.helpers.database import connect_DB
 from app.helpers.search import calculate_stats, calculate_total_stats
-from app.helpers.utils import prepare_sources_labels, prepareToolMetadata
+from app.helpers.utils import prepare_sources_labels, prepareToolMetadata, hydrate_fairsoft
 from bson import ObjectId
 
 router = APIRouter()
 
 
-def _build_filters(params) -> Dict[str, Any]:
+def _build_filters(
+    source: Optional[str],
+    type_: Optional[str],
+    topics: Optional[str],
+    operations: Optional[str],
+    license_: Optional[str],
+    tags: Optional[str],
+    input_format: Optional[str],
+    output_format: Optional[str],
+) -> Dict[str, Any]:
     filters: Dict[str, Any] = {}
-    if source := params.get('source'):
+    if source:
         filters['data.source'] = {'$in': source.split(',')}
-    if type_ := params.get('type'):
+    if type_:
         filters['data.type'] = {'$in': type_.split(',')}
-    if topics := params.get('topics'):
+    if topics:
         filters['data.topics.uri'] = {'$in': topics.split(',')}
-    if operations := params.get('operations'):
+    if operations:
         filters['data.operations.uri'] = {'$in': operations.split(',')}
-    if license_ := params.get('license'):
+    if license_:
         filters['data.license.name'] = {'$in': license_.split(',')}
-    if tags := params.get('tags'):
+    if tags:
         filters['data.tags'] = {'$in': tags.split(',')}
-    if input_fmt := params.get('input_format'):
-        filters['data.input.term'] = {'$in': input_fmt.split(',')}
-    if output_fmt := params.get('output_format'):
-        filters['data.output.term'] = {'$in': output_fmt.split(',')}
+    if input_format:
+        filters['data.input.term'] = {'$in': input_format.split(',')}
+    if output_format:
+        filters['data.output.term'] = {'$in': output_format.split(',')}
     return filters
 
 
 @router.get('/search', tags=["search"])
-async def search(request: Request):
+async def search(
+    q: Optional[str] = Query(None, description="Text search query"),
+    page: int = Query(0, ge=0, description="Page number (0-indexed)"),
+    source: Optional[str] = Query(None, description="Comma-separated source names"),
+    type: Optional[str] = Query(None, alias="type", description="Comma-separated tool types"),
+    topics: Optional[str] = Query(None, description="Comma-separated EDAM topic URIs"),
+    operations: Optional[str] = Query(None, description="Comma-separated EDAM operation URIs"),
+    license: Optional[str] = Query(None, alias="license", description="Comma-separated license names"),
+    tags: Optional[str] = Query(None, description="Comma-separated tags"),
+    input_format: Optional[str] = Query(None, description="Comma-separated input format terms"),
+    output_format: Optional[str] = Query(None, description="Comma-separated output format terms"),
+):
     tools_collection, stats_collection, pubs_collection, _ = connect_DB()
 
-    params = request.query_params
-    q = params.get('q')
-    page = int(params.get('page', 0))
     page_size = 10
-
-    filters = _build_filters(params)
+    filters = _build_filters(source, type, topics, operations, license, tags, input_format, output_format)
 
     if q:
         match: Dict[str, Any] = {'$text': {'$search': q}, **filters}
@@ -83,7 +99,7 @@ async def search(request: Request):
         tools_data.append(tool)
 
     _hydrate_publications(tools_data, pubs_collection)
-    _hydrate_fairsoft(tools_data, stats_collection)
+    hydrate_fairsoft(tools_data, stats_collection)
     tools_data = [prepare_sources_labels(t) for t in tools_data]
     tools_data = [prepareToolMetadata(t) for t in tools_data]
 
@@ -130,27 +146,6 @@ def _hydrate_publications(tools: List[Dict[str, Any]], pubs_collection) -> None:
         ]
 
 
-def _hydrate_fairsoft(tools: List[Dict[str, Any]], stats_collection) -> None:
-    """In-place: add 'fairsoft' key to each tool from the stats collection."""
-    tool_ids = [tool['id'] for tool in tools if tool.get('id')]
-
-    if not tool_ids:
-        return
-
-    fairsoft_map: Dict[str, Any] = {}
-    for doc in stats_collection.find(
-        {"createdFrom": {"$in": tool_ids}, "variable": "FAIR_scores"},
-        projection={"createdFrom": 1, "data": 1},
-    ):
-        for tid in doc.get("createdFrom", []):
-            if tid in tool_ids:
-                fairsoft_map[tid] = doc.get("data")
-
-    for tool in tools:
-        tid = tool.get('id')
-        tool['fairsoft'] = fairsoft_map.get(tid)
-
-
 def _jsonify_mongo(value: Any) -> Any:
     if isinstance(value, ObjectId):
         return str(value)
@@ -162,14 +157,22 @@ def _jsonify_mongo(value: Any) -> Any:
 
 
 @router.get("/initial-search", tags=["search"])
-async def initial_search(request: Request):
+async def initial_search(
+    page: int = Query(0, ge=0, description="Page number (0-indexed)"),
+    source: Optional[str] = Query(None, description="Comma-separated source names"),
+    type: Optional[str] = Query(None, alias="type", description="Comma-separated tool types"),
+    topics: Optional[str] = Query(None, description="Comma-separated EDAM topic URIs"),
+    operations: Optional[str] = Query(None, description="Comma-separated EDAM operation URIs"),
+    license: Optional[str] = Query(None, alias="license", description="Comma-separated license names"),
+    tags: Optional[str] = Query(None, description="Comma-separated tags"),
+    input_format: Optional[str] = Query(None, description="Comma-separated input format terms"),
+    output_format: Optional[str] = Query(None, description="Comma-separated output format terms"),
+):
     tools_collection, stats_collection, pubs_collection, _ = connect_DB()
 
-    params = request.query_params
-    page = int(params.get('page', 0))
     page_size = 10
 
-    filters = _build_filters(params)
+    filters = _build_filters(source, type, topics, operations, license, tags, input_format, output_format)
 
     total = tools_collection.count_documents(filters)
     docs = tools_collection.find(filters).sort('_id', 1).skip(page * page_size).limit(page_size)
@@ -181,7 +184,7 @@ async def initial_search(request: Request):
         tools_data.append(tool)
 
     _hydrate_publications(tools_data, pubs_collection)
-    _hydrate_fairsoft(tools_data, stats_collection)
+    hydrate_fairsoft(tools_data, stats_collection)
 
     return JSONResponse(content=_jsonify_mongo({
         'query': '',

@@ -518,10 +518,9 @@ def prepare_sources_labels(tool):
 
     if 'galaxy_metadata' in remain_sources:
         sources_labels['toolshed'] = f'https://toolshed.g2.bx.psu.edu/repository'
-        remain_sources.append('galaxy')
         remain_sources.remove('galaxy_metadata')
     
-    if 'galaxy' in tool['source']:
+    if 'galaxy' in remain_sources:
         sources_labels['galaxy'] = 'https://usegalaxy.eu/'
         remain_sources.remove('galaxy')
 
@@ -593,9 +592,28 @@ def prepare_sources_labels(tool):
     return(tool)
 
 
+def hydrate_fairsoft(tools: list, stats_collection) -> None:
+    """In-place: add 'fairsoft' key to each tool dict from the stats collection."""
+    tool_ids = [tool['id'] for tool in tools if tool.get('id')]
+    if not tool_ids:
+        return
+
+    fairsoft_map = {}
+    for doc in stats_collection.find(
+        {"createdFrom": {"$in": tool_ids}, "variable": "FAIR_scores"},
+        projection={"createdFrom": 1, "data": 1},
+    ):
+        for tid in doc.get("createdFrom", []):
+            if tid in tool_ids:
+                fairsoft_map[tid] = doc.get("data")
+
+    for tool in tools:
+        tool['fairsoft'] = fairsoft_map.get(tool.get('id'))
+
+
 def get_version():
     # Get the absolute path to the VERSION file
     version_path = Path(__file__).parent.parent.parent / "VERSION"
-    
+
     # Read the VERSION file
     return version_path.read_text().strip()

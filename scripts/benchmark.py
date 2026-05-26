@@ -38,9 +38,9 @@ CASES = [
     ("initial-search: page 2",         "GET",  "/initial-search", {"source": "biotools", "page": "2"},        None),
     ("initial-search: combined",       "GET",  "/initial-search", {"source": "biotools", "type": "lib"},      None),
 
-    # ── /tool ────────────────────────────────────────────────────────────────
-    ("tool: names_type_labels",        "GET",  "/tool/names_type_labels", {},                                 None),
-    ("tool: detail by name",           "GET",  "/tool",           {"name": "blast2go"},                       None),
+    # ── /tools ────────────────────────────────────────────────────────────────
+    ("tools: names_type_labels",        "GET",  "/tools/names_type_labels", {},                                 None),
+    ("tools: detail by name",           "GET",  "/tools",           {"name": "blast2go"},                       None),
 
     # ── /fairsoft ────────────────────────────────────────────────────────────
     ("fairsoft: evaluate (minimal)",   "POST", "/fairsoft/evaluate", {}, {
