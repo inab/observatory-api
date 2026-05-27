@@ -25,10 +25,15 @@ async def names_type_labels():
     return JSONResponse(content=resp)
 
 @router.get('', tags=["tools"])
-async def tool_metadata(name: str = None):
-    if not name:
-        raise HTTPException(status_code=400, detail="No tool name provided")
-    tool = tools_collection.find_one({'data.name': name})
+async def tool_metadata(name: str = None, id: str = None):
+    if not name and not id:
+        raise HTTPException(status_code=400, detail="No tool name or id provided")
+    if id:
+        if not ObjectId.is_valid(id):
+            raise HTTPException(status_code=400, detail="Invalid id format")
+        tool = tools_collection.find_one({'_id': ObjectId(id)})
+    else:
+        tool = tools_collection.find_one({'data.name': name})
     '''
     if tool:
         pub_ids_raw = tool['data'].get("publication", [])
@@ -58,6 +63,8 @@ async def tool_metadata(name: str = None):
             tool['data']["publication"] = [p["data"] for p in pubs]
         '''
 
+    if not tool:
+        raise HTTPException(status_code=404, detail="Tool not found")
     tool_id = str(tool['_id'])
     tool = tool['data']
     if tool:
