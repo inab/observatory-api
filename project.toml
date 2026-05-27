@@ -1,6 +1,6 @@
 [project]
 name = "observatory-api"
-version = "2.7.28"
+version = "2.7.29"
 description = "REST API service for the Research Software Observatory"
 requires-python = ">=3.11"
 dependencies = [

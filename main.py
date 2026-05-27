@@ -4,7 +4,7 @@ from starlette.responses import HTMLResponse
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.staticfiles import StaticFiles
 from starlette.responses import FileResponse
-from app.routes import edam, spdx, stats, metadata, fair_evaluation, fairsoft, search, tool, downloads, web_availability, publication
+from app.routes import edam, spdx, stats, metadata, fair_evaluation, fairsoft, search, tool, downloads, web_availability, publication, similarity
 from app.helpers.utils import get_version
 import logging
 
@@ -44,6 +44,10 @@ tags_metadata = [
         {
             "name": "publication",
             "description":"Publications related endpoints"
+        },
+        {
+            "name": "similarity",
+            "description": "Similar software endpoints"
         }
     ]
 
@@ -84,6 +88,7 @@ app.include_router(downloads.router, prefix="/downloads")
 app.include_router(web_availability.router, prefix="/web-availability")
 app.include_router(publication.router, prefix="/publication")
 app.include_router(search.router, prefix="")
+app.include_router(similarity.router, prefix="/similarity")
 
 
 # logging

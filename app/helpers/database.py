@@ -44,3 +44,27 @@ def connect_DB():
     availability_collection = client[mongo_db][availability_collection_name]
 
     return tools_collection, stats, pubs_collection, availability_collection
+
+
+def connect_similarity_DB():
+    config = configparser.ConfigParser()
+    config_path = os.getenv('CONFIG_PATH', './api-variables/dev_config_db.ini')
+    config.read(config_path)
+
+    mongo_host = config['MONGO_DETAILS']['DBHOST']
+    mongo_port = config['MONGO_DETAILS']['DBPORT']
+    mongo_user = config['MONGO_DETAILS']['DBUSER']
+    mongo_pass = config['MONGO_DETAILS']['DBPASS']
+    mongo_auth_src = config['MONGO_DETAILS']['DBAUTHSRC']
+    mongo_db = config['MONGO_DETAILS']['DATABASE']
+    similarity_collection_name = config['MONGO_DETAILS']['SIMILARITY']
+
+    client = MongoClient(
+        host=[f'{mongo_host}:{mongo_port}'],
+        username=mongo_user,
+        password=mongo_pass,
+        authSource=mongo_auth_src,
+        authMechanism='SCRAM-SHA-256'
+    )
+
+    return client[mongo_db][similarity_collection_name]
