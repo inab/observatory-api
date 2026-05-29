@@ -92,11 +92,9 @@ def calculate_stats(tools):
         # Data format (FASTA, CSV, ...)
         # Not data type for now
         for item in tool['input']:
-            if item['uri']:
-                term = item['uri']
-            else:
-                term = item['term']
-
+            term = item['uri'] or item['term']
+            if not term:
+                continue
             if term in stats['input'].keys():
                 stats['input'][term] += 1
             else:
@@ -104,11 +102,9 @@ def calculate_stats(tools):
 
         #---- OUTPUT ------------
         for item in tool['output']:
-            if item['uri']:
-                term = item['uri']
-            else:
-                term = item['term']
-
+            term = item['uri'] or item['term']
+            if not term:
+                continue
             if term in stats['output'].keys():
                 stats['output'][term] += 1
             else:
