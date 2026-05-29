@@ -177,10 +177,26 @@ async def initial_search(
     filters = _build_filters(source, type, topics, operations, license, tags, input_format, output_format)
 
     total = tools_collection.count_documents(filters)
-    docs = tools_collection.find(filters).sort('_id', 1).skip(page * page_size).limit(page_size)
+
+    pipeline = [
+        {'$match': filters},
+        {'$addFields': {'_score': {'$add': [
+            # description is a list; weight it highest
+            {'$cond': [{'$gt': [{'$size': {'$ifNull': ['$data.description', []]}}, 0]}, 4, 0]},
+            {'$cond': [{'$gt': [{'$size': {'$ifNull': ['$data.topics', []]}}, 0]}, 1, 0]},
+            {'$cond': [{'$gt': [{'$size': {'$ifNull': ['$data.operations', []]}}, 0]}, 1, 0]},
+            {'$cond': [{'$gt': [{'$size': {'$ifNull': ['$data.webpage', []]}}, 0]}, 1, 0]},
+            {'$cond': [{'$gt': [{'$size': {'$ifNull': ['$data.publication', []]}}, 0]}, 1, 0]},
+            {'$cond': [{'$gt': [{'$size': {'$ifNull': ['$data.source', []]}}, 1]}, 1, 0]},
+        ]}}},
+        {'$sort': {'_score': -1, '_id': 1}},
+        {'$skip': page * page_size},
+        {'$limit': page_size},
+        {'$project': {'_score': 0}},
+    ]
 
     tools_data = []
-    for doc in docs:
+    for doc in tools_collection.aggregate(pipeline):
         tool = doc.get('data', {})
         tool['id'] = str(doc['_id'])
         tools_data.append(tool)

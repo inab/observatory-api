@@ -190,10 +190,10 @@ def normalize_webpages(webpages: list) -> list:
 
 def clean_edam_terms(tool: dict) -> None:
     for item in tool.get('topics') or []:
-        if isinstance(item.get('term'), str):
+        if item.get('term'):
             item['term'] = item['term'].strip('"')
     for item in tool.get('operations') or []:
-        if isinstance(item.get('term'), str):
+        if item.get('term'):
             item['term'] = item['term'].strip('"')
 
 

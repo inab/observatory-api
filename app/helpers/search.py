@@ -66,7 +66,9 @@ def calculate_stats(tools):
 
         #---- TOPICS ------------
         for edam_topic in tool['topics']:
-            edam_topic = edam_topic['term'].strip('"')
+            edam_topic = (edam_topic['term'] or '').strip('"')
+            if not edam_topic:
+                continue
             if edam_topic in stats['topics'].keys():
                 stats['topics'][edam_topic] += 1
             else:
@@ -74,7 +76,9 @@ def calculate_stats(tools):
 
         #---- OPERATIONS --------
         for edam_operation in tool['operations']:
-            edam_operation = edam_operation['term'].strip('"')
+            edam_operation = (edam_operation['term'] or '').strip('"')
+            if not edam_operation:
+                continue
             if edam_operation in stats['operations'].keys():
                 stats['operations'][edam_operation] += 1
             else:
