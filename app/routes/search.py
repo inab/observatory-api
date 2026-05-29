@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional
 from fastapi.responses import JSONResponse
 from app.helpers.database import connect_DB
 from app.helpers.search import calculate_stats, calculate_total_stats
-from app.helpers.utils import prepare_sources_labels, prepareToolMetadata, hydrate_fairsoft
+from app.helpers.utils import prepare_sources_labels, prepareToolMetadata, hydrate_fairsoft, clean_edam_terms
 from bson import ObjectId
 
 router = APIRouter()
@@ -74,8 +74,8 @@ async def search(
             'total': [{'$count': 'count'}],
             # Lightweight projection over all matching docs for facet stats
             'stats_docs': [{'$project': {
-                'data.type': 1, 'data.source': 1, 'data.edam_topics': 1,
-                'data.edam_operations': 1, 'data.license': 1,
+                'data.type': 1, 'data.source': 1, 'data.topics': 1,
+                'data.operations': 1, 'data.license': 1,
                 'data.input': 1, 'data.output': 1, 'data.tags': 1,
             }}],
             # Full documents for the requested page only
@@ -98,6 +98,8 @@ async def search(
         tool['id'] = str(doc['_id'])
         tools_data.append(tool)
 
+    for t in tools_data:
+        clean_edam_terms(t)
     _hydrate_publications(tools_data, pubs_collection)
     hydrate_fairsoft(tools_data, stats_collection)
     tools_data = [prepare_sources_labels(t) for t in tools_data]
@@ -183,6 +185,8 @@ async def initial_search(
         tool['id'] = str(doc['_id'])
         tools_data.append(tool)
 
+    for t in tools_data:
+        clean_edam_terms(t)
     _hydrate_publications(tools_data, pubs_collection)
     hydrate_fairsoft(tools_data, stats_collection)
 

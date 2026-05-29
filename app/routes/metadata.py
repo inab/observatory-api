@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import JSONResponse
-from app.helpers.utils import prepareToolMetadata, prepare_sources_labels, prepareMetadataForEvaluation, prepareListsIds, keep_first_label, hydrate_fairsoft
+from app.helpers.utils import prepareToolMetadata, prepare_sources_labels, prepareMetadataForEvaluation, prepareListsIds, keep_first_label, hydrate_fairsoft, clean_edam_terms
 from app.helpers.makejson import build_json_ld
 from app.helpers.makecff import create_cff
 from app.helpers.database import connect_DB
@@ -69,6 +69,7 @@ async def tool_metadata(name: str = None, id: str = None):
     tool = tool['data']
     if tool:
         tool['id'] = tool_id
+        clean_edam_terms(tool)
         hydrate_fairsoft([tool], stats)
         tool = prepare_sources_labels(tool)
         tool = prepareToolMetadata(tool)

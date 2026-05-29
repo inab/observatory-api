@@ -166,6 +166,15 @@ def prepareTopicsOperations(metadata, field, new_field):
     metadata[new_field] = new_items
     return metadata
 
+def clean_edam_terms(tool: dict) -> None:
+    for item in tool.get('topics') or []:
+        if isinstance(item.get('term'), str):
+            item['term'] = item['term'].strip('"')
+    for item in tool.get('operations') or []:
+        if isinstance(item.get('term'), str):
+            item['term'] = item['term'].strip('"')
+
+
 def prepareDocumentation(metadata):
     '''
     Prepares the documentation field of a tool to be displayed in the UI
