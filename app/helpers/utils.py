@@ -108,6 +108,8 @@ def prepareToolMetadata(entry):
         entry['os'] = []
     entry.pop('operating_system')
 
+    entry['webpage'] = normalize_webpages(entry.get('webpage') or [])
+
     return entry
 
 
@@ -165,6 +167,26 @@ def prepareTopicsOperations(metadata, field, new_field):
     
     metadata[new_field] = new_items
     return metadata
+
+def _normalize_url(url: str) -> str:
+    url = url.strip()
+    url = url.replace('https://galaxy.bi.uni-freiburg.de/tool_runner?', 'https://usegalaxy.eu/root?')
+    url = url.rstrip('/')
+    url = re.sub(r'^http://', 'https://', url)
+    url = re.sub(r'^https://www\.', 'https://', url)
+    return url
+
+
+def normalize_webpages(webpages: list) -> list:
+    seen = {}
+    for url in webpages:
+        if not url:
+            continue
+        key = _normalize_url(url)
+        if key not in seen:
+            seen[key] = key
+    return list(seen.values())
+
 
 def clean_edam_terms(tool: dict) -> None:
     for item in tool.get('topics') or []:
