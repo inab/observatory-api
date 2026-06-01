@@ -26,6 +26,12 @@ def _longest_description(descriptions):
     return max(descriptions, key=len)
 
 
+def _topic_labels(topics):
+    if not topics:
+        return []
+    return [t['term'] for t in topics if isinstance(t, dict) and t.get('term')]
+
+
 def _enrich_similar(similar_list):
     enriched = []
     for item in similar_list:
@@ -39,11 +45,13 @@ def _enrich_similar(similar_list):
                     'data.source': 1,
                     'data.repository': 1,
                     'data.links': 1,
+                    'data.topics': 1,
                 }
             )
             if tool_doc:
                 data = tool_doc.get('data', {})
                 entry['description'] = _longest_description(data.get('description', []))
+                entry['topics'] = _topic_labels(data.get('topics', []))
                 try:
                     prepare_sources_labels(data)
                     entry['sources_labels'] = data.get('sources_labels', {})
@@ -51,9 +59,11 @@ def _enrich_similar(similar_list):
                     entry['sources_labels'] = {}
             else:
                 entry['description'] = None
+                entry['topics'] = []
                 entry['sources_labels'] = {}
         except Exception:
             entry['description'] = None
+            entry['topics'] = []
             entry['sources_labels'] = {}
         enriched.append(entry)
     return enriched
