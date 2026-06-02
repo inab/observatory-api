@@ -29,7 +29,15 @@ def _longest_description(descriptions):
 def _topic_labels(topics):
     if not topics:
         return []
-    return [t['term'] for t in topics if isinstance(t, dict) and t.get('term')]
+    labels = []
+    for t in topics:
+        if not isinstance(t, dict) or not t.get('term'):
+            continue
+        label = {'term': t['term']}
+        if t.get('uri'):
+            label['uri'] = t['uri']
+        labels.append(label)
+    return labels
 
 
 def _enrich_similar(similar_list):

@@ -184,7 +184,7 @@ def normalize_webpages(webpages: list) -> list:
             continue
         key = _normalize_url(url)
         if key not in seen:
-            seen[key] = key
+            seen[key] = url
     return list(seen.values())
 
 
