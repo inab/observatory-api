@@ -8,6 +8,29 @@ from bson import ObjectId
 
 router = APIRouter()
 
+# Case-insensitive collation. Used for the topic/operation term filters so the matching
+# is case-insensitive *and* index-backed: a plain regex (`$options: 'i'`) forces a full
+# collection scan, whereas exact `$in` equality under this collation uses a matching
+# collation index (see TERM_COLLATION_INDEXES in scripts/ensure_indexes). Only passed on
+# queries that actually filter by term, since a collation also disables the plain binary
+# indexes (source/type/license/...) for that request.
+TERM_COLLATION = {'locale': 'en', 'strength': 2}
+
+
+def _term_match(values: str) -> Dict[str, Any]:
+    """Match EDAM terms by exact value, tolerating the leading-quote artefact.
+
+    Some stored terms carry a leading double-quote (e.g. '"Allergy'); the stats facet
+    strips it before exposing terms, so callers send the cleaned value. Matching both the
+    bare and leading-quoted forms covers it. Case-insensitivity comes from TERM_COLLATION,
+    not from this predicate, so the match stays index-friendly.
+    """
+    variants = []
+    for v in values.split(','):
+        variants.append(v)
+        variants.append('"' + v)
+    return {'$in': variants}
+
 
 def _build_filters(
     source: Optional[str],
@@ -25,9 +48,9 @@ def _build_filters(
     if type_:
         filters['data.type'] = {'$in': type_.split(',')}
     if topics:
-        filters['data.topics.uri'] = {'$in': topics.split(',')}
+        filters['data.topics.term'] = _term_match(topics)
     if operations:
-        filters['data.operations.uri'] = {'$in': operations.split(',')}
+        filters['data.operations.term'] = _term_match(operations)
     if license_:
         filters['data.license.name'] = {'$in': license_.split(',')}
     if tags:
@@ -45,8 +68,8 @@ async def search(
     page: int = Query(0, ge=0, description="Page number (0-indexed)"),
     source: Optional[str] = Query(None, description="Comma-separated source names"),
     type: Optional[str] = Query(None, alias="type", description="Comma-separated tool types"),
-    topics: Optional[str] = Query(None, description="Comma-separated EDAM topic URIs"),
-    operations: Optional[str] = Query(None, description="Comma-separated EDAM operation URIs"),
+    topics: Optional[str] = Query(None, description="Comma-separated topic terms"),
+    operations: Optional[str] = Query(None, description="Comma-separated operation terms"),
     license: Optional[str] = Query(None, alias="license", description="Comma-separated license names"),
     tags: Optional[str] = Query(None, description="Comma-separated tags"),
     input_format: Optional[str] = Query(None, description="Comma-separated input format terms"),
@@ -56,6 +79,9 @@ async def search(
 
     page_size = 10
     filters = _build_filters(source, type, topics, operations, license, tags, input_format, output_format)
+    # Only apply the case-insensitive collation when a term filter is present; otherwise it
+    # would needlessly disable the plain binary indexes used by the other filters.
+    collation = TERM_COLLATION if (topics or operations) else None
 
     if q:
         match: Dict[str, Any] = {'$text': {'$search': q}, **filters}
@@ -81,7 +107,7 @@ async def search(
         }},
     ]
 
-    result = list(tools_collection.aggregate(pipeline))[0]
+    result = list(tools_collection.aggregate(pipeline, collation=collation))[0]
     total = result['total'][0]['count'] if result['total'] else 0
 
     # Stats are computed from a separate streaming cursor rather than inside the
@@ -96,6 +122,7 @@ async def search(
             'data.operations': 1, 'data.license': 1,
             'data.input': 1, 'data.output': 1, 'data.tags': 1,
         },
+        collation=collation,
     )
     search_stats = calculate_stats([doc['data'] for doc in stats_cursor])
 
@@ -170,8 +197,8 @@ async def initial_search(
     page: int = Query(0, ge=0, description="Page number (0-indexed)"),
     source: Optional[str] = Query(None, description="Comma-separated source names"),
     type: Optional[str] = Query(None, alias="type", description="Comma-separated tool types"),
-    topics: Optional[str] = Query(None, description="Comma-separated EDAM topic URIs"),
-    operations: Optional[str] = Query(None, description="Comma-separated EDAM operation URIs"),
+    topics: Optional[str] = Query(None, description="Comma-separated topic terms"),
+    operations: Optional[str] = Query(None, description="Comma-separated operation terms"),
     license: Optional[str] = Query(None, alias="license", description="Comma-separated license names"),
     tags: Optional[str] = Query(None, description="Comma-separated tags"),
     input_format: Optional[str] = Query(None, description="Comma-separated input format terms"),
@@ -182,8 +209,9 @@ async def initial_search(
     page_size = 10
 
     filters = _build_filters(source, type, topics, operations, license, tags, input_format, output_format)
+    collation = TERM_COLLATION if (topics or operations) else None
 
-    total = tools_collection.count_documents(filters)
+    total = tools_collection.count_documents(filters, collation=collation)
 
     pipeline = [
         {'$match': filters},
@@ -203,7 +231,7 @@ async def initial_search(
     ]
 
     tools_data = []
-    for doc in tools_collection.aggregate(pipeline):
+    for doc in tools_collection.aggregate(pipeline, collation=collation):
         tool = doc.get('data', {})
         tool['id'] = str(doc['_id'])
         tools_data.append(tool)

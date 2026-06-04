@@ -11,6 +11,11 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from app.helpers.database import connect_DB
 from pymongo import TEXT, ASCENDING, DESCENDING
+from pymongo.collation import Collation
+
+# Case-insensitive collation for the topic/operation term filters. Must match
+# TERM_COLLATION in app/routes/search.py so the queries actually use these indexes.
+TERM_COLLATION = Collation(locale="en", strength=2)
 
 
 def create_indexes():
@@ -21,8 +26,18 @@ def create_indexes():
     # Filter fields (used by /search and /initial-search $match)
     tools.create_index([("data.source", ASCENDING)], name="filter_source")
     tools.create_index([("data.type", ASCENDING)], name="filter_type")
-    tools.create_index([("data.topics.uri", ASCENDING)], name="filter_topics_uri")
-    tools.create_index([("data.operations.uri", ASCENDING)], name="filter_operations_uri")
+    # /search and /initial-search filter topics/operations by *term* (not uri), matched
+    # case-insensitively. The collation makes exact-equality `$in` matches index-backed.
+    tools.create_index(
+        [("data.topics.term", ASCENDING)],
+        name="filter_topics_term",
+        collation=TERM_COLLATION,
+    )
+    tools.create_index(
+        [("data.operations.term", ASCENDING)],
+        name="filter_operations_term",
+        collation=TERM_COLLATION,
+    )
     tools.create_index([("data.license.name", ASCENDING)], name="filter_license")
     tools.create_index([("data.tags", ASCENDING)], name="filter_tags")
     tools.create_index([("data.input.term", ASCENDING)], name="filter_input_term")
