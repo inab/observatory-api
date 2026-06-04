@@ -72,12 +72,6 @@ async def search(
         sort_stage,
         {'$facet': {
             'total': [{'$count': 'count'}],
-            # Lightweight projection over all matching docs for facet stats
-            'stats_docs': [{'$project': {
-                'data.type': 1, 'data.source': 1, 'data.topics': 1,
-                'data.operations': 1, 'data.license': 1,
-                'data.input': 1, 'data.output': 1, 'data.tags': 1,
-            }}],
             # Full documents for the requested page only
             'tools': [
                 {'$skip': page * page_size},
@@ -89,8 +83,21 @@ async def search(
 
     result = list(tools_collection.aggregate(pipeline))[0]
     total = result['total'][0]['count'] if result['total'] else 0
-    stats_data = [doc['data'] for doc in result['stats_docs']]
-    search_stats = calculate_stats(stats_data)
+
+    # Stats are computed from a separate streaming cursor rather than inside the
+    # $facet above: a $facet emits all its output in a single document, which is
+    # capped at 16MB, so projecting every matching doc into a facet overflows for
+    # broad queries (BSONObjectTooLarge). A cursor streams in batches with no such
+    # ceiling. find() supports $text, so the same match works for both branches.
+    stats_cursor = tools_collection.find(
+        match,
+        projection={
+            'data.type': 1, 'data.source': 1, 'data.topics': 1,
+            'data.operations': 1, 'data.license': 1,
+            'data.input': 1, 'data.output': 1, 'data.tags': 1,
+        },
+    )
+    search_stats = calculate_stats([doc['data'] for doc in stats_cursor])
 
     tools_data = []
     for doc in result['tools']:
