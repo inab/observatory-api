@@ -1,3 +1,4 @@
+import re
 from fastapi import APIRouter, HTTPException, Query
 from typing import Any, Dict, List, Optional
 from fastapi.responses import JSONResponse
@@ -15,6 +16,18 @@ router = APIRouter()
 # queries that actually filter by term, since a collation also disables the plain binary
 # indexes (source/type/license/...) for that request.
 TERM_COLLATION = {'locale': 'en', 'strength': 2}
+
+# alias -> mongo path(s) the regex-subset branch searches. The aliases mirror the fields in
+# the tools_text_search index (scripts/create_indexes.py:60-76), which is what lets "all
+# four selected" collapse back to the $text fast path. `name` covers both data.name and
+# data.label (a list of strings); $regex matches a list element-wise, and both are in the
+# text index, so the subset and $text paths stay consistent.
+SEARCH_IN_FIELDS = {
+    "name":        ["data.name", "data.label"],
+    "description": ["data.description"],
+    "topics":      ["data.topics.term"],
+    "operations":  ["data.operations.term"],
+}
 
 
 def _term_match(values: str) -> Dict[str, Any]:
@@ -65,6 +78,49 @@ def _build_filters(
     return filters
 
 
+def _parse_search_in(search_in: Optional[str]) -> Optional[List[str]]:
+    """Parse ?searchIn into a deduped list of valid aliases, or None for 'all fields'.
+
+    Returns None when searchIn is omitted/blank or names every field (caller then uses the
+    $text fast path). Raises HTTP 400 on any unknown alias.
+    """
+    if not search_in:
+        return None
+    aliases = [a.strip().lower() for a in search_in.split(',') if a.strip()]
+    if not aliases:
+        return None
+    unknown = [a for a in aliases if a not in SEARCH_IN_FIELDS]
+    if unknown:
+        raise HTTPException(
+            status_code=400,
+            detail=(f"Invalid searchIn field(s): {', '.join(sorted(set(unknown)))}. "
+                    f"Valid: {', '.join(sorted(SEARCH_IN_FIELDS))}."),
+        )
+    selected = list(dict.fromkeys(aliases))  # dedupe, preserve order
+    if set(selected) == set(SEARCH_IN_FIELDS):
+        return None  # all four -> $text
+    return selected
+
+
+def _build_search_in_match(q: str, selected: List[str]) -> Dict[str, Any]:
+    """Regex $or over only the selected data.* fields (subset search; NOT index-backed).
+
+    $text can't be restricted to a field subset, so a strict subset uses a regex scan. q is
+    split on whitespace and each (field, word) pair becomes a case-insensitive regex, ORed
+    to loosely mirror $text's multi-term OR. q is re.escape'd so metachars (e.g. 'c++') are
+    literal. Returns {} when q has no usable words (caller then matches on filters only).
+    """
+    words = [w for w in q.split() if w]
+    if not words:
+        return {}
+    return {'$or': [
+        {path: {'$regex': re.escape(w), '$options': 'i'}}
+        for a in selected
+        for path in SEARCH_IN_FIELDS[a]
+        for w in words
+    ]}
+
+
 @router.get('/search', tags=["search"])
 async def search(
     q: Optional[str] = Query(None, description="Text search query"),
@@ -77,6 +133,12 @@ async def search(
     tags: Optional[str] = Query(None, description="Comma-separated tags"),
     input_format: Optional[str] = Query(None, description="Comma-separated input format terms"),
     output_format: Optional[str] = Query(None, description="Comma-separated output format terms"),
+    searchIn: Optional[str] = Query(
+        None,
+        description=("Comma-separated fields to restrict the q search to: "
+                     "name, description, topics, operations. Omit to search all four. "
+                     "Selecting a strict subset uses a non-index-backed regex scan."),
+    ),
 ):
     tools_collection, stats_collection, pubs_collection, _ = connect_DB()
 
@@ -86,11 +148,21 @@ async def search(
     # would needlessly disable the plain binary indexes used by the other filters.
     collation = TERM_COLLATION if (topics or operations) else None
 
-    if q:
-        match: Dict[str, Any] = {'$text': {'$search': q}, **filters}
+    selected = _parse_search_in(searchIn) if q else None  # gate: searchIn is a no-op without q
+
+    if q and selected is not None:
+        # Strict subset: regex $or over selected fields only (collection scan, unsorted by
+        # relevance). The _id sort is purely for deterministic pagination, not ranking.
+        match: Dict[str, Any] = {**_build_search_in_match(q, selected), **filters}
+        add_score = {'$addFields': {'_score': 0}}
+        sort_stage = {'$sort': {'_id': 1}}
+    elif q:
+        # Default / all-fields: index-backed $text (unchanged).
+        match = {'$text': {'$search': q}, **filters}
         add_score = {'$addFields': {'_score': {'$meta': 'textScore'}}}
         sort_stage = {'$sort': {'_score': -1, '_id': 1}}
     else:
+        # No q: filter-only mode (unchanged).
         match = filters
         add_score = {'$addFields': {'_score': 0}}
         sort_stage = {'$sort': {'_id': 1}}

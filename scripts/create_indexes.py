@@ -56,16 +56,26 @@ def create_indexes():
     # Tool detail lookup (GET /tool?name=...)
     tools.create_index([("data.name", ASCENDING)], name="tool_name")
 
-    # Full-text search (replaces 4-query regex approach in /search)
+    # Full-text search (replaces 4-query regex approach in /search).
+    # A text index can't be redefined in place: changing its fields/weights requires
+    # dropping the existing one first, otherwise create_index raises IndexOptionsConflict.
+    try:
+        tools.drop_index("tools_text_search")
+        print("dropped existing index: tools_text_search (will recreate)")
+    except OperationFailure:
+        pass  # not present yet
     tools.create_index(
         [
             ("data.name", TEXT),
+            ("data.label", TEXT),
             ("data.description", TEXT),
             ("data.topics.term", TEXT),
             ("data.operations.term", TEXT),
         ],
         weights={
             "data.name": 10,
+            # data.label is a list of alternate names; weight it like the primary name.
+            "data.label": 10,
             "data.topics.term": 5,
             "data.operations.term": 5,
             "data.description": 3,
