@@ -561,11 +561,6 @@ def prepare_sources_labels(tool):
             sources_labels['github'] = repo.get('url')
             if 'github' in remain_sources:
                 remain_sources.remove('github')
-        
-        if repo.get('kind') == 'bioconductor':
-            sources_labels['bioconductor'] = repo.get('url')
-            if 'bioconductor' in remain_sources:
-                remain_sources.remove('bioconductor')
 
         if repo.get('kind') == 'bitbucket':
             sources_labels['bitbucket'] = repo.get('url')
