@@ -38,18 +38,27 @@ def _parse_iso_datetime(s: str) -> datetime:
 def _get_availability_doc_by_url(web_url: str) -> dict | None:
     """
     Fetch minimal doc needed for availability response.
-    Tries _id == url first, then url field.
+    For each candidate URL, tries _id == url first, then the url field. If nothing matches
+    and the URL has no trailing slash, retries with one appended, since stored URLs are
+    sometimes normalised with a trailing '/'.
     """
-    doc = availability_collection.find_one(
-        {"_id": web_url},
-        projection={"_id": 0, "url": 1, "data.availability": 1},
-    )
-    if doc is None:
+    candidates = [web_url]
+    if not web_url.endswith("/"):
+        candidates.append(web_url + "/")
+
+    for candidate in candidates:
         doc = availability_collection.find_one(
-            {"url": web_url},
+            {"_id": candidate},
             projection={"_id": 0, "url": 1, "data.availability": 1},
         )
-    return doc
+        if doc is None:
+            doc = availability_collection.find_one(
+                {"url": candidate},
+                projection={"_id": 0, "url": 1, "data.availability": 1},
+            )
+        if doc is not None:
+            return doc
+    return None
 
 
 def _filter_availability_last_days(availability: list[dict], days: int) -> list[dict]:
