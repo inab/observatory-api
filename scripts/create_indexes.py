@@ -12,6 +12,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from app.helpers.database import connect_DB
 from pymongo import TEXT, ASCENDING, DESCENDING
 from pymongo.collation import Collation
+from pymongo.errors import OperationFailure
 
 # Case-insensitive collation for the topic/operation term filters. Must match
 # TERM_COLLATION in app/routes/search.py so the queries actually use these indexes.
@@ -22,6 +23,15 @@ def create_indexes():
     tools, stats, pubs, _ = connect_DB()
 
     # ── toolsDev ──────────────────────────────────────────────────────────────
+
+    # Remove stale indexes from earlier versions: the topic/operation filters now
+    # match on .term (case-insensitive, via filter_*_term below), not .uri.
+    for stale in ("filter_topics_uri", "filter_operations_uri"):
+        try:
+            tools.drop_index(stale)
+            print(f"dropped stale index: {stale}")
+        except OperationFailure:
+            pass  # already absent
 
     # Filter fields (used by /search and /initial-search $match)
     tools.create_index([("data.source", ASCENDING)], name="filter_source")

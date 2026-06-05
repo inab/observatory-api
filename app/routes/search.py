@@ -11,7 +11,7 @@ router = APIRouter()
 # Case-insensitive collation. Used for the topic/operation term filters so the matching
 # is case-insensitive *and* index-backed: a plain regex (`$options: 'i'`) forces a full
 # collection scan, whereas exact `$in` equality under this collation uses a matching
-# collation index (see TERM_COLLATION_INDEXES in scripts/ensure_indexes). Only passed on
+# collation index (see TERM_COLLATION in scripts/create_indexes.py). Only passed on
 # queries that actually filter by term, since a collation also disables the plain binary
 # indexes (source/type/license/...) for that request.
 TERM_COLLATION = {'locale': 'en', 'strength': 2}
@@ -44,6 +44,9 @@ def _build_filters(
 ) -> Dict[str, Any]:
     filters: Dict[str, Any] = {}
     if source:
+        source = source.replace('bioconda_recipes','bioconda')
+        source = source.replace('bioconda','bioconda_recipes')
+        print(source)
         filters['data.source'] = {'$in': source.split(',')}
     if type_:
         filters['data.type'] = {'$in': type_.split(',')}
