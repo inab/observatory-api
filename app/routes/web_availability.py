@@ -38,12 +38,14 @@ def _parse_iso_datetime(s: str) -> datetime:
 def _get_availability_doc_by_url(web_url: str) -> dict | None:
     """
     Fetch minimal doc needed for availability response.
-    For each candidate URL, tries _id == url first, then the url field. If nothing matches
-    and the URL has no trailing slash, retries with one appended, since stored URLs are
-    sometimes normalised with a trailing '/'.
+    For each candidate URL, tries _id == url first, then the url field. If nothing matches,
+    retries with the trailing slash toggled (appended when absent, removed when present),
+    since stored URLs are inconsistently normalised with/without a trailing '/'.
     """
     candidates = [web_url]
-    if not web_url.endswith("/"):
+    if web_url.endswith("/"):
+        candidates.append(web_url[:-1])
+    else:
         candidates.append(web_url + "/")
 
     for candidate in candidates:
