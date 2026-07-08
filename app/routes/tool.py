@@ -1,3 +1,4 @@
+import re
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import JSONResponse
 from app.helpers.database import connect_DB
@@ -19,6 +20,30 @@ async def description(name: str):
     except Exception as err:
         raise HTTPException(status_code=400, detail=f"Something went wrong while fetching tool description: {err}")
     return JSONResponse(content=data)
+
+
+def _source_name_pattern(source: str, name: str) -> str:
+    """Anchored regex matching a top-level `source` element for an exact source+name.
+
+    Elements look like "<source>/<name>/<type>/<version>". Anchoring and requiring the
+    trailing slash makes the name match exact (so "lca1" does not collide with "lca10").
+    Both parts are re.escape'd so metacharacters stay literal.
+    """
+    return f'^{re.escape(source)}/{re.escape(name)}/'
+
+
+@router.get('/id', tags=["tools"])
+async def tool_id(name: str, source: str = "biotools"):
+    if not name:
+        raise HTTPException(status_code=400, detail="No tool name provided")
+    # Mongo applies the regex element-wise over the top-level `source` array.
+    doc = tools_collection.find_one(
+        {'source': {'$regex': _source_name_pattern(source, name)}},
+        projection={'_id': 1},
+    )
+    if not doc:
+        raise HTTPException(status_code=404, detail="Tool not found")
+    return JSONResponse(content={'id': str(doc['_id'])})
 
 
 @router.post('/badge')
