@@ -11,6 +11,8 @@ email-validator==2.2.0 ; python_version >= '3.8'
 exceptiongroup==1.2.2 ; python_version < '3.11'
 fastapi==0.112.2
 h11>=0.16.0
+# required by fastapi.testclient.TestClient (starlette dropped the requests backend)
+httpx==0.25.2
 idna==3.8 ; python_version >= '3.6'
 jsonschema==3.2.0
 markupsafe==2.1.1

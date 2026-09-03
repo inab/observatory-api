@@ -44,6 +44,72 @@ Notice that the API is accessible at a subdomain of the OpenEBench platform. The
 PYTHONPATH=$(pwd) pytest -s app/tests
 ```
 
+## Admin / ops endpoints
+
+### `POST /admin/reindex`
+
+Recreates the MongoDB indexes on the `tools` and `stats` collections. It is the on-demand
+counterpart to the index check the API runs on startup, and exists for the import pipeline:
+promoting a freshly-built tools collection leaves it with no indexes at all, which breaks
+`/search` (`text index required for $text query`) and turns every filtered search into a
+collection scan until the API is restarted. Calling this at the end of a run closes that
+window.
+
+**Authentication.** A shared admin token, sent as a bearer token. The token is read at
+request time from the `OBSERVATORY_ADMIN_TOKEN` environment variable, falling back to an
+`[ADMIN]` section in the `CONFIG_PATH` ini file:
+
+```ini
+[MONGO_DETAILS]
+...
+
+[ADMIN]
+ADMIN_TOKEN = <secret>
+```
+
+```bash
+curl -X POST https://observatory.openebench.bsc.es/api/admin/reindex \
+  -H "Authorization: Bearer $OBSERVATORY_ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"force_text": false}'
+```
+
+**Body** (optional — posting no body at all is equivalent to the default):
+
+| Field | Default | Meaning |
+| --- | --- | --- |
+| `force_text` | `false` | Drop and recreate the full-text index instead of leaving an existing one alone. Only needed after editing its fields or weights, since a text index cannot be redefined in place. It costs a full collection scan, and `/search` returns `IndexNotFound` while the rebuild runs. |
+
+**Response.** `200` with the resulting index names, which of them were newly created, and
+whether the text index was rebuilt — so the caller can log a real confirmation:
+
+```json
+{
+  "force_text": false,
+  "tools": {
+    "collection": "tools",
+    "indexes": ["_id_", "filter_source", "...", "tools_text_search"],
+    "created": ["filter_source", "...", "tools_text_search"],
+    "dropped": []
+  },
+  "stats": {
+    "collection": "stats",
+    "indexes": ["_id_", "stats_lookup", "stats_fairsoft"],
+    "created": []
+  },
+  "text_index_rebuilt": false
+}
+```
+
+The call is idempotent: creating an index that already exists is a no-op, so `created` comes
+back empty and the request is cheap. Other responses: `401` (missing bearer token), `403`
+(wrong token), `409` (a rebuild is already in progress), `500` (MongoDB error — the message
+is in `detail`), `503` (no admin token configured on this deployment; the endpoint fails
+closed rather than serving unauthenticated).
+
+The same rebuild can be run from a shell with
+`CONFIG_PATH=./api-variables/config_db.ini python scripts/create_indexes.py`.
+
 ## License
 
 This software is licensed under the MIT License. For more information, read the [LICENSE](LICENSE) file.

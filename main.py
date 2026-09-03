@@ -1,10 +1,15 @@
+import asyncio
+import os
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import HTMLResponse
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.staticfiles import StaticFiles
 from starlette.responses import FileResponse
-from app.routes import edam, spdx, stats, metadata, fair_evaluation, fairsoft, search, tool, downloads, web_availability, publication, similarity
+from app.routes import edam, spdx, stats, metadata, fair_evaluation, fairsoft, search, tool, downloads, web_availability, publication, similarity, admin
+from app.helpers.indexes import ensure_indexes_safe
 from app.helpers.utils import get_version
 import logging
 
@@ -48,10 +53,32 @@ tags_metadata = [
         {
             "name": "similarity",
             "description": "Similar software endpoints"
+        },
+        {
+            "name": "admin",
+            "description": "Administrative/ops endpoints. Authenticated with a shared "
+                           "bearer token; see the README.",
         }
     ]
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Ensure the MongoDB indexes exist, then serve.
+
+    The import pipeline rebuilds the tools collection from scratch, which leaves it with
+    no indexes at all — /search then fails with "text index required for $text query" and
+    every filter degrades to a collection scan. Ensuring them here means a restart after a
+    reimport is enough to recover. It runs in a background thread so a first-time index
+    build never delays startup or healthchecks, and it never raises (see
+    ensure_indexes_safe). Set ENSURE_INDEXES=0 to skip it.
+    """
+    if os.getenv("ENSURE_INDEXES", "1") != "0":
+        asyncio.create_task(asyncio.to_thread(ensure_indexes_safe))
+    yield
+
+
 app = FastAPI(
+    lifespan=lifespan,
     root_path="/api",
     title="Software Observatory API",
     description="This is the API for the Software Observatory at [OpenEBench](https://openebench.bsc.es)",
@@ -89,6 +116,7 @@ app.include_router(web_availability.router, prefix="/web-availability")
 app.include_router(publication.router, prefix="/publication")
 app.include_router(search.router, prefix="")
 app.include_router(similarity.router, prefix="/similarity")
+app.include_router(admin.router, prefix="/admin")
 
 
 # logging
