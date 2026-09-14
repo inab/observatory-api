@@ -637,6 +637,63 @@ def hydrate_fairsoft(tools: list, stats_collection) -> None:
         tool['fairsoft'] = fairsoft_map.get(tool.get('id'))
 
 
+_HTTP_URL_RE = re.compile(r'^https?://', re.IGNORECASE)
+
+
+def _toggle_trailing_slash(url: str) -> str:
+    return url[:-1] if url.endswith('/') else url + '/'
+
+
+def hydrate_documentation_availability(tool: dict, availability_collection) -> None:
+    """In-place: add an 'availability' key to each documentation item that carries an http(s) URL.
+
+    Availability documents are keyed by URL (_id). Stored URLs are inconsistently normalised
+    with/without a trailing '/', so the toggled variant is used as a fallback.
+    - No availability document: {"monitored": False, "latest": None} (not probed yet)
+    - Document found: {"monitored": True, "latest": {date, code, access_time} | None};
+      a null code means the URL was probed but the request never completed.
+    Items without a URL (e.g. type "help" with only content) are left untouched.
+    """
+    items = [
+        item for item in (tool.get('documentation') or [])
+        if isinstance(item, dict)
+        and isinstance(item.get('url'), str)
+        and _HTTP_URL_RE.match(item['url'])
+    ]
+    if not items:
+        return
+
+    candidates = set()
+    for item in items:
+        candidates.add(item['url'])
+        candidates.add(_toggle_trailing_slash(item['url']))
+
+    docs = {
+        doc['_id']: doc
+        for doc in availability_collection.find(
+            {'_id': {'$in': list(candidates)}},
+            projection={'data.availability': {'$slice': -1}},
+        )
+    }
+
+    for item in items:
+        url = item['url']
+        doc = docs.get(url) or docs.get(_toggle_trailing_slash(url))
+        if doc is None:
+            item['availability'] = {'monitored': False, 'latest': None}
+            continue
+        history = (doc.get('data') or {}).get('availability') or []
+        latest = None
+        if history:
+            reading = history[-1]
+            latest = {
+                'date': reading.get('date'),
+                'code': reading.get('code'),
+                'access_time': reading.get('access_time'),
+            }
+        item['availability'] = {'monitored': True, 'latest': latest}
+
+
 def get_version():
     # Get the absolute path to the VERSION file
     version_path = Path(__file__).parent.parent.parent / "VERSION"

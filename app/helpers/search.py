@@ -30,7 +30,7 @@ def calculate_stats(tools):
     }
     for tool in tools:
         #---- TYPE --------
-        for type in tool['type']:
+        for type in tool.get('type') or []:
             if type in stats['type'].keys():
                 stats['type'][type] += 1
             else:
@@ -38,7 +38,7 @@ def calculate_stats(tools):
         
         #---- SOURCE --------
         seen_sources = []
-        for source in tool['source']:
+        for source in tool.get('source') or []:
         
             if source == 'opeb_metrics':
                 continue
@@ -65,8 +65,8 @@ def calculate_stats(tools):
                 stats['source'][source] = 1 
 
         #---- TOPICS ------------
-        for edam_topic in tool['topics']:
-            edam_topic = (edam_topic['term'] or '').strip('"')
+        for edam_topic in tool.get('topics') or []:
+            edam_topic = (edam_topic.get('term') or '').strip('"')
             if not edam_topic:
                 continue
             if edam_topic in stats['topics'].keys():
@@ -75,8 +75,8 @@ def calculate_stats(tools):
                 stats['topics'][edam_topic] = 1
 
         #---- OPERATIONS --------
-        for edam_operation in tool['operations']:
-            edam_operation = (edam_operation['term'] or '').strip('"')
+        for edam_operation in tool.get('operations') or []:
+            edam_operation = (edam_operation.get('term') or '').strip('"')
             if not edam_operation:
                 continue
             if edam_operation in stats['operations'].keys():
@@ -85,8 +85,10 @@ def calculate_stats(tools):
                 stats['operations'][edam_operation] = 1
 
         #---- LICENSE -----------
-        for license in tool['license']:
-            license = license['name']
+        for license in tool.get('license') or []:
+            license = license.get('name')
+            if not license:
+                continue
             if license in stats['license'].keys():
                 stats['license'][license] += 1
             else:
@@ -95,8 +97,8 @@ def calculate_stats(tools):
         #---- INPUT -------------
         # Data format (FASTA, CSV, ...)
         # Not data type for now
-        for item in tool['input']:
-            term = item['uri'] or item['term']
+        for item in tool.get('input') or []:
+            term = item.get('uri') or item.get('term')
             if not term:
                 continue
             if term in stats['input'].keys():
@@ -105,8 +107,8 @@ def calculate_stats(tools):
                 stats['input'][term] = 1
 
         #---- OUTPUT ------------
-        for item in tool['output']:
-            term = item['uri'] or item['term']
+        for item in tool.get('output') or []:
+            term = item.get('uri') or item.get('term')
             if not term:
                 continue
             if term in stats['output'].keys():
@@ -115,7 +117,7 @@ def calculate_stats(tools):
                 stats['output'][term] = 1
 
         #---- COLLECTION ----------
-        for tag in tool['tags']:
+        for tag in tool.get('tags') or []:
             if tag in stats['collection'].keys():
                 stats['collection'][tag] += 1
             else:

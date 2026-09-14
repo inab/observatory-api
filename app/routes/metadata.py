@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import JSONResponse
-from app.helpers.utils import prepareToolMetadata, prepare_sources_labels, prepareMetadataForEvaluation, prepareListsIds, keep_first_label, hydrate_fairsoft, clean_edam_terms
+from app.helpers.utils import prepareToolMetadata, prepare_sources_labels, prepareMetadataForEvaluation, prepareListsIds, keep_first_label, hydrate_fairsoft, hydrate_documentation_availability, clean_edam_terms
 from app.helpers.makejson import build_json_ld
 from app.helpers.makecff import create_cff
 from app.helpers.database import connect_DB
@@ -25,7 +25,7 @@ async def names_type_labels():
     return JSONResponse(content=resp)
 
 @router.get('', tags=["tools"])
-async def tool_metadata(name: str = None, id: str = None):
+async def tool_metadata(name: str = None, id: str = None, documentation_status: bool = False):
     if not name and not id:
         raise HTTPException(status_code=400, detail="No tool name or id provided")
     if id:
@@ -71,6 +71,8 @@ async def tool_metadata(name: str = None, id: str = None):
         tool['id'] = tool_id
         clean_edam_terms(tool)
         hydrate_fairsoft([tool], stats)
+        if documentation_status:
+            hydrate_documentation_availability(tool, availability_collection)
         tool = prepare_sources_labels(tool)
         tool = prepareToolMetadata(tool)
         tool = prepareListsIds(tool)
