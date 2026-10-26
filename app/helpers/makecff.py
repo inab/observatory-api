@@ -95,8 +95,8 @@ def create_cff(metadata):
         add_field(cff_data, 'version', metadata.get('version'))
     
     # Add licenses
+    licenses = []  # Initialize a list to store all valid license IDs
     if metadata.get('license'):
-        licenses = []  # Initialize a list to store all valid license IDs
         for license_entry in metadata.get('license'):
             license_name = license_entry.get('name')
             if license_name:

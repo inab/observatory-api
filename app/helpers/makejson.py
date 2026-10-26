@@ -45,7 +45,7 @@ def get_single_author(author):
     else:  
         new_author = {
             "@type": "schema:Organization",
-            "schema:name": author.get('first_name'),
+            "schema:name": author.get('name'),
             "schema:email": author.get('email')
         }
 
@@ -86,16 +86,14 @@ def get_keywords(topics):
     new_topics = []
     if topics:
         for topic in topics:
-            if topic.get('vocabulary') == 'EDAM' and topic.get('uri').startswith('http://edamontology.org/'):
-                identifier = f"edam:{topic['uri'].split('/')[-1]}"
-                new_topics.append(identifier)
-
-            else:
-                if topic.get('uri'):
-                    identifier = topic.get('uri')
-                    new_topics.append(identifier)
-                else:
-                    new_topics.append(identifier)
+            uri = topic.get('uri')
+            if topic.get('vocabulary') == 'EDAM' and uri and uri.startswith('http://edamontology.org/'):
+                new_topics.append(f"edam:{uri.split('/')[-1]}")
+            elif uri:
+                new_topics.append(uri)
+            elif topic.get('term'):
+                # No URI: fall back to the plain term
+                new_topics.append(topic.get('term'))
             
         return new_topics
     
@@ -142,7 +140,7 @@ def get_reference_publication(citations):
     Build a list of reference publications
     """
     refPubs = []    
-    for citation in citations:
+    for citation in citations or []:
         print(citation)
         name = citation.get('title')
         if citation.get('doi'):
@@ -166,7 +164,7 @@ def get_userDocumentation(documentations):
     Build a list of user documentation
     """
     userDocs = []
-    for documentation in documentations:
+    for documentation in documentations or []:
         if documentation.get('type') == 'user' or documentation.get('type') == 'general':
             name = documentation.get('title')
             url = documentation.get('url')
@@ -265,8 +263,16 @@ def get_type(type):
     value = f'htpps://openebench.bsc.es/bioschemas/oebtools#{type}'
     return value
 
+def first_value(value):
+    '''
+    Return the first element if value is a list (e.g. version, type), else value itself
+    '''
+    if isinstance(value, list):
+        return value[0] if value else ""
+    return value if value is not None else ""
+
 def get_identifier(meta):
-    value = f"https://openebench.bsc.es/bioschemas/tools/observatory:{meta.get('name')}:{meta.get('version')}/{meta.get('type')}"
+    value = f"https://openebench.bsc.es/bioschemas/tools/observatory:{meta.get('name')}:{first_value(meta.get('version'))}/{first_value(meta.get('type'))}"
     return value
 
 
@@ -301,7 +307,7 @@ def build_json_ld(meta):
         "schema:additionalType": meta.get('type'),
         "schema:name": meta.get('name'),
         "@id": get_identifier(meta),
-        "schema:url": get_webpage(meta.get('webpages')),
+        "schema:url": get_webpage(meta.get('webpage')),
         "schema:description": get_description(meta.get('description')),
         "schema:applicationCategory": meta.get('type'),
         "schema:operatingSystem": meta.get('os'),
@@ -316,7 +322,7 @@ def build_json_ld(meta):
         "schema:downloadURL": meta.get('download'),
         "schema:softwareHelp": get_help(meta.get('documentation')),
         "schema:requirements": meta.get('dependencies'),
-        "schema:isAccessibleForFree": meta.get('registration_not_manadatory'),
+        "schema:isAccessibleForFree": meta.get('registration_not_mandatory'),
         "schema:dateModified": build_date(),
         "codemeta:referencePublication": get_reference_publication(meta.get('publication')),
         "codemeta:readme": get_readme(meta.get('documentation')),
