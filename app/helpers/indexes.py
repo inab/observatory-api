@@ -7,7 +7,8 @@ collection starts with no indexes. Losing `tools_text_search` breaks `/search` o
 silently turns every filtered search into a collection scan. So indexes are ensured on
 API startup (see the lifespan in main.py) as well as on demand, either via
 `scripts/create_indexes.py` or by the import pipeline calling POST /admin/reindex
-(app/routes/admin.py) right after it swaps in the new collection.
+(app/routes/admin.py). The pipeline can name its staging collection (`<tools>_next`) so
+it is indexed before it is swapped in, and the live collection never goes without indexes.
 """
 import logging
 
@@ -72,9 +73,58 @@ STATS_INDEXES = [
 # (case-insensitive), not .uri.
 STALE_TOOLS_INDEXES = ("filter_topics_uri", "filter_operations_uri")
 
+# The import pipeline builds the next tools collection under this suffix and renames it
+# into place. renameCollection keeps indexes, so indexing the staging collection *before*
+# the rename means the live one is never without them.
+STAGING_SUFFIX = "_next"
 
-def ensure_indexes(force_text: bool = False):
+
+class CollectionNotAllowed(ValueError):
+    """The requested collection is not one this API indexes."""
+
+
+class CollectionNotFound(LookupError):
+    """The requested collection does not exist in the API's database."""
+
+
+def allowed_tools_collections(tools_name):
+    """The collections ensure_indexes may target: the live tools one and its staging twin.
+
+    An exact allowlist, not a prefix match: `<tools>_archive_*` also starts with the tools
+    name, and an archive must never be (re)indexed on request.
+    """
+    return (tools_name, f"{tools_name}{STAGING_SUFFIX}")
+
+
+def _resolve_tools_collection(tools, name):
+    """The collection to index: `tools` itself, or the allowed sibling named `name`.
+
+    The sibling must already exist. create_index on a missing collection silently creates
+    it, so a name mismatch between the pipeline and this API would otherwise "succeed",
+    index an empty collection, and leave the one actually promoted without indexes.
+    """
+    if name is None or name == tools.name:
+        return tools
+    allowed = allowed_tools_collections(tools.name)
+    if name not in allowed:
+        raise CollectionNotAllowed(
+            f"'{name}' is not an indexable tools collection; expected one of {list(allowed)}"
+        )
+    if name not in tools.database.list_collection_names(filter={"name": name}):
+        raise CollectionNotFound(
+            f"collection '{name}' does not exist in database '{tools.database.name}'"
+        )
+    return tools.database[name]
+
+
+def ensure_indexes(force_text: bool = False, tools_collection=None):
     """Create any missing index on the tools and stats collections.
+
+    `tools_collection` picks which tools collection to index: omitted, the configured one
+    (TOOLS); otherwise a name from allowed_tools_collections(), in practice the staging
+    collection the import pipeline is about to promote. Anything else raises
+    CollectionNotAllowed, and a staging collection that does not exist raises
+    CollectionNotFound, before any index is touched.
 
     `create_index` is a no-op when an identical index already exists, so this is cheap to
     call on every startup. The text index is the exception: its fields/weights can't be
@@ -94,8 +144,9 @@ def ensure_indexes(force_text: bool = False):
     rebuilt under force_text is present in both snapshots, so it never shows up there —
     hence the separate text_index_rebuilt flag.
     """
-    tools, stats, _, _ = connect_DB()
+    configured_tools, stats, _, _ = connect_DB()
     try:
+        tools = _resolve_tools_collection(configured_tools, tools_collection)
         tools_before = {i["name"] for i in tools.list_indexes()}
         stats_before = {i["name"] for i in stats.list_indexes()}
         dropped = []
@@ -145,7 +196,7 @@ def ensure_indexes(force_text: bool = False):
             "text_index_rebuilt": text_index_rebuilt,
         }
     finally:
-        tools.database.client.close()
+        configured_tools.database.client.close()
 
 
 def ensure_indexes_safe():

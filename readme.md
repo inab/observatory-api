@@ -79,6 +79,10 @@ curl -X POST https://observatory.openebench.bsc.es/api/admin/reindex \
 | Field | Default | Meaning |
 | --- | --- | --- |
 | `force_text` | `false` | Drop and recreate the full-text index instead of leaving an existing one alone. Only needed after editing its fields or weights, since a text index cannot be redefined in place. It costs a full collection scan, and `/search` returns `IndexNotFound` while the rebuild runs. |
+| `collection` | the configured `TOOLS` | Which tools collection to index. The import pipeline passes its staging collection, `<TOOLS>_next`, so the indexes exist *before* it renames that into place (`renameCollection` keeps indexes) and `/search` never sees an unindexed collection. Only `<TOOLS>` and `<TOOLS>_next` are accepted (`400` otherwise; archives are deliberately excluded), and the collection must already exist (`404` otherwise; creating an index would silently create an empty one). |
+
+The `collection` the API indexed is echoed back as `tools.collection`; the pipeline should
+check it before promoting.
 
 **Response.** `200` with the resulting index names, which of them were newly created, and
 whether the text index was rebuilt — so the caller can log a real confirmation:
@@ -102,8 +106,9 @@ whether the text index was rebuilt — so the caller can log a real confirmation
 ```
 
 The call is idempotent: creating an index that already exists is a no-op, so `created` comes
-back empty and the request is cheap. Other responses: `401` (missing bearer token), `403`
-(wrong token), `409` (a rebuild is already in progress), `500` (MongoDB error — the message
+back empty and the request is cheap. Other responses: `400` (`collection` not allowed),
+`401` (missing bearer token), `403`
+(wrong token), `404` (`collection` does not exist), `409` (a rebuild is already in progress), `500` (MongoDB error — the message
 is in `detail`), `503` (no admin token configured on this deployment; the endpoint fails
 closed rather than serving unauthenticated).
 

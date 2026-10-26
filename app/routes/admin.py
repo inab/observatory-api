@@ -1,7 +1,8 @@
 """Authenticated operational endpoints.
 
 Right now the only one is POST /admin/reindex, which lets the external import pipeline
-rebuild the MongoDB indexes as soon as it promotes a freshly-built tools collection. That
+build the MongoDB indexes on a freshly-built tools collection, before it promotes it
+(`collection: "<tools>_next"`) or right after (no `collection`). That
 collection is populated with plain inserts and so carries nothing but its default `_id`
 index (the renamed `<tools>_archive_<run_id>` keeps the old ones), which breaks /search
 with "text index required for $text query" and turns every filtered search into a
@@ -23,7 +24,11 @@ from pydantic import BaseModel, Field
 from pymongo.errors import PyMongoError
 
 from app.helpers.database import _load_config
-from app.helpers.indexes import ensure_indexes
+from app.helpers.indexes import (
+    CollectionNotAllowed,
+    CollectionNotFound,
+    ensure_indexes,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -92,6 +97,15 @@ class ReindexRequest(BaseModel):
             "returns IndexNotFound for the duration of the rebuild."
         ),
     )
+    collection: Optional[str] = Field(
+        None,
+        description=(
+            "Tools collection to index. Omitted, the configured live one. The import "
+            "pipeline names its staging collection (`<tools>_next`) so the indexes exist "
+            "before it renames that into place. Only those two names are accepted (400 "
+            "otherwise), and the collection must already exist (404 otherwise)."
+        ),
+    )
 
 
 @router.post(
@@ -100,8 +114,10 @@ class ReindexRequest(BaseModel):
     dependencies=[Depends(require_admin)],
     summary="Recreate the MongoDB indexes on the tools and stats collections",
     responses={
+        400: {"description": "`collection` is not an indexable tools collection"},
         401: {"description": "Missing bearer token"},
         403: {"description": "Invalid admin token"},
+        404: {"description": "`collection` does not exist"},
         409: {"description": "A rebuild is already in progress"},
         503: {"description": "No admin token configured on this deployment"},
     },
@@ -117,13 +133,18 @@ def reindex(body: Optional[ReindexRequest] = None):
     Mongo or permission failure comes back as a 500 so the caller can decide what to do.
     """
     force_text = bool(body and body.force_text)
+    collection = body.collection if body else None
 
     if not _reindex_lock.acquire(blocking=False):
         raise HTTPException(
             status_code=409, detail="An index rebuild is already in progress."
         )
     try:
-        report = ensure_indexes(force_text=force_text)
+        report = ensure_indexes(force_text=force_text, tools_collection=collection)
+    except CollectionNotAllowed as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except CollectionNotFound as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
     except PyMongoError as exc:
         logger.exception("POST /admin/reindex failed")
         raise HTTPException(status_code=500, detail=f"Index creation failed: {exc}")

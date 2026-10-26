@@ -10,6 +10,8 @@ from pymongo.errors import OperationFailure
 
 from app.routes import admin
 from app.helpers.indexes import (
+    CollectionNotAllowed,
+    CollectionNotFound,
     STATS_INDEXES,
     TEXT_INDEX_NAME,
     TOOLS_INDEXES,
@@ -47,8 +49,8 @@ def calls(monkeypatch):
     """Record every ensure_indexes call instead of touching MongoDB."""
     recorded = []
 
-    def fake_ensure_indexes(force_text=False):
-        recorded.append({"force_text": force_text})
+    def fake_ensure_indexes(force_text=False, tools_collection=None):
+        recorded.append({"force_text": force_text, "tools_collection": tools_collection})
         return _fake_report()
 
     monkeypatch.setattr(admin, "ensure_indexes", fake_ensure_indexes)
@@ -98,7 +100,7 @@ def test_valid_token_reports_the_created_indexes(client, calls):
     assert "tool_name" in tools_indexes
     assert "stats_lookup" in body["stats"]["indexes"]
     assert body["tools"]["created"] == body["tools"]["indexes"][1:]
-    assert calls == [{"force_text": False}]
+    assert calls == [{"force_text": False, "tools_collection": None}]
 
 
 def test_body_is_optional_and_defaults_to_no_text_rebuild(client, calls):
@@ -106,7 +108,7 @@ def test_body_is_optional_and_defaults_to_no_text_rebuild(client, calls):
     response = client.post("/admin/reindex", headers=_auth())
     assert response.status_code == 200
     assert response.json()["force_text"] is False
-    assert calls == [{"force_text": False}]
+    assert calls == [{"force_text": False, "tools_collection": None}]
 
 
 def test_force_text_is_passed_through(client, calls):
@@ -115,7 +117,40 @@ def test_force_text_is_passed_through(client, calls):
     )
     assert response.status_code == 200
     assert response.json()["force_text"] is True
-    assert calls == [{"force_text": True}]
+    assert calls == [{"force_text": True, "tools_collection": None}]
+
+
+def test_collection_is_passed_through(client, calls):
+    response = client.post(
+        "/admin/reindex", headers=_auth(), json={"collection": "toolsDev_next"}
+    )
+    assert response.status_code == 200
+    assert calls == [{"force_text": False, "tools_collection": "toolsDev_next"}]
+
+
+def test_disallowed_collection_is_400(client, monkeypatch):
+    def refuse(force_text=False, tools_collection=None):
+        raise CollectionNotAllowed(f"'{tools_collection}' is not an indexable tools collection")
+
+    monkeypatch.setattr(admin, "ensure_indexes", refuse)
+    response = client.post(
+        "/admin/reindex", headers=_auth(), json={"collection": "toolsDev_archive_x"}
+    )
+    assert response.status_code == 400
+    assert "toolsDev_archive_x" in response.json()["detail"]
+
+
+def test_missing_collection_is_404(client, monkeypatch):
+    def missing(force_text=False, tools_collection=None):
+        raise CollectionNotFound(f"collection '{tools_collection}' does not exist")
+
+    monkeypatch.setattr(admin, "ensure_indexes", missing)
+    response = client.post(
+        "/admin/reindex", headers=_auth(), json={"collection": "toolsDev_next"}
+    )
+    assert response.status_code == 404
+    # A refused request must not leave the endpoint locked.
+    assert not admin._reindex_lock.locked()
 
 
 def test_calling_twice_is_idempotent(client, calls):
@@ -148,7 +183,7 @@ def test_token_falls_back_to_the_ini_file(client, calls, monkeypatch, tmp_path):
 
 def test_mongo_failure_surfaces_as_500(client, monkeypatch):
     # The on-demand path must not swallow errors the way ensure_indexes_safe does.
-    def boom(force_text=False):
+    def boom(force_text=False, tools_collection=None):
         raise OperationFailure("not authorized on observatory to execute createIndexes")
 
     monkeypatch.setattr(admin, "ensure_indexes", boom)
@@ -160,13 +195,13 @@ def test_mongo_failure_surfaces_as_500(client, monkeypatch):
 
 def test_lock_is_released_after_a_failure(client, calls, monkeypatch):
     # A failed rebuild must not wedge the endpoint at 409 forever.
-    def boom(force_text=False):
+    def boom(force_text=False, tools_collection=None):
         raise OperationFailure("transient")
 
     monkeypatch.setattr(admin, "ensure_indexes", boom)
     assert client.post("/admin/reindex", headers=_auth()).status_code == 500
 
-    monkeypatch.setattr(admin, "ensure_indexes", lambda force_text=False: _fake_report())
+    monkeypatch.setattr(admin, "ensure_indexes", lambda force_text=False, tools_collection=None: _fake_report())
     assert client.post("/admin/reindex", headers=_auth()).status_code == 200
 
 
