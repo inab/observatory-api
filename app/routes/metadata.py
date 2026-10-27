@@ -1,9 +1,11 @@
 from fastapi import APIRouter, HTTPException, Request
-from fastapi.responses import JSONResponse
+import json
+from fastapi.responses import JSONResponse, StreamingResponse
 from app.helpers.utils import prepareToolMetadata, prepare_sources_labels, prepareMetadataForEvaluation, prepareListsIds, keep_first_label, hydrate_fairsoft, hydrate_documentation_availability, clean_edam_terms
 from app.helpers.makejson import build_json_ld
 from app.helpers.makecff import create_cff
 from app.helpers.database import connect_DB
+from app.routes.search import _hydrate_publications
 from bson import ObjectId
 
 router = APIRouter()
@@ -81,16 +83,58 @@ async def tool_metadata(name: str = None, id: str = None, documentation_status: 
         raise HTTPException(status_code=400, detail="Something went wrong :(")
 
 
+# Tools per Mongo batch / publication lookup while streaming /tools/all.
+ALL_TOOLS_BATCH_SIZE = 500
+
+
+def _iter_all_tools_json():
+    """Yield /tools/all as JSON chunks, one batch of tools at a time.
+
+    The collection is far too big (~50k tools, ~150 MB before resolving publications) to
+    build as a single in-memory list + JSONResponse, so it is streamed instead. Each batch's
+    `data.publication` ids are resolved with one `$in` query against pubs_collection.
+    This is a sync generator on purpose: Starlette iterates it in a threadpool, so the
+    blocking pymongo calls do not stall the event loop.
+    """
+    cursor = tools_collection.find(
+        {}, projection={'_id': 1, 'source': 1, 'data': 1}, batch_size=ALL_TOOLS_BATCH_SIZE
+    )
+    yield '{"message": {"tools": ['
+    first = True
+    batch = []
+    try:
+        for entry in cursor:
+            batch.append(entry)
+            if len(batch) >= ALL_TOOLS_BATCH_SIZE:
+                yield _serialize_tools_batch(batch, first)
+                first = False
+                batch = []
+        if batch:
+            yield _serialize_tools_batch(batch, first)
+    finally:
+        cursor.close()
+    yield ']}, "code": "SUCCESS"}'
+
+
+def _serialize_tools_batch(batch, first):
+    _hydrate_publications([entry['data'] for entry in batch if entry.get('data')], pubs_collection)
+    # Top-level string `id` (same value GET /tools?id= accepts) instead of the raw ObjectId.
+    body = ','.join(
+        json.dumps({'id': str(entry['_id']), 'source': entry.get('source'), 'data': entry.get('data')}, default=str)
+        for entry in batch
+    )
+    return body if first else ',' + body
+
+
 @router.get('/all', tags=["tools"])
 async def get_all_tools():
-    try:
-        tools = list(tools_collection.find({}))
-        for entry in tools:
-            entry.pop('_id', None)
-        data = {'tools': tools}
-    except Exception as err:
-        raise HTTPException(status_code=400, detail=f"Something went wrong while fetching tool entries: {err}")
-    return JSONResponse(content={'message': data, 'code': 'SUCCESS'})
+    # Headers are sent before the body, so a failure mid-stream cannot become a 4xx/5xx; it
+    # aborts the connection and the client gets truncated (invalid) JSON instead.
+    return StreamingResponse(
+        _iter_all_tools_json(),
+        media_type='application/json',
+        headers={'Content-Disposition': 'attachment; filename="tools.json"'},
+    )
 
 
 @router.post('/jsonld', tags=["tools"])

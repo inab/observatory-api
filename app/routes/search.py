@@ -250,10 +250,11 @@ def _hydrate_publications(tools: List[Dict[str, Any]], pubs_collection) -> None:
         if not isinstance(pub_list, list):
             tool['publication'] = []
             continue
+        # pub_map is keyed by str(ObjectId); ids that are not valid ObjectIds never match.
         tool['publication'] = [
-            pub_map[str(ObjectId(pid))]
+            pub_map[str(pid)]
             for pid in pub_list
-            if pid is not None and str(ObjectId(pid)) in pub_map
+            if pid is not None and str(pid) in pub_map
         ]
 
 
