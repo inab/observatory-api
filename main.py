@@ -8,8 +8,9 @@ from starlette.responses import HTMLResponse
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.staticfiles import StaticFiles
 from starlette.responses import FileResponse
-from app.routes import edam, spdx, stats, metadata, fair_evaluation, fairsoft, search, tool, downloads, web_availability, publication, similarity, admin
+from app.routes import edam, spdx, stats, metadata, fair_evaluation, fairsoft, search, tool, downloads, web_availability, publication, similarity, admin, semantic_search
 from app.helpers.indexes import ensure_indexes_safe
+from app.services.semantic_search import index as semantic_index
 from app.helpers.utils import get_version
 import logging
 
@@ -36,7 +37,8 @@ tags_metadata = [
         },
         {
             "name": "search",
-            "description": "Search related endpoints",
+            "description": "Search related endpoints. /semantic-search finds tools from a "
+                           "description of the task (hybrid dense + BM25 retrieval).",
         },
         {
             "name": "downloads",
@@ -74,6 +76,10 @@ async def lifespan(app: FastAPI):
     """
     if os.getenv("ENSURE_INDEXES", "1") != "0":
         asyncio.create_task(asyncio.to_thread(ensure_indexes_safe))
+    # Load the semantic-search encoder in the background, so the first /semantic-search
+    # isn't slow (it loads lazily if this hasn't finished). SEMANTIC_SEARCH=0 skips it.
+    if semantic_index.enabled():
+        asyncio.create_task(asyncio.to_thread(semantic_index.warm_up_safe))
     yield
 
 
@@ -115,6 +121,7 @@ app.include_router(downloads.router, prefix="/downloads")
 app.include_router(web_availability.router, prefix="/web-availability")
 app.include_router(publication.router, prefix="/publication")
 app.include_router(search.router, prefix="")
+app.include_router(semantic_search.router, prefix="")
 app.include_router(similarity.router, prefix="/similarity")
 app.include_router(admin.router, prefix="/admin")
 
