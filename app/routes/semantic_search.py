@@ -1,9 +1,12 @@
 """GET /semantic-search: the hybrid semantic search (app/services/semantic_search).
 
-Same params (minus searchIn) and response shape as /search. Rank, then filter: the
-hybrid returns its top CANDIDATES tools, MongoDB keeps those that pass the filters,
-and pagination, `total_tools` and `stats` are over what's left, in the hybrid's order.
-So results stop at CANDIDATES (default 200, env/ini `SEMANTIC_SEARCH_CANDIDATES`).
+Same params (minus searchIn) and response shape as /search. Filter, then rank: the
+filters go to Qdrant as payload conditions (`payload_conditions`), so each retriever
+ranks among matching tools only, and the hybrid returns the top CANDIDATES of those.
+MongoDB then re-applies the same `_build_filters` (so results agree with /search, and
+a field the index has no payload for yet is still filtered, after ranking), and
+pagination, `total_tools` and `stats` are over what's left, in the hybrid's order.
+Results stop at CANDIDATES (default 200, env/ini `SEMANTIC_SEARCH_CANDIDATES`).
 """
 
 import logging
@@ -20,7 +23,7 @@ from app.helpers.database import connect_DB
 from app.helpers.search import calculate_stats
 from app.routes.search import TERM_COLLATION, _build_filters, _finalize_tools, _jsonify_mongo
 from app.services.semantic_search import hybrid
-from app.services.semantic_search.index import enabled, setting
+from app.services.semantic_search.index import enabled, payload_conditions, setting
 
 logger = logging.getLogger(__name__)
 
@@ -108,9 +111,10 @@ async def semantic_search(
     It combines four rankings: meaning and keywords in tool descriptions, keywords in
     tool names, and meaning in example queries written for each tool.
 
-    **Filters and totals.** Only the best 200 tools for the query are considered. The
-    filters are applied to those, so `total_tools` is at most 200 and `stats` describes
-    the filtered set. Results keep the search's order.
+    **Filters and totals.** The filters are applied before ranking, so the results are
+    the best matches among the tools that pass them. At most the best 200 are returned:
+    `total_tools` is at most 200 and `stats` describes those. Results keep the search's
+    order.
 
     **Response.** The same shape as `/search`. Each tool also has:
 
@@ -123,16 +127,17 @@ async def semantic_search(
     if not enabled():
         raise HTTPException(status_code=503, detail="Semantic search is disabled on this server")
 
+    filters = _build_filters(source, type, topics, operations, license, tags, input_format, output_format)
     try:
         # Sync (Qdrant client + CPU encoding): off the event loop.
-        hits = await run_in_threadpool(hybrid.search, q, candidates())
+        hits = await run_in_threadpool(
+            hybrid.search, q, candidates(), conditions=payload_conditions(filters))
     except hybrid.SearchUnavailable as err:
         logger.error("%s", err)
         raise HTTPException(status_code=503, detail="Semantic search index is unavailable")
 
     by_id = {str(h.tool_id): h for h in hits}
     tools_collection, stats_collection, pubs_collection = _collections()
-    filters = _build_filters(source, type, topics, operations, license, tags, input_format, output_format)
     collation = TERM_COLLATION if (topics or operations) else None
     match = {'_id': {'$in': _object_ids(hits)}, **filters}
 
