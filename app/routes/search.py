@@ -207,12 +207,7 @@ async def search(
         tool['id'] = str(doc['_id'])
         tools_data.append(tool)
 
-    for t in tools_data:
-        clean_edam_terms(t)
-    _hydrate_publications(tools_data, pubs_collection)
-    hydrate_fairsoft(tools_data, stats_collection)
-    tools_data = [prepare_sources_labels(t) for t in tools_data]
-    tools_data = [prepareToolMetadata(t) for t in tools_data]
+    tools_data = _finalize_tools(tools_data, pubs_collection, stats_collection)
 
     return JSONResponse(content=_jsonify_mongo({
         'query': q,
@@ -221,6 +216,16 @@ async def search(
         'stats': search_stats,
     }))
 
+
+
+def _finalize_tools(tools_data: List[Dict[str, Any]], pubs_collection, stats_collection) -> List[Dict[str, Any]]:
+    """The shared tail of /search and /semantic-search: clean, hydrate and reshape a page of tools."""
+    for t in tools_data:
+        clean_edam_terms(t)
+    _hydrate_publications(tools_data, pubs_collection)
+    hydrate_fairsoft(tools_data, stats_collection)
+    tools_data = [prepare_sources_labels(t) for t in tools_data]
+    return [prepareToolMetadata(t) for t in tools_data]
 
 
 def _hydrate_publications(tools: List[Dict[str, Any]], pubs_collection) -> None:

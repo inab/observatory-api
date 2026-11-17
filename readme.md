@@ -115,6 +115,30 @@ closed rather than serving unauthenticated).
 The same rebuild can be run from a shell with
 `CONFIG_PATH=./api-variables/config_db.ini python scripts/create_indexes.py`.
 
+## Semantic search: configuration
+
+`GET /semantic-search` is documented in the [API docs](https://observatory.openebench.bsc.es/api/docs).
+How it works and how it was evaluated is in
+[search-eval](https://github.com/EvaMart/search-eval). This section covers running it.
+
+It reads the `tool_search` Qdrant index, which the pipeline builds (`rsetl search-index` in
+research-software-etl). Settings are read from environment variables first, then from a
+`[QDRANT]` section of the `CONFIG_PATH` ini file:
+
+| Key | Default | |
+|---|---|---|
+| `QDRANT_URL` | `http://localhost:6333` | must be reachable from the container |
+| `QDRANT_API_KEY` | none | |
+| `QDRANT_COLLECTION` | `tool_search` | |
+| `QDRANT_NAMES_COLLECTION` | `tool_search_exp_names` | |
+| `QDRANT_TIMEOUT` | `30` | seconds |
+| `SEMANTIC_SEARCH` | `1` | `0` turns the endpoint off (503) and skips loading the model |
+| `SEMANTIC_SEARCH_CANDIDATES` | `200` | how many tools the filters are applied to |
+
+- The index must be built from the same collection as the API's `TOOLS` (`toolsDev`), or no tool ids match.
+- The embedding model runs inside the API and needs about 0.6 GB more memory. The Docker image includes it and installs CPU-only torch.
+- Results are only as current as the last `rsetl search-index` run.
+
 ## License
 
 This software is licensed under the MIT License. For more information, read the [LICENSE](LICENSE) file.

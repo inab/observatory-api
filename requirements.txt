@@ -37,3 +37,8 @@ starlette==0.38.4 ; python_version >= '3.8'
 typing-extensions==4.12.2 ; python_version >= '3.8'
 urllib3==2.2.2 ; python_version >= '3.8'
 uvicorn==0.30.6
+# Semantic search (/semantic-search). Install CPU-only torch first, from
+# https://download.pytorch.org/whl/cpu (see Dockerfile / CI), or pip pulls the CUDA build.
+qdrant-client==1.20.0
+sentence-transformers==5.5.1
+torch==2.12.0

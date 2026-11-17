@@ -12,7 +12,13 @@ RUN apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y git && \
     pip install pytest && \
+    pip install --no-cache-dir torch==2.12.0 --index-url https://download.pytorch.org/whl/cpu && \
     pip install --no-cache-dir -r requirements.txt
+
+# Bake the semantic-search encoder into the image, so containers never download it.
+ENV HF_HOME=/opt/hf
+RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('Alibaba-NLP/gte-modernbert-base', device='cpu')"
+ENV HF_HUB_OFFLINE=1
 
 # Copy the current directory contents into the container at /app
 COPY . .
