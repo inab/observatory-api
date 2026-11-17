@@ -12,6 +12,7 @@ from __future__ import annotations
 import logging
 import os
 import threading
+import time
 from dataclasses import dataclass
 from functools import cache, lru_cache
 
@@ -106,11 +107,92 @@ def encode(query: str) -> tuple[float, ...]:
     return tuple(encoder().encode(query, normalize_embeddings=True).tolist())
 
 
-def kind_filter(kind: str):
+# Payload fields the pipeline indexes for filtering (its FILTER_FIELDS), keyed by the
+# MongoDB path `_build_filters` uses for them. EDAM term fields hold `term_key`s.
+FILTER_PAYLOAD = {
+    'data.source': 'sources',
+    'data.type': 'type',
+    'data.topics.term': 'topics',
+    'data.operations.term': 'operations',
+    'data.input.term': 'input',
+    'data.output.term': 'output',
+    'data.license.name': 'license',
+    'data.tags': 'tags',
+}
+TERM_FIELDS = {'topics', 'operations', 'input', 'output'}
+
+
+def term_key(term: str) -> str:
+    """
+    An EDAM term as the index stores it: trimmed, leading quote dropped, lowercased.
+    MUST match the pipeline's `term_key` (research-software-etl
+    src/application/services/semantic_search/search_index.py).
+    """
+    return term.strip().lstrip('"').strip().lower()
+
+
+def payload_conditions(filters: dict) -> dict[str, list[str]]:
+    """
+    `_build_filters` output -> {payload field: accepted values}. Term values are
+    normalised with `term_key`, so Qdrant is never stricter than Mongo (its collation is
+    case-insensitive); Mongo re-checks every candidate, so results match /search.
+    """
+    conditions = {}
+    for path, cond in filters.items():
+        key = FILTER_PAYLOAD.get(path)
+        values = cond.get('$in') if isinstance(cond, dict) else None
+        if key is None or not values:
+            continue
+        if key in TERM_FIELDS:
+            values = [term_key(v) for v in values]
+        conditions[key] = sorted({v for v in values if v})
+    return conditions
+
+
+SCHEMA_TTL = 300  # seconds; a reindex that adds a payload index is picked up within it
+_schema_lock = threading.Lock()
+_schemas: dict[str, tuple[float, frozenset[str]]] = {}
+_warned: dict[str, set[str]] = {}
+
+
+def indexed_fields(name: str) -> frozenset[str]:
+    """The payload fields `name` has an index on (cached for SCHEMA_TTL)."""
+    now = time.monotonic()
+    with _schema_lock:
+        cached = _schemas.get(name)
+        if cached and now - cached[0] < SCHEMA_TTL:
+            return cached[1]
+    fields = frozenset(client().get_collection(name).payload_schema or {})
+    with _schema_lock:
+        _schemas[name] = (now, fields)
+    return fields
+
+
+def search_filter(name: str, kind: str | None = None,
+                  conditions: dict[str, list[str]] | None = None):
+    """
+    The Qdrant filter for a query on collection `name`: its `kind`, AND each condition
+    (any of its values). A condition on a field the collection has no index for (an
+    index built before the field existed) is skipped: Mongo still applies it, as before.
+    """
     from qdrant_client import models
 
-    return models.Filter(must=[models.FieldCondition(
-        key="kind", match=models.MatchValue(value=kind))])
+    must = []
+    if kind:
+        must.append(models.FieldCondition(key="kind", match=models.MatchValue(value=kind)))
+    if conditions:
+        indexed = indexed_fields(name)
+        skipped = sorted(set(conditions) - indexed - _warned.get(name, set()))
+        if skipped:  # once per collection and field, not on every request
+            _warned.setdefault(name, set()).update(skipped)
+            logger.warning("semantic search: %s has no payload index on %s; "
+                           "filtering those after ranking (rerun `rsetl search-index`)",
+                           name, ", ".join(skipped))
+        must.extend(
+            models.FieldCondition(key=key, match=models.MatchAny(any=values))
+            for key, values in conditions.items() if key in indexed
+        )
+    return models.Filter(must=must) if must else None
 
 
 def to_hit(point) -> Hit:

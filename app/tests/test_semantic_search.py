@@ -9,9 +9,10 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from app.routes import semantic_search
-from app.services.semantic_search import hybrid
+from app.routes.search import _build_filters
+from app.services.semantic_search import hybrid, index
 from app.services.semantic_search.hybrid import FusedHit, fuse, name_boosts, name_weights
-from app.services.semantic_search.index import Hit
+from app.services.semantic_search.index import Hit, payload_conditions
 from app.services.semantic_search.retrievers import name_match, normalise
 
 
@@ -85,16 +86,16 @@ def test_name_lookup_outvotes_other_retrievers():
 
 
 def test_run_skips_a_failing_retriever(monkeypatch):
-    def boom(q, k):
+    def boom(q, k, conditions):
         raise ConnectionError("down")
 
     monkeypatch.setattr(hybrid, "encode", lambda q: ())
-    monkeypatch.setattr(hybrid, "RETRIEVERS", {"ok": lambda q, k: [hit("a")], "bad": boom})
+    monkeypatch.setattr(hybrid, "RETRIEVERS", {"ok": lambda q, k, conditions: [hit("a")], "bad": boom})
     assert list(hybrid.run("q")) == ["ok"]
 
 
 def test_run_raises_when_every_retriever_fails(monkeypatch):
-    def boom(q, k):
+    def boom(q, k, conditions):
         raise ConnectionError("down")
 
     monkeypatch.setattr(hybrid, "encode", lambda q: ())
@@ -128,12 +129,19 @@ def client(monkeypatch):
     # The hybrid's order is IDS reversed, so ordering by _id would be visibly wrong.
     ranked = [FusedHit(i, DOCS[i]["data"]["name"], 1.0 / (n + 1), {"dense_queries": n + 1})
               for n, i in enumerate(reversed(IDS))]
-    monkeypatch.setattr(semantic_search.hybrid, "search", lambda q, k: ranked[:k])
+    def search(q, k, conditions=None):
+        calls.append(conditions)
+        return ranked[:k]
+
+    calls = []
+    monkeypatch.setattr(semantic_search.hybrid, "search", search)
     monkeypatch.setattr(semantic_search, "_collections", lambda: (FakeTools(), None, None))
     monkeypatch.setattr(semantic_search, "_finalize_tools", lambda tools, pubs, stats: tools)
     app = FastAPI()
     app.include_router(semantic_search.router)
-    return TestClient(app)
+    test_client = TestClient(app)
+    test_client.search_calls = calls
+    return test_client
 
 
 def test_keeps_hybrid_order_and_paginates(client):
@@ -146,7 +154,16 @@ def test_keeps_hybrid_order_and_paginates(client):
     assert [t["id"] for t in last["tools"]] == list(reversed(IDS))[20:]
 
 
-def test_filters_apply_after_ranking(client):
+def test_filters_go_to_qdrant(client):
+    client.get("/semantic-search", params={
+        "q": "x", "type": "web,cmd", "topics": "Genomics", "license": "MIT"})
+    assert client.search_calls[-1] == {
+        "type": ["cmd", "web"], "topics": ["genomics"], "license": ["MIT"]}
+    client.get("/semantic-search", params={"q": "x"})
+    assert client.search_calls[-1] == {}
+
+
+def test_mongo_rechecks_filters_after_ranking(client):
     body = client.get("/semantic-search", params={"q": "align reads", "type": "web"}).json()
     expected = [i for i in reversed(IDS) if DOCS[i]["data"]["type"] == ["web"]]
     assert body["total_tools"] == len(expected) == 9
@@ -170,8 +187,38 @@ def test_disabled_returns_503(client, monkeypatch):
 
 
 def test_index_unavailable_returns_503(client, monkeypatch):
-    def down(q, k):
+    def down(q, k, conditions=None):
         raise hybrid.SearchUnavailable("down")
 
     monkeypatch.setattr(semantic_search.hybrid, "search", down)
     assert client.get("/semantic-search", params={"q": "x"}).status_code == 503
+
+
+# --- Qdrant filters -------------------------------------------------------------------
+
+def test_payload_conditions_maps_mongo_filters():
+    filters = _build_filters("bioconda", "cmd", "Genomics", "Read mapping", "MIT,GPL-3.0",
+                             "ngs", "FASTQ", "BAM")
+    assert payload_conditions(filters) == {
+        "sources": ["bioconda_recipes"],
+        "type": ["cmd"],
+        # _term_match's '"Genomics' variant collapses into the same term_key.
+        "topics": ["genomics"],
+        "operations": ["read mapping"],
+        "license": ["GPL-3.0", "MIT"],
+        "tags": ["ngs"],
+        "input": ["fastq"],
+        "output": ["bam"],
+    }
+
+
+def test_term_key_matches_the_pipeline():
+    assert index.term_key(' "Allergy ') == "allergy"
+
+
+def test_search_filter_skips_unindexed_fields(monkeypatch):
+    monkeypatch.setattr(index, "indexed_fields", lambda name: frozenset({"kind", "type"}))
+    flt = index.search_filter("c", "description", {"type": ["cmd"], "topics": ["genomics"]})
+    assert [(c.key, getattr(c.match, "value", None) or c.match.any) for c in flt.must] == [
+        ("kind", "description"), ("type", ["cmd"])]
+    assert index.search_filter("c") is None

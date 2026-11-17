@@ -15,10 +15,13 @@ from __future__ import annotations
 import re
 import unicodedata
 from difflib import SequenceMatcher
+from typing import Dict, List, Optional
 
 from app.services.semantic_search.index import (
-    Hit, client, collection, encode, kind_filter, names_collection, to_hit,
+    Hit, client, collection, encode, names_collection, search_filter, to_hit,
 )
+
+Conditions = Optional[Dict[str, List[str]]]
 
 PAYLOAD = ["tool_id", "name", "kind", "text"]
 
@@ -39,20 +42,20 @@ def _name_bm25_options():
     )
 
 
-def dense_description(query: str, k: int = 10) -> list[Hit]:
+def dense_description(query: str, k: int = 10, conditions: Conditions = None) -> list[Hit]:
     """The k tools whose description is closest to the query, best first."""
     result = client().query_points(
         collection(),
         query=list(encode(query)),
         using="dense",
-        query_filter=kind_filter("description"),
+        query_filter=search_filter(collection(), "description", conditions),
         limit=k,
         with_payload=PAYLOAD,
     )
     return [to_hit(p) for p in result.points]
 
 
-def bm25_description(query: str, k: int = 10) -> list[Hit]:
+def bm25_description(query: str, k: int = 10, conditions: Conditions = None) -> list[Hit]:
     """The k tools whose description text best matches the query's words, best first."""
     from qdrant_client import models
 
@@ -60,14 +63,14 @@ def bm25_description(query: str, k: int = 10) -> list[Hit]:
         collection(),
         query=models.Document(text=query, model="qdrant/bm25"),
         using="bm25",
-        query_filter=kind_filter("description"),
+        query_filter=search_filter(collection(), "description", conditions),
         limit=k,
         with_payload=PAYLOAD,
     )
     return [to_hit(p) for p in result.points]
 
 
-def bm25_names(query: str, k: int = 10) -> list[Hit]:
+def bm25_names(query: str, k: int = 10, conditions: Conditions = None) -> list[Hit]:
     """The k tools whose name or labels best match the query's words, best first."""
     from qdrant_client import models
 
@@ -75,19 +78,20 @@ def bm25_names(query: str, k: int = 10) -> list[Hit]:
         names_collection(),
         query=models.Document(text=query, model="qdrant/bm25", options=_name_bm25_options()),
         using="bm25",
+        query_filter=search_filter(names_collection(), None, conditions),
         limit=k,
         with_payload=PAYLOAD,
     )
     return [to_hit(p) for p in result.points]
 
 
-def dense_queries(query: str, k: int = 10) -> list[Hit]:
+def dense_queries(query: str, k: int = 10, conditions: Conditions = None) -> list[Hit]:
     """The k tools with the synthetic query closest to this one; a tool scores as its best query."""
     result = client().query_points_groups(
         collection(),
         query=list(encode(query)),
         using="dense",
-        query_filter=kind_filter("synthetic_query"),
+        query_filter=search_filter(collection(), "synthetic_query", conditions),
         group_by="tool_id",
         group_size=1,
         limit=k,

@@ -22,7 +22,8 @@ from app.services.semantic_search.index import Hit, encode
 
 logger = logging.getLogger(__name__)
 
-RETRIEVERS: dict[str, Callable[[str, int], list[Hit]]] = {
+# (query, k, conditions) -> hits; conditions are {payload field: accepted values}.
+RETRIEVERS: dict[str, Callable[[str, int, dict | None], list[Hit]]] = {
     "dense_description": retrievers.dense_description,
     "bm25_description": retrievers.bm25_description,
     "bm25_names": retrievers.bm25_names,
@@ -92,16 +93,17 @@ def name_weights(query: str, rankings: dict[str, list[Hit]],
     return weights, boosts
 
 
-def run(query: str, depth: int = DEPTH) -> dict[str, list[Hit]]:
+def run(query: str, depth: int = DEPTH,
+        conditions: dict[str, list[str]] | None = None) -> dict[str, list[Hit]]:
     """
-    Each retriever's top `depth` tools, queried concurrently. A failing retriever is
+    Each retriever's top `depth` tools that meet `conditions`, queried concurrently. A failing retriever is
     logged and left out; if all fail, raises SearchUnavailable.
     """
     try:
         encode(query)  # once, before the two dense retrievers race to do it
     except Exception:
         logger.exception("semantic search: query encoding failed; dense retrievers will be skipped")
-    futures = {name: _pool.submit(fn, query, depth) for name, fn in RETRIEVERS.items()}
+    futures = {name: _pool.submit(fn, query, depth, conditions) for name, fn in RETRIEVERS.items()}
     rankings, errors = {}, {}
     for name, f in futures.items():
         try:
@@ -116,7 +118,8 @@ def run(query: str, depth: int = DEPTH) -> dict[str, list[Hit]]:
     return rankings
 
 
-def search(query: str, k: int = 10, depth: int = DEPTH) -> list[FusedHit]:
-    """The k best tools of the fused retrievers."""
-    rankings = run(query, depth)
+def search(query: str, k: int = 10, depth: int = DEPTH,
+           conditions: dict[str, list[str]] | None = None) -> list[FusedHit]:
+    """The k best tools of the fused retrievers, among those that meet `conditions`."""
+    rankings = run(query, depth, conditions)
     return fuse(rankings, k, RRF_K, *name_weights(query, rankings))
